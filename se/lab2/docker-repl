@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+docker run -it --rm -v `pwd`:/src kotlin-dev bash -c "cd /src; kotlinc-jvm -cp libs/Pokemon.jar"

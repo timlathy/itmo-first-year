@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+docker run -it --rm -v `pwd`:/src kotlin-dev bash -c "cd /src; gradle shadowJar"
+docker run -it --rm -v `pwd`:/src java:8-jdk bash -c "java -jar /src/build/libs/src-all.jar"
