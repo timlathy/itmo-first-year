@@ -4,6 +4,7 @@
 
 Run `./mkid` to set up your identity.
 
-## Creating new reports
+## Editing reports
 
-Run `./mkreport` to create a new report.
+Run `./mkreport` to create a new report,
+`./editreport` to open up Vim and GHCi for an existing report in a new terminal session.
