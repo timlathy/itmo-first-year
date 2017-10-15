@@ -6,6 +6,10 @@ import Data.List
 import Data.Function (on)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
+import Control.Arrow ((***))
+
+import Text.Printf
 
 import qualified Inf.Lab3Id as Id
 import ReportBase
@@ -65,14 +69,42 @@ reportTeX = do
         "Коэффициент сжатия определяется как отношение " >> textit "входного " >> "потока к " >> textit "выходному. "
         "Примем входной поток как исходное сообщение в кодировке UTF-16 " >> textit "(см. задание 3)," >> " тогда "
         math ("k = " >> (432 / 64) >> " = " >> (fromString . show) ((432 / 64) :: Float)) >> "."
+      
+      -- Shannon-Fano
+      let (latexTree, codeMap) = ((shannonFanoTree 27) . letterFrequency) Id.message
+          sortedChars = fst <$> (letterFrequency Id.message)
+          codeList = sortBy (compare `on` ((fromMaybe 0) . ((flip elemIndex) sortedChars) . fst)) (Map.toList codeMap)
+
       item Nothing <> do
         textit "Составить код Шеннона-Фано. При ветвлении использовать максимально равные вероятности (при альтернативе, т.е. при равных вероятностях 2 групп, разбивать текущую группу символов на 2 группы, содержащие одинаковое количество символов). Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> lnbreak (Mm 1) >> newline
         let (latexTree, codeMap) = ((shannonFanoTree 27) . letterFrequency) Id.message
-            codeRows = (flip mapM_) (Map.toList codeMap) (\(char, code) -> (fromString [char]) & (fromString code) >> lnbk >> hline)
+            codeRows = (flip mapM_) codeList (\(char, code) -> (fromString [char]) & (fromString code) >> lnbk >> hline)
         raw "\\resizebox{\\textwidth}{!}{" >> T.tree id latexTree >> raw "}" >> newline
         tabular Nothing [VerticalLine, ParColumnTop "3cm", VerticalLine, ParColumnTop "2cm", VerticalLine] $ do
           hline >> (textbf "Буква" & textbf "Код") >> lnbk >> hline
           codeRows
+        newline >> newline
+      item Nothing <> do
+        textit "Посчитать результирующий объём, коэффициент сжатия относительно исходного сообщения, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
+        let size = sum . ((\c -> length $ codeMap Map.! c) <$>) $ Id.message
+        "Объем сообщения составляет " <> fromIntegral size <> " бит. "
+        "Коэффициент сжатия = " <> (math
+          (432 / fromIntegral size) <> " " <> math (raw "\\approx") <> " "
+            <> (fromString $ printf "%0.3f" ((432 / fromIntegral size) :: Double))) <> "."
+        newline >> newline
+        let (kExpl, kRes) = codeWeigths (Map.fromList . letterFrequency $ Id.message) codeList
+        "Средняя длина кодового слова = " <> math (kExpl <> raw "\\approx" <> (fromString $ printf "%0.3f" (kRes :: Double)))
+      
+      item Nothing <> do
+        textit "Составить неоптимальный префиксный код (как в примере), подробно прокомментировать свои действия. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих."
+
+codeWeigths :: Fractional f => Map Char Int -> [(Char, String)] -> (LaTeXM (), f)
+codeWeigths freqs = ((mconcat . init) *** id) .
+  (foldr (\(c, code) (tex, sum) ->
+    let freq = freqs Map.! c
+        newTeX = (frac (fromIntegral freq) 27) : " * " : ((fromString . show . length) code) : " + " : tex
+        newSum = sum + ((fromIntegral freq) / 27) * (fromIntegral $ length code)
+     in (newTeX, newSum)) ([], 0))
 
 data LeafDirection = LLeft | LRight | LRoot;
 
