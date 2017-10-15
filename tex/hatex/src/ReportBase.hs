@@ -21,6 +21,11 @@ baseHeader = do
   -- Fonts
   usepackage [] "fontspec, unicode-math"
   setmainfont ["Ligatures=TeX"] "CMU Serif"
+  setmonofont [] "CMU Typewriter Text"
+  -- Proper quotes
+  usepackage [] "upquote"
+  -- Math alignment
+  usepackage ["fleqn"] "amsmath"
 
 baseTitlePage :: (LaTeXM (), LaTeXM (), LaTeXM ()) -> LaTeXM ()
 baseTitlePage (reportTitle, reportSubject, reportYear) =
@@ -38,5 +43,14 @@ baseTitlePage (reportTitle, reportSubject, reportYear) =
 setmainfont :: LaTeXC l => [l] -> String -> l
 setmainfont opts name = liftListL (\ls_ -> TeXComm "setmainfont" [MOptArg ls_ ,FixArg $ fromString name]) opts
 
+setmonofont :: LaTeXC l => [l] -> String -> l
+setmonofont opts name = liftListL (\ls_ -> TeXComm "setmonofont" [MOptArg ls_ ,FixArg $ fromString name]) opts
+
 lnbreak :: Measure -> LaTeXM ()
-lnbreak = (lnbk >>) . vspace 
+lnbreak = (lnbk >>) . vspace
+
+sectionstar :: LaTeXC l => l -> l
+sectionstar = comm1 "section*"
+
+flalignstar :: LaTeXC l => l -> l
+flalignstar = liftL $ TeXEnv "flalign*" []

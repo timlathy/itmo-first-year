@@ -1,4 +1,5 @@
 /.stack-work/
 
 /src/Identity/Student.hs
+/src/*/Lab*Id.hs
 /renders/
