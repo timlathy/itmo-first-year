@@ -72,31 +72,76 @@ reportTeX = do
       
       -- Shannon-Fano
       let (latexTree, codeMap) = ((shannonFanoTree 27) . letterFrequency) Id.message
-          sortedChars = fst <$> (letterFrequency Id.message)
-          codeList = sortBy (compare `on` ((fromMaybe 0) . ((flip elemIndex) sortedChars) . fst)) (Map.toList codeMap)
+          codeList = mapToSortedCodeList codeMap
 
       item Nothing <> do
         textit "Составить код Шеннона-Фано. При ветвлении использовать максимально равные вероятности (при альтернативе, т.е. при равных вероятностях 2 групп, разбивать текущую группу символов на 2 группы, содержащие одинаковое количество символов). Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> lnbreak (Mm 1) >> newline
-        let (latexTree, codeMap) = ((shannonFanoTree 27) . letterFrequency) Id.message
-            codeRows = (flip mapM_) codeList (\(char, code) -> (fromString [char]) & (fromString code) >> lnbk >> hline)
         raw "\\resizebox{\\textwidth}{!}{" >> T.tree id latexTree >> raw "}" >> newline
         tabular Nothing [VerticalLine, ParColumnTop "3cm", VerticalLine, ParColumnTop "2cm", VerticalLine] $ do
           hline >> (textbf "Буква" & textbf "Код") >> lnbk >> hline
-          codeRows
+          renderCodeRows codeList
         newline >> newline
       item Nothing <> do
         textit "Посчитать результирующий объём, коэффициент сжатия относительно исходного сообщения, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
-        let size = sum . ((\c -> length $ codeMap Map.! c) <$>) $ Id.message
-        "Объем сообщения составляет " <> fromIntegral size <> " бит. "
-        "Коэффициент сжатия = " <> (math
-          (432 / fromIntegral size) <> " " <> math (raw "\\approx") <> " "
-            <> (fromString $ printf "%0.3f" ((432 / fromIntegral size) :: Double))) <> "."
-        newline >> newline
-        let (kExpl, kRes) = codeWeigths (Map.fromList . letterFrequency $ Id.message) codeList
-        "Средняя длина кодового слова = " <> math (kExpl <> raw "\\approx" <> (fromString $ printf "%0.3f" (kRes :: Double)))
+        codeStats Id.message codeMap codeList
+     
+      let (prefixTree, prefixCodeMap) = suboptimalPrefixCode Id.message
+          prefixCodeList = mapToSortedCodeList prefixCodeMap
       
       item Nothing <> do
-        textit "Составить неоптимальный префиксный код (как в примере), подробно прокомментировать свои действия. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих."
+        textit "Составить неоптимальный префиксный код (как в примере), подробно прокомментировать свои действия. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> lnbreak (Mm 1) >> newline
+        tabular Nothing [VerticalLine, ParColumnTop "3cm", VerticalLine, ParColumnTop "4cm", VerticalLine] $ do
+          hline >> (textbf "Буква" & textbf "Код") >> lnbk >> hline
+          renderCodeRows prefixCodeList
+        landscapemode $ do
+          raw "\\begin{table}\\resizebox{0.8\\linewidth}{!}{" >> T.tree id prefixTree >> raw "}\\end{table}"
+
+      item Nothing <> do
+        textit "Посчитать результирующий объём, коэффициент сжатия, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
+        codeStats Id.message prefixCodeMap prefixCodeList
+
+codeStats :: String -> Map Char String -> [(Char, String)] -> LaTeXM ()
+codeStats msg codemap codelist = do
+  "Объем сообщения составляет " <> fromIntegral size <> " бит. "
+  "Коэффициент сжатия = " <> (math
+    (432 / fromIntegral size) <> " " <> math (raw "\\approx") <> " "
+      <> (fromString $ printf "%0.3f" ((432 / fromIntegral size) :: Double))) <> "."
+  newline >> newline
+  "Средняя длина кодового слова = " <> math (kExpl <> raw "\\approx" <> (fromString $ printf "%0.3f" (kRes :: Double)))
+  where
+    size = sum . ((\c -> length $ codemap Map.! c) <$>) $ msg
+    (kExpl, kRes) = codeWeigths (Map.fromList . letterFrequency $ msg) codelist
+
+mapToSortedCodeList :: Map Char String -> [(Char, String)]
+mapToSortedCodeList = (sortBy (compare `on` ((fromMaybe 0) . ((flip elemIndex) sortedChars) . fst))) . Map.toList
+  where
+    sortedChars = fst <$> (letterFrequency Id.message)
+
+renderCodeRows :: [(Char, String)] -> LaTeXM ()
+renderCodeRows = mapM_ (\(char, code) -> (fromString [char]) & (fromString code) >> lnbk >> hline)
+
+suboptimalPrefixCode :: String -> (T.Tree (LaTeXM ()), Map Char String)
+suboptimalPrefixCode msg = (go ([], Map.empty) . letterFrequency) msg
+  where
+    prob freq = frac (fromIntegral freq) (fromIntegral . length $ msg)
+    codepart [] = ""
+    codepart codes = textbf $ "[" <> fromString [last codes] <> "] "
+    go (codes, codemap) [(c, freq)] =
+      let newmap = Map.insert c codes codemap
+          leaf = T.Leaf leafCaption
+      in (leaf, newmap)
+      where
+        leafCaption = codepart codes <> fromString [c] <> lnbk <> math (prob freq)
+    go (codes, codemap) ts@(l:rs) =
+      let (rtree, rmap) = go (codes ++ "1", codemap) rs
+          (ltree, lmap) = go (codes ++ "0", codemap) [l]
+          umap = Map.union codemap (Map.union rmap lmap)
+          node = T.Node (Just nodeCaption) [rtree, ltree]
+      in (node, umap)
+      where
+        nodeCaption = codepart codes <> chars <> lnbk <> math ("(" <> probs <> ")")
+        chars = fromString $ reverse (fst <$> ts)
+        probs = mconcat $ intersperse " + " ((prob . snd) <$> ts)
 
 codeWeigths :: Fractional f => Map Char Int -> [(Char, String)] -> (LaTeXM (), f)
 codeWeigths freqs = ((mconcat . init) *** id) .
