@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+read -p "Student name: " name
+read -p "Group: " group
+
+echo "Creating an identity file for ${name}, ${group}"
+
+read -p "Is this correct (y/n)? " proceeding
+[ "${proceeding}" != "y" ] && [ "${proceeding}" != "Y" ] && exit 0
+
+cat <<EOF > "src/Identity/Student.hs"
+module Identity.Student where
+
+import Data.String (IsString)
+
+name :: IsString s => s
+name = "${name}"
+
+group :: IsString s => s
+group = "${group}"
+EOF

@@ -1,0 +1,20 @@
+name: hatex-reports
+version: 0.0.0
+synopsis: Lab reports
+description: Lab reports I wrote in HaTeX
+maintainer: thymelous
+license: OtherLicense
+github: thymelous/ifmo
+category: Education
+
+default-extensions:
+  - OverloadedStrings
+
+ghc-options: -Wall
+
+dependencies:
+  - base >= 4.7 && < 5
+  - HaTeX
+
+library:
+  source-dirs: src
