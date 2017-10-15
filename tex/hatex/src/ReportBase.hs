@@ -26,6 +26,10 @@ baseHeader = do
   usepackage [] "upquote"
   -- Math alignment
   usepackage ["fleqn"] "amsmath"
+  -- Trees
+  usepackage [] "qtree"
+  -- Landscape orientation env
+  usepackage [] "tikz"
 
 baseTitlePage :: (LaTeXM (), LaTeXM (), LaTeXM ()) -> LaTeXM ()
 baseTitlePage (reportTitle, reportSubject, reportYear) =
@@ -54,3 +58,6 @@ sectionstar = comm1 "section*"
 
 flalignstar :: LaTeXC l => l -> l
 flalignstar = liftL $ TeXEnv "flalign*" []
+
+landscapemode :: LaTeXC l => l -> l
+landscapemode = liftL $ TeXEnv "landscape" []
