@@ -29,7 +29,7 @@ baseHeader = do
   -- Trees
   usepackage [] "qtree"
   -- Landscape orientation env
-  usepackage [] "lscape"
+  usepackage [] "pdflscape"
   usepackage [] "tikz"
 
 baseTitlePage :: (LaTeXM (), LaTeXM (), LaTeXM ()) -> LaTeXM ()

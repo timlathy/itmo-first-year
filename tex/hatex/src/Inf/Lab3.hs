@@ -79,9 +79,7 @@ reportTeX = do
       item Nothing <> do
         textit "Составить код Шеннона-Фано. При ветвлении использовать максимально равные вероятности (при альтернативе, т.е. при равных вероятностях 2 групп, разбивать текущую группу символов на 2 группы, содержащие одинаковое количество символов). Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> lnbreak (Mm 1) >> newline
         raw "\\resizebox{\\textwidth}{!}{" >> T.tree id latexTree >> raw "}" >> newline
-        tabular Nothing [VerticalLine, ParColumnTop "3cm", VerticalLine, ParColumnTop "2cm", VerticalLine] $ do
-          hline >> (textbf "Буква" & textbf "Код") >> lnbk >> hline
-          renderCodeRows codeList
+        codeTable codeList (Map.fromList $ letterFrequency Id.message) 27
         newline >> newline
       item Nothing <> do
         textit "Посчитать результирующий объём, коэффициент сжатия относительно исходного сообщения, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
@@ -92,9 +90,7 @@ reportTeX = do
       
       item Nothing <> do
         textit "Составить неоптимальный префиксный код (как в примере), подробно прокомментировать свои действия. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> lnbreak (Mm 1) >> newline
-        tabular Nothing [VerticalLine, ParColumnTop "3cm", VerticalLine, ParColumnTop "4cm", VerticalLine] $ do
-          hline >> (textbf "Буква" & textbf "Код") >> lnbk >> hline
-          renderCodeRows prefixCodeList
+        codeTable prefixCodeList (Map.fromList $ letterFrequency Id.message) 27
         landscapemode $ do
           raw "\\begin{table}\\resizebox{0.8\\linewidth}{!}{" >> T.tree id prefixTree >> raw "}\\end{table}"
 
@@ -102,11 +98,16 @@ reportTeX = do
         textit "Посчитать результирующий объём, коэффициент сжатия, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
         codeStats Id.message prefixCodeMap prefixCodeList
     
+      let (_huffmanRes, _huffmanLog) = huffmanTable . letterFrequency $ Id.message
+      let huffmanLog = (splitOn [("", 0)] _huffmanLog) ++ [_huffmanRes]
+          (huffmanT, huffmanMap) = huffmanTree huffmanLog
+          huffmanCodeList = mapToSortedCodeList huffmanMap
+
       item Nothing <> do
-        textit "Составить код Хаффмана (использовать оптимальные префиксные коды), таблицу, характеризующую действия по построению кода. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> newline
-        let (res, log) = huffmanTable . letterFrequency $ Id.message
-        let llog = (splitOn [("", 0)] log) ++ [res]
-        raw "\\resizebox{\\textwidth}{!}{" >> T.tree id (huffmanTree llog) >> raw "}" >> newline
+        textit "Составить код Хаффмана (использовать оптимальные префиксные коды), таблицу, характеризующую действия по построению кода. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> lnbreak (Mm 1) >> newline
+        codeTable huffmanCodeList (Map.fromList $ letterFrequency Id.message) 27
+        lnbreak (Mm 4) >> newline
+        raw "\\resizebox{\\textwidth}{!}{" >> T.tree id huffmanT >> raw "}" >> newline
         newpage
         landscapemode $ do
           raw "\\begin{table}\\resizebox{\\linewidth}{!}{"
@@ -115,38 +116,52 @@ reportTeX = do
           tabular Nothing cols $ do
             hline >> textbf "П" & textbf "К" >>
               (mconcat $ replicate 14 (raw "&" >> textbf "П" & textbf "К")) >> lnbk >> hline
-            let llogrows = transpose llog
-            (flip mapM_) llogrows (\((lhs, lhf):lt) ->
+            let logrows = transpose huffmanLog
+            (flip mapM_) logrows (\((lhs, lhf):lt) ->
               (fromString lhs) & (fromIntegral lhf) >>
                   mapM_ (\(s, f) -> raw "&" >> (fromString s) & (fromIntegral f)) lt >> lnbk >> hline)
           raw "}\\end{table}"
+      
+      item Nothing <> do
+        textit "Посчитать результирующий объём, коэффициент сжатия, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
+        codeStats Id.message huffmanMap huffmanCodeList
 
-huffmanTree :: [[(String, Int)]] -> T.Tree (LaTeXM ())
+codeTable :: [(Char, String)] -> Map Char Int -> Int -> LaTeXM ()
+codeTable codelist freqmap msglen =
+  tabular Nothing [VerticalLine, ParColumnTop "0.5cm", VerticalLine, ParColumnTop "0.5cm", VerticalLine, ParColumnTop "3.2cm", VerticalLine] $ do
+    hline >> (textbf "Б" & textbf "В" & textbf "К") >> lnbk >> hline
+    mapM_ render codelist
+  where
+    render (char, code) = fromString [char] &
+      (math (fromIntegral (freqmap Map.! char) / fromIntegral msglen)) & fromString code >> lnbk >> hline
+
+huffmanTree :: [[(String, Int)]] -> (T.Tree (LaTeXM ()), Map Char String)
 huffmanTree table = let t@(r:_) = reverse table
                         [(lseq, _), (rseq, _)] = lastTwo r
                         seq = lseq ++ rseq
-                    in go [] seq t
+                    in go [] Map.empty seq t
   where
     lastTwo xs = drop (length xs - 2) xs
-    go :: String -> String -> [[(String, Int)]] -> T.Tree (LaTeXM ())
-    go codes [c] ([]:_) = T.Leaf $ leafCaption [last codes]
+    go :: String -> Map Char String -> String -> [[(String, Int)]] -> (T.Tree (LaTeXM ()), Map Char String)
+    go codes codemap [c] ([]:_) =
+      (T.Leaf $ leafCaption [last codes], Map.insert c codes codemap)
       where
         leafCaption code =
           textbf ("[" <> fromString code <> "] ") <> (fromString [c])
-    go codes [c] (r:rs) =
+    go codes codemap [c] (r:rs) =
       let [(lseq, _), (rseq, _)] = lastTwo r
-       in if [c] == lseq then T.Leaf $ leafCaption "1"
-          else if [c] == rseq then T.Leaf $ leafCaption "0"
-          else go codes [c] rs
+       in if [c] == lseq then (T.Leaf $ leafCaption "1", Map.insert c (codes ++ "1") codemap)
+          else if [c] == rseq then (T.Leaf $ leafCaption "0", Map.insert c (codes ++ "0") codemap)
+          else go codes codemap [c] rs
       where
         leafCaption code =
           textbf ("[" <> fromString code <> "] ") <> (fromString [c])
-    go codes cseq (r:rs) =
+    go codes codemap cseq (r:rs) =
       let [(lseq, _), (rseq, _)] = lastTwo r
-          lhs = go (codes ++ "1") lseq rs
-          rhs = go (codes ++ "0") rseq rs
-       in if cseq == lseq ++ rseq then T.Node (Just $ nodeCaption codes) [lhs, rhs]
-          else go codes cseq rs
+          (lhs, lmap) = go (codes ++ "1") codemap lseq rs
+          (rhs, rmap) = go (codes ++ "0") codemap rseq rs
+       in if cseq == lseq ++ rseq then (T.Node (Just $ nodeCaption codes) [lhs, rhs], Map.union lmap rmap)
+          else go codes codemap cseq rs
        where
          nodeCaption [] = fromString cseq
          nodeCaption codes =
@@ -181,9 +196,6 @@ mapToSortedCodeList :: Map Char String -> [(Char, String)]
 mapToSortedCodeList = (sortBy (compare `on` ((fromMaybe 0) . ((flip elemIndex) sortedChars) . fst))) . Map.toList
   where
     sortedChars = fst <$> (letterFrequency Id.message)
-
-renderCodeRows :: [(Char, String)] -> LaTeXM ()
-renderCodeRows = mapM_ (\(char, code) -> (fromString [char]) & (fromString code) >> lnbk >> hline)
 
 suboptimalPrefixCode :: String -> (T.Tree (LaTeXM ()), Map Char String)
 suboptimalPrefixCode msg = (go ([], Map.empty) . letterFrequency) msg
