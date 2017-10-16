@@ -10,6 +10,7 @@ import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Control.Arrow ((***))
 
+import Debug.Trace (trace)
 import Text.Printf
 
 import qualified Inf.Lab3Id as Id
@@ -105,7 +106,7 @@ reportTeX = do
         textit "Составить код Хаффмана (использовать оптимальные префиксные коды), таблицу, характеризующую действия по построению кода. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> newline
         let (res, log) = huffmanTable . letterFrequency $ Id.message
         let llog = (splitOn [("", 0)] log) ++ [res]
-        
+        raw "\\resizebox{\\textwidth}{!}{" >> T.tree id (huffmanTree llog) >> raw "}" >> newline
         newpage
         landscapemode $ do
           raw "\\begin{table}\\resizebox{\\linewidth}{!}{"
@@ -119,10 +120,37 @@ reportTeX = do
               (fromString lhs) & (fromIntegral lhf) >>
                   mapM_ (\(s, f) -> raw "&" >> (fromString s) & (fromIntegral f)) lt >> lnbk >> hline)
           raw "}\\end{table}"
-  --        tabular Nothing [VerticalLine, ParColumnTop "1cm", VerticalLine, ParColumnTop "1cm", VerticalLine] $ do
---          hline >> (textbf "П" & textbf "К") >> lnbk >> hline
-          
-        --mconcat $ (mapM_ (\(s, f) -> fromString s >> " " >> fromIntegral f >> newline)) <$> log
+
+huffmanTree :: [[(String, Int)]] -> T.Tree (LaTeXM ())
+huffmanTree table = let t@(r:_) = reverse table
+                        [(lseq, _), (rseq, _)] = lastTwo r
+                        seq = lseq ++ rseq
+                    in go [] seq t
+  where
+    lastTwo xs = drop (length xs - 2) xs
+    go :: String -> String -> [[(String, Int)]] -> T.Tree (LaTeXM ())
+    go codes [c] ([]:_) = T.Leaf $ leafCaption [last codes]
+      where
+        leafCaption code =
+          textbf ("[" <> fromString code <> "] ") <> (fromString [c])
+    go codes [c] (r:rs) =
+      let [(lseq, _), (rseq, _)] = lastTwo r
+       in if [c] == lseq then T.Leaf $ leafCaption "1"
+          else if [c] == rseq then T.Leaf $ leafCaption "0"
+          else go codes [c] rs
+      where
+        leafCaption code =
+          textbf ("[" <> fromString code <> "] ") <> (fromString [c])
+    go codes cseq (r:rs) =
+      let [(lseq, _), (rseq, _)] = lastTwo r
+          lhs = go (codes ++ "1") lseq rs
+          rhs = go (codes ++ "0") rseq rs
+       in if cseq == lseq ++ rseq then T.Node (Just $ nodeCaption codes) [lhs, rhs]
+          else go codes cseq rs
+       where
+         nodeCaption [] = fromString cseq
+         nodeCaption codes =
+           textbf ("[" <> fromString [last codes] <> "] ") <> fromString cseq
 
 huffmanTable :: [(Char, Int)] -> ([(String, Int)], [(String, Int)])
 huffmanTable = ((flip go) []) . (((flip (:) []) *** id) <$>)
