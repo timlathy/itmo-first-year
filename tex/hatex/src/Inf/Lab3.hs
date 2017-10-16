@@ -3,6 +3,7 @@
 module Inf.Lab3 where
 
 import Data.List
+import Data.List.Split
 import Data.Function (on)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -99,6 +100,42 @@ reportTeX = do
       item Nothing <> do
         textit "Посчитать результирующий объём, коэффициент сжатия, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
         codeStats Id.message prefixCodeMap prefixCodeList
+    
+      item Nothing <> do
+        textit "Составить код Хаффмана (использовать оптимальные префиксные коды), таблицу, характеризующую действия по построению кода. Обязательно составить дерево, таблицу соответствия исходных слов и результирующих." >> newline
+        let (res, log) = huffmanTable . letterFrequency $ Id.message
+        let llog = (splitOn [("", 0)] log) ++ [res]
+        
+        newpage
+        landscapemode $ do
+          raw "\\begin{table}\\resizebox{\\linewidth}{!}{"
+          let colf n size = concat $ replicate n [VerticalLine, ParColumnTop size, VerticalLine, ParColumnTop "0.5cm"]
+          let cols = (colf 7 "0.7cm" ++ colf 5 "1.2cm" ++ colf 1 "2.2cm" ++ colf 2 "3.5cm") ++ [VerticalLine]
+          tabular Nothing cols $ do
+            hline >> textbf "П" & textbf "К" >>
+              (mconcat $ replicate 14 (raw "&" >> textbf "П" & textbf "К")) >> lnbk >> hline
+            let llogrows = transpose llog
+            (flip mapM_) llogrows (\((lhs, lhf):lt) ->
+              (fromString lhs) & (fromIntegral lhf) >>
+                  mapM_ (\(s, f) -> raw "&" >> (fromString s) & (fromIntegral f)) lt >> lnbk >> hline)
+          raw "}\\end{table}"
+  --        tabular Nothing [VerticalLine, ParColumnTop "1cm", VerticalLine, ParColumnTop "1cm", VerticalLine] $ do
+--          hline >> (textbf "П" & textbf "К") >> lnbk >> hline
+          
+        --mconcat $ (mapM_ (\(s, f) -> fromString s >> " " >> fromIntegral f >> newline)) <$> log
+
+huffmanTable :: [(Char, Int)] -> ([(String, Int)], [(String, Int)])
+huffmanTable = ((flip go) []) . (((flip (:) []) *** id) <$>)
+  where
+    go :: [(String, Int)] -> [(String, Int)] -> ([(String, Int)], [(String, Int)])
+    go [u, l] _ = let branch = sorted [u, l] in (branch, [])
+    go freqs log =
+      let (upper, [(s1, f1), (s2, f2)]) = (splitWithLastTwo . sorted) freqs
+          (branch, bfreqs) = ((flip go) log) $ (s1 ++ s2, f1 + f2) : upper
+          llog = log ++ [("", 0)] ++ sorted freqs ++ bfreqs
+      in (branch, llog)
+    splitWithLastTwo xs = splitAt (length xs - 2) xs
+    sorted = sortBy ((flip compare) `on` snd)
 
 codeStats :: String -> Map Char String -> [(Char, String)] -> LaTeXM ()
 codeStats msg codemap codelist = do
