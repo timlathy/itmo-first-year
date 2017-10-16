@@ -10,7 +10,6 @@ import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Control.Arrow ((***))
 
-import Debug.Trace (trace)
 import Text.Printf
 
 import qualified Inf.Lab3Id as Id
@@ -47,10 +46,15 @@ reportTeX = do
           flalignstar (raw "&" >> "-" >> raw "\\sum_{i=1}^N p_i * \\log_2 p_i" >> raw "&")
           "При " >> math "N = 16" >> ", длине сообщения, равной 27, и частоте встречаемости букв, приведенной в таблице, получаем:"
           flalignstar $ do
-            raw "&" >> raw "p_{1..3} = " >> frac 3 27 >> quad >> raw "p_{1..3} * log_2 p_{1..3} \\approx -0.35" >> lnbk
-            raw "&" >> raw "p_{4..9} = " >> frac 2 27 >> quad >> raw "p_{4..9} * log_2 p_{4..9} \\approx -0.28" >> lnbk
-            raw "&" >> raw "p_{10..16} = " >> frac 1 27 >> quad >> raw "p_{10..16} * log_2 p_{10..16} \\approx -0.18" >> lnbreak (Mm 4)
-            raw "&" >> raw "i \\approx 3.99" >> raw "&"
+            let p = fromString . (printf "%0.4f")
+            let r1 = ((3 / 27) * logBase 2 (3 / 27) :: Double)
+            let r2 = ((2 / 27) * logBase 2 (2 / 27) :: Double)
+            let r3 = ((1 / 27) * logBase 2 (1 / 27) :: Double)
+            let i = abs (r1 * 3 + r2 * 5 + r3 * 8)
+            raw "&" >> raw "p_{1..3} = " >> frac 3 27 >> quad >> raw "p_{1..3} * log_2 p_{1..3} \\approx " >> p r1 >> lnbk
+            raw "&" >> raw "p_{4..8} = " >> frac 2 27 >> quad >> raw "p_{4..9} * log_2 p_{4..9} \\approx " >> p r2 >> lnbk
+            raw "&" >> raw "p_{9..16} = " >> frac 1 27 >> quad >> raw "p_{10..16} * log_2 p_{10..16} \\approx " >> p r3 >> lnbreak (Mm 4)
+            raw "&" >> raw "i \\approx " >> p i >> raw "&"
       item Nothing <> do
         textit "Записать полученную последовательность в одну строку, посчитать её размер, учитывая, что для хранения используется кодировка UTF-16, т.е. на 1 символ необходимо 2 байта." >> lnbreak (Mm 1) >> newline
         texttt (fromString Id.message) >> ", длина строки = 27, размер = " >> math "27 * 2 = 54" >> " байта, или 432 бита."
@@ -125,6 +129,12 @@ reportTeX = do
       item Nothing <> do
         textit "Посчитать результирующий объём, коэффициент сжатия, средную длину кодового слова." >> lnbreak (Mm 1) >> newline
         codeStats Id.message huffmanMap huffmanCodeList
+    
+    newpage
+    sectionstar "Выводы"
+    "В ходе работы я рассмотрел основные способы кодирования данных и реализацию базовых алгоритмов. Наименее эффективным способом оказался неоптимальный префиксный код, наиболее эффективным -- алгоритм Хаффмана." >> newline
+    "Самым простым в реализации, на мой взгляд, был код фиксированной длины; интересно то, что он оказался достаточно оптимальным для моих исходных данных: количество уникальных букв в сообщении составило 16 (" <> raw "$2^4$" >> "), что соответствует кодовому слову длиной 4 бита." >> newline
+    "Я нашел алгоритм построения кодовой таблицы по Хаффману немногим сложнее в реализации алгоритма Шеннона-Фано, и, учитывая то, что первый обладает лучшими показателями эффективности, я считаю его наиболее подходящим для практического приминения из мною рассмотренных."
 
 codeTable :: [(Char, String)] -> Map Char Int -> Int -> LaTeXM ()
 codeTable codelist freqmap msglen =
