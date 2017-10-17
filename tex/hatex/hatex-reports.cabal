@@ -34,5 +34,6 @@ library
       Identity.Student
       Inf.Lab3
       Inf.Lab3Id
+      LaTeXHelpers
       ReportBase
   default-language: Haskell2010
