@@ -30,7 +30,9 @@ library
     , split
     , containers
   exposed-modules:
+      CS.Lab3
       DM.Coursework
+      DM.Logic
       Identity.Institution
       Identity.Student
       Inf.Lab3

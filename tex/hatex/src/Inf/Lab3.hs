@@ -25,7 +25,7 @@ reportTeX :: LaTeXM ()
 reportTeX = do
   baseHeader
   document $ do
-    baseTitlePage ("ЛАБОРАТОРНАЯ РАБОТА №3", "Информатика", "2017 г.")
+    baseTitlePage ("ЛАБОРАТОРНАЯ РАБОТА №3", "Информатика", Nothing, "2017 г.")
     sectionstar "Цель работы"
     "Овладеть навыками представления данных в различных кодировках."
     sectionstar "Задания"

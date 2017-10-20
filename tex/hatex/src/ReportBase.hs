@@ -20,6 +20,8 @@ baseHeader = do
   usepackage [] "fontspec, unicode-math"
   setmainfont ["Ligatures=TeX"] "CMU Serif"
   setmonofont [] "CMU Typewriter Text"
+  -- Russian language support
+  usepackage ["english", "russian"] "babel"
   -- Proper quotes
   usepackage [] "upquote"
   -- Math alignment
@@ -32,14 +34,22 @@ baseHeader = do
   usepackage [] "pdflscape"
    -- Always indent the first paragraph
   usepackage [] "indentfirst"
+  -- Images
+  usepackage [] "graphicx"
+  -- Tables
+  usepackage [] "multirow"
 
-baseTitlePage :: (LaTeXM (), LaTeXM (), LaTeXM ()) -> LaTeXM ()
-baseTitlePage (reportTitle, reportSubject, reportYear) =
+baseTitlePage :: (LaTeXM (), LaTeXM (), Maybe (LaTeXM ()), LaTeXM ()) -> LaTeXM ()
+baseTitlePage (reportTitle, reportSubject, reportComment, reportYear) =
   environment "titlepage" $ do
     center $ do
       textsc (Institution.name >> lnbreak (Mm 4) >> Institution.department)
       vfill
-      textbf (reportTitle >> lnbreak (Mm 2) >> reportSubject) >> lnbreak (Mm 20)
+      textbf (reportTitle >> lnbreak (Mm 2) >> reportSubject >> optionalComment) >> lnbreak (Mm 20)
       Student.name >> lnbreak (Mm 2) >> Student.group
       vfill
       Institution.location >> lnbreak (Mm 2) >> reportYear
+  where
+    optionalComment = case reportComment of
+      Just rComment -> lnbreak (Mm 4) >> rComment
+      Nothing -> mempty
