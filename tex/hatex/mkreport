@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 
 read -p "Class (SE, CS, Inf): " class
-read -p "Lab # (e.g. 1): " lab_id
+read -p "Report name (e.g. Lab1): " report
 
-echo "Creating a report for ${class} Lab${lab_id}"
+echo "Creating a report for ${class} ${report}"
 
 read -p "Is this correct (y/n)? " proceeding
 [ "${proceeding}" != "y" ] && [ "${proceeding}" != "Y" ] && exit 0
 
 mkdir -p "src/${class}"
 
-cat <<EOF > "src/${class}/Lab${lab_id}.hs"
-module ${class}.Lab${lab_id} where
+cat <<EOF > "src/${class}/${report}.hs"
+module ${class}.${report} where
 
 import ReportBase
 
 writeReport :: IO ()
-writeReport = renderFile "./renders/${class}-Lab${lab_id}.tex" (execLaTeXM reportTeX)
+writeReport = renderFile "./renders/${class}-${report}.tex" (execLaTeXM reportTeX)
 
 reportTeX :: LaTeXM ()
 reportTeX = do
   baseHeader
   document $ do
     -- TODO: change the subject
-    baseTitlePage ("ЛАБОРАТОРНАЯ РАБОТА №${lab_id}", "Предмет", "2017 г.")
+    baseTitlePage ("Работа", "Предмет", "2017 г.")
     -- ...
 EOF

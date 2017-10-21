@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
 read -p "Class (SE, CS, Inf): " class
-read -p "Lab # (e.g. 1): " lab_id
+read -p "Report name (e.g. Lab1): " report
 
-if [ ! -f ./src/${class}/Lab${lab_id}.hs ]; then
-    echo Lab report does not exist, use ./mkreport to create it
+if [ ! -f ./src/${class}/${report}.hs ]; then
+    echo Report does not exist, use ./mkreport to create it
     exit
 fi
 
 xelatex_bin=~/.texlive/bin/x86_64-linux/xelatex
 
-report_id=${class}-Lab${lab_id}
+report_id=${class}-${report}
 report_tex_file=${report_id}.tex
 
 touch ./renders/${report_tex_file}
 
 gnome-terminal \
-  --tab --working-directory="`pwd`" -e "vim src/${class}/Lab${lab_id}.hs" \
+  --tab --working-directory="`pwd`" -e "vimx src/${class}/${report}.hs" \
   --tab --working-directory="`pwd`" --title="${report_id} GHCi" -e "stack ghci" \
   --tab --working-directory="`pwd`/renders" --title="${report_id} TeX Runner" \
     -e "bash -c \"while inotifywait -e close_write ${report_tex_file}; do ${xelatex_bin} ${report_tex_file}; done\""
