@@ -54,3 +54,19 @@ multirow colspan widthm = liftL $ \t -> TeXComm "multirow" [ FixArg $ TeXRaw $ r
     width = case widthm of
       Just m -> render m
       Nothing -> "*"
+
+-- Source: https://tex.stackexchange.com/a/364929
+defineWidebar :: LaTeXM ()
+defineWidebar = raw "\\DeclareFontFamily{U}{mathx}{\\hyphenchar\\font45}\
+                    \\\DeclareFontShape{U}{mathx}{m}{n}{ <-> mathx10 }{}\
+                    \\\DeclareSymbolFont{mathx}{U}{mathx}{m}{n}\
+                    \\\DeclareFontSubstitution{U}{mathx}{m}{n}\
+                    \\\DeclareMathAccent{\\widebar}{\\mathalpha}{mathx}{\"73}\
+                    \\\makeatletter\
+                    \\\newcommand{\\cwidebar}[2][0]{{\\mathpalette\\@cwidebar{{#1}{#2}}}}\
+                    \\\newcommand{\\@cwidebar}[2]{\\@cwideb@r{#1}#2}\
+                    \\\newcommand{\\@cwideb@r}[3]{%\n\
+                      \\\sbox\\z@{$\\m@th#1\\mkern-#2mu#3\\mkern#2mu$}%\n\
+                      \\\widebar{\\box\\z@}%\n\
+                    \}\
+                    \\\makeatother"

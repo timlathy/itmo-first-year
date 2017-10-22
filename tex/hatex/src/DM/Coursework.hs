@@ -1,5 +1,7 @@
 module DM.Coursework where
 
+import Text.LaTeX.Packages.AMSMath (math)
+
 import ReportBase
 import DM.Logic
 import DM.CourseworkTruthTable
@@ -10,6 +12,7 @@ writeReport = renderFile "./renders/DM-Coursework.tex" (execLaTeXM reportTeX)
 reportTeX :: LaTeXM ()
 reportTeX = do
   baseHeader
+  defineWidebar
   document $ do
     baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 60", "2017 г.")
     sectionstar "Функция"
@@ -17,4 +20,6 @@ reportTeX = do
     mt "f=d" <> ", когда истинно " <> mt "|x_5x_1x_2 - x_4x_3| = 0, 5"
     sectionstar "Таблица истинности"
     truthTableTeX
-
+    sectionstar "Нормальные формы"
+    "КДНФ: " <> (math . rendertex . sumOfProducts) truthTable <> parbreak
+    "ККНФ: " <> (math . rendertex . productOfSums) truthTable <> parbreak
