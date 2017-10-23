@@ -1,0 +1,23 @@
+; Once this program terminates, only 4 non-null cells remain:
+; 7FE, HLT
+; 7FF, MOV (001)
+; 000, BR 7FE
+; 001, F7FD
+
+ORG 7FC
+
+BEGIN: CLA           ; 7FC
+LOOP:  ISZ CELLPRT   ; 7FD
+       HLT           ; 7FE, always skipped by ISZ because CELLPTR is negative
+       MOV (CELLPRT) ; 7FF
+
+; The next cell after 7FF is 000.
+ORG 000
+_EXEC_AFTER_MOV: BR LOOP
+
+; When CELLPTR reaches 7FD, MOV will overwrite the latter
+; with 0000 (that is, ISZ _EXEC_AFTER_MOV).
+; When executed, it changes _EXEC_AFTER_MOV to point to HLT.
+
+ORG 001
+CELLPTR: WORD F000

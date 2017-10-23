@@ -1,0 +1,28 @@
+; Once this program terminates, only 3 non-null cells remain:
+; 002, 3803 - MOV (003)
+; 003, A000 - BMI (000)
+; 004, F000 - HLT
+
+ORG 7FF
+BEGIN: CLA
+
+ORG 000
+ISZ 003   ; 000
+WORD 0000 ; always out of reach
+MOV (003) ; 002
+BPL (004) ; 003
+HLT       ; 004
+
+; The idea is to use BPL as a CELLPTR for MOV;
+; after MOV is executed, the cell it points to contains 0000,
+; so it branches back to 000.
+
+; Let's walk through the last two iterations:
+; 1. ISZ 003 sets BPL to 9FFF, i.e. BPL (7FF)
+; 2. MOV (003) overwrites 7FF with 0000
+; 3. BPL (7FF) branches to 000, since 7FF is set to 0000
+; ---
+; 4. ISZ 003 sets BPL to A000, i.e. BMI (000)
+; 5. MOV (003) overwrites 000 with 0000
+; 6. BMI does not branch since the accumulator is not negative,
+; we fall through to the next instruction, which is HLT.
