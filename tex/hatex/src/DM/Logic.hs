@@ -18,6 +18,8 @@ data BoolTerm = And [BoolTerm]
 data BoolFuncValue = T | F | D
   deriving (Eq)
 
+type BoolTruthTable = [([Bool], BoolFuncValue)]
+
 -- ! This code assumes @LaTeXHelpers.defineWidebar@ is included in the document.
 instance Render BoolTerm where
   render (And [term]) = render term
@@ -35,18 +37,36 @@ instance Show BoolFuncValue where
   show D = "d"
 
 --
--- Functions
+-- Canonical normal forms
 --
 
-sumOfProducts :: [([Bool], BoolFuncValue)] -> BoolTerm
-sumOfProducts = Or . (minterms . fst <$>) . filter ((== T) . snd)
-  where
-    minterms = And . (zipWith (\i truthy -> if truthy then X i else Not (X i)) [1..])
+sumOfProducts :: BoolTruthTable -> BoolTerm
+sumOfProducts = Or . minterms
 
-productOfSums :: [([Bool], BoolFuncValue)] -> BoolTerm
-productOfSums = And . (maxterms . fst <$>) . filter ((== F) . snd)
+productOfSums :: BoolTruthTable -> BoolTerm
+productOfSums = And . maxterms
+
+minterms :: BoolTruthTable -> [BoolTerm]
+minterms = ((And . argsToVarterms) <$>) . (selectArgs (== T))
+
+maxterms :: BoolTruthTable -> [BoolTerm]
+maxterms = ((Or . argsToVarterms) <$>) . (selectArgs (== F))
+
+dontcareminterms :: BoolTruthTable -> [BoolTerm]
+dontcareminterms = ((Or . argsToVarterms) <$>) . (selectArgs (== D))
+
+selectArgs :: (BoolFuncValue -> Bool) -> BoolTruthTable -> [[Bool]]
+selectArgs p = (fst <$>) . (filter (p . snd))
+
+argsToVarterms :: [Bool] -> [BoolTerm]
+argsToVarterms = zipWith complementTerm [1..]
   where
-    maxterms = Or . (zipWith (\i falsy -> if falsy then X i else Not (X i)) [1..])
+    complementTerm i True = X i
+    complementTerm i False = Not $ X i
+
+--
+-- Utils
+--
 
 evalTerm :: [Bool] -> BoolTerm -> Bool
 evalTerm inputs (X i) = inputs !! (i - 1)

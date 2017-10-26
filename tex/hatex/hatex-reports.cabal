@@ -34,6 +34,7 @@ library
       DM.Coursework
       DM.CourseworkTruthTable
       DM.Logic
+      DM.QuineMcCluskey
       Identity.Institution
       Identity.Student
       Inf.Lab3
