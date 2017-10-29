@@ -3,7 +3,7 @@ module Inf.Lab4 where
 import ReportBase
 
 import Data.List (intersperse)
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import Text.LaTeX.Packages.Graphicx
 import Text.LaTeX.Packages.AMSMath
 
@@ -47,14 +47,15 @@ reportTeX = do
           forM_ messages (\(Message n rs is) -> trow $ fromIntegral <$>
             [n, rs !! 0, rs !! 1, is !! 0, rs !! 2, is !! 1, is !! 2, is !! 3])
       item Nothing <> do
-        textit "Показать, имеются ли в принятых сообщениях ошибки, и если имеются, то какие." >> lnbk >> newline
+        textit "Показать, имеются ли в принятых сообщениях ошибки, и если имеются, то какие. Написать правильные сообщения." >> lnbk >> newline
         "Рассмотрим синдромы " <> mt "s_1, s_2, s_3" <> " каждой последовательности, вычисляемые как:"
         flalignstar $ do
           raw "s_1 &= r_1 \\oplus i_1 \\oplus i_2 \\oplus i_4" >> lnbk
           raw "s_2 &= r_2 \\oplus i_1 \\oplus i_3 \\oplus i_4" >> lnbk
           raw "s_3 &= r_3 \\oplus i_2 \\oplus i_3 \\oplus i_4&"
+        newpage
         forM_ messages (\(Message n rs is) -> do
-          textbf $ "Сообщение " <> (fromIntegral n) >> newline
+          parbreak >> textbf ("Сообщение " <> (fromIntegral n)) >> newline
           analyze7BitMessage rs is >> newline)
 
 analyze7BitMessage :: [R] -> [I] -> LaTeXM ()
@@ -66,8 +67,12 @@ analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
       (mconcat $ fromIntegral <$> sums) <> "),  равно " <> fromIntegral sumsDec
       <> ", что указывает на " <> if sumsDec == 0
         then "отсутствие ошибки."
-        else "ошибку в " <> fromIntegral sumsDec <> " бите, которым является "
+        else "ошибку " <> locWithPrep sumsDec <> " бите, которым является "
           <> (bitLabels !! (sumsDec - 1)) <> "."
+  when (sumsDec /= 0) $ do
+    newline
+    "Получим правильное сообщение, инвертировав ошибочный бит: "
+    highlightErr sourceMessage <> raw " \\rightarrow$\\!$ " <> highlightErr correctedMessage
     where
       equationLine (n, eq) = mt ("s_" <> fromString [n] <> "=") <> " " <> eq <> newline
       equations = eqn <$> zip addends sums
@@ -80,6 +85,17 @@ analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
       sums = sumMod2 <$> addends
       sumsDec = bitsToDec sums
       bitLabels = mt <$> ["r_1", "r_2", "i_1", "r_3", "i_2", "i_3", "i_4"]
+      sourceMessage = [r1, r2, i1, r3, i2, i3, i4]
+      correctedMessage =
+        let m = sourceMessage
+            pos = sumsDec - 1
+        in take pos m ++ complement (m !! pos) : drop (pos + 1) m
+      highlightErr m =
+        let mtext = fromIntegral <$> m
+            pos = sumsDec - 1
+        in mconcat $ take pos mtext ++ textbf (mtext !! pos) : drop (pos + 1) mtext
+      complement 1 = 0
+      complement 0 = 1
 
 bitsToDec :: [Int] -> Int
 bitsToDec = (foldr digitToPower 0) . (zip powers) . reverse
@@ -87,3 +103,12 @@ bitsToDec = (foldr digitToPower 0) . (zip powers) . reverse
     digitToPower (pow, d) = (+ d * 2^pow)
     powers :: [Int]
     powers = [0..]
+
+locWithPrep :: Int -> LaTeXM ()
+locWithPrep 1 = "в первом"
+locWithPrep 2 = "во втором"
+locWithPrep 3 = "в третьем"
+locWithPrep 4 = "в четвертом"
+locWithPrep 5 = "в пятом"
+locWithPrep 6 = "в шестом"
+locWithPrep 7 = "в седьмом"
