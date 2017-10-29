@@ -36,7 +36,7 @@ reportTeX = do
       item Nothing <> do
         textit "Построить схему декодирования классического кода Хэмминга (7;4)." >> lnbk
         raw "\\begin{figure}[h]\\centering"
-        includegraphics [IGWidth (Cm 18)] "../src/Inf/Lab4Schematics.pdf"
+        includegraphics [IGWidth (Cm 18)] "../src/Inf/Lab4Circuit7b.pdf"
         raw "\\end{figure}"
       item Nothing <> do
         textit "Выписать последовательности 7-символьного кода, соответствующие варианту работы." >> lnbk >> newline
@@ -62,6 +62,12 @@ reportTeX = do
         raw "\\begin{figure}[h]\\centering" 
         includegraphics [IGWidth (Cm 13.6)] "../src/Inf/Lab4Diagram7b.pdf"
         raw "\\end{figure}"
+      item Nothing <> do
+        textit "Построить схему декодирования классического кода Хэмминга (15;11)."
+        raw "\\begin{figure}[h]\\centering"
+        includegraphics [IGWidth (Cm 19)] "../src/Inf/Lab4Circuit15b.pdf"
+        raw "\\end{figure}"
+
 
 analyze7BitMessage :: [R] -> [I] -> LaTeXM ()
 analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
