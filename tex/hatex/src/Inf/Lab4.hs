@@ -35,7 +35,7 @@ reportTeX = do
     enumerate $ do
       item Nothing <> do
         textit "Построить схему декодирования классического кода Хэмминга (7;4)." >> lnbk
-        raw "\\begin{figure}[h]" 
+        raw "\\begin{figure}[h]\\centering"
         includegraphics [IGWidth (Cm 18)] "../src/Inf/Lab4Schematics.pdf"
         raw "\\end{figure}"
       item Nothing <> do
@@ -57,6 +57,11 @@ reportTeX = do
         forM_ messages (\(Message n rs is) -> do
           parbreak >> textbf ("Сообщение " <> (fromIntegral n)) >> newline
           analyze7BitMessage rs is >> newline)
+      item Nothing <> do
+        textit "С помощью кругов Эйлера объяснить построение классического кода Хэмминга (7;4)." >> lnbk >> newline
+        raw "\\begin{figure}[h]\\centering" 
+        includegraphics [IGWidth (Cm 13.6)] "../src/Inf/Lab4Diagram7b.pdf"
+        raw "\\end{figure}"
 
 analyze7BitMessage :: [R] -> [I] -> LaTeXM ()
 analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
