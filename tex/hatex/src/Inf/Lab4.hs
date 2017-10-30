@@ -21,6 +21,9 @@ messages = [ Message 36 [1, 0, 0] [0, 0, 1, 0]
            , Message 90 [0, 1, 0] [1, 1, 1, 0]
            , Message 5 [0, 1, 1] [0, 0, 0, 0] ]
 
+message15b :: Message
+message15b = Message 41 [0, 1, 1, 1] [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0]
+
 sumMod2 :: [Int] -> Int
 sumMod2 = ((flip mod) 2) . sum
 
@@ -50,9 +53,7 @@ reportTeX = do
         textit "Показать, имеются ли в принятых сообщениях ошибки, и если имеются, то какие. Написать правильные сообщения." >> lnbk >> newline
         "Рассмотрим синдромы " <> mt "s_1, s_2, s_3" <> " каждой последовательности, вычисляемые как:"
         flalignstar $ do
-          raw "s_1 &= r_1 \\oplus i_1 \\oplus i_2 \\oplus i_4" >> lnbk
-          raw "s_2 &= r_2 \\oplus i_1 \\oplus i_3 \\oplus i_4" >> lnbk
-          raw "s_3 &= r_3 \\oplus i_2 \\oplus i_3 \\oplus i_4&"
+          syndromeEqs 7 >> raw "&"
         newpage
         forM_ messages (\(Message n rs is) -> do
           parbreak >> textbf ("Сообщение " <> (fromIntegral n)) >> newline
@@ -67,7 +68,41 @@ reportTeX = do
         raw "\\begin{figure}[h]\\centering"
         includegraphics [IGWidth (Cm 19)] "../src/Inf/Lab4Circuit15b.pdf"
         raw "\\end{figure}"
+      item Nothing <> do
+        textit "Выписать последовательность 15-символьного кода, соответствующую варианту работы." >> lnbk >> newline
+        borderedtable [(CenterColumn, 15)] $ do
+          hline
+          tfreerow $ fmap (textbf . fromIntegral) [1..15]
+          trow $ fmap mt [ "r_1", "r_2", "i_1", "r_3", "i_2", "i_3", "i_4", "r_4"
+                         , "i_5", "i_6", "i_7", "i_8", "i_9", "i_{10}", "i_{11}"]
+          let (Message _ rs is) = message15b
+          trow $ fromIntegral <$>
+            [ rs !! 0, rs !! 1, is !! 0, rs !! 2, is !! 1, is !! 2, is !! 3, rs !! 3
+            , is !! 4, is !! 5, is !! 6, is !! 7, is !! 8, is !! 9, is !! 10]
+      item Nothing <> do
+        textit "Показать, имеются ли в принятом сообщении ошибки, и если имеются, то какие. Написать правильное сообщение." >> lnbk >> newline
+        "Рассмотрим синдромы последовательности " <> mt "s_1, s_2, s_3, s_4" <> ", вычисляемые как:"
+        flalignstar $ do
+          syndromeEqs 15 >> raw "&"
 
+syndromeEqs :: Int -> LaTeXM ()
+syndromeEqs blen = mapM_ ((<> lnbk) . eq) [1..(pnum - 1)] <> eq pnum <> raw "&"
+  where
+    eq s = raw ("s_{" <> stext <> "} &= ") <>
+      raw (mconcat $ intersperse " \\oplus " (("r_{" <> stext <> "}") : namedAddends s))
+      where
+        stext = fromString (show s)
+    namedAddends = ((\a -> "i_{" <> fromString (show a) <> "}") <$>) . addends
+    addends n = filter (coveredByP n) [1..inum]
+    coveredByP n i = ((/= 0) . sum) $ bitwiseAnd (decToBits (ppos n)) (decToBits (ipos i))
+    inum = blen - pnum
+    pnum = round (logBase 2 (fromIntegral (blen + 1)))
+    ppos n = 2^(n - 1)
+    ipos 1 = 3
+    ipos i = case ipos (i - 1) of
+               pos | pow2 (pos + 1) -> pos + 2
+               pos -> pos + 1
+    pow2 n = (== 0) . sum $ bitwiseAnd (decToBits n) (decToBits (n - 1))
 
 analyze7BitMessage :: [R] -> [I] -> LaTeXM ()
 analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
@@ -108,12 +143,28 @@ analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
       complement 1 = 0
       complement 0 = 1
 
+bitwiseAnd :: [Int] -> [Int] -> [Int]
+bitwiseAnd as bs = bitand <$> (zip (pad as) (pad bs))
+  where
+    pad ns = padding ns ++ ns
+    padding ns = take (longest - length ns) (repeat 0)
+    longest = max (length as) (length bs)
+    bitand (a, b) = if a + b == 2 then 1 else 0
+
+decToBits :: Int -> [Int]
+decToBits = reverse . (go [])
+  where
+    go rems 0 = 0 : rems
+    go rems 1 = 1 : rems
+    go rems n = (n `rem` 2) : rems ++ (go rems (n `div` 2))
+
 bitsToDec :: [Int] -> Int
 bitsToDec = (foldr digitToPower 0) . (zip powers) . reverse
   where
     digitToPower (pow, d) = (+ d * 2^pow)
-    powers :: [Int]
-    powers = [0..]
+
+powers :: [Int]
+powers = [0..]
 
 locWithPrep :: Int -> LaTeXM ()
 locWithPrep 1 = "в первом"
