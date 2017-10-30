@@ -4,6 +4,7 @@ import ReportBase
 
 import Data.List (intersperse)
 import Control.Monad (forM_, when)
+import Text.Printf
 import Text.LaTeX.Packages.Graphicx
 import Text.LaTeX.Packages.AMSMath
 
@@ -84,6 +85,32 @@ reportTeX = do
         "Рассмотрим синдромы последовательности " <> mt "s_1, s_2, s_3, s_4" <> ", вычисляемые как:"
         flalignstar $ do
           syndromeEqs 15 >> raw "&"
+        -- hacked together in a few mins :P
+        -- ugly as hell
+        -- works though
+        let (Message _ rs is) = message15b
+        (analyzeMessage [ [rs !! 0, is !! 0, is !! 1, is !! 3, is !! 4, is !! 6, is !! 8, is !! 10]
+                        , [rs !! 1, is !! 0, is !! 2, is !! 3, is !! 5, is !! 6, is !! 9, is !! 10]
+                        , [rs !! 2, is !! 1, is !! 2, is !! 3, is !! 7, is !! 8, is !! 9, is !! 10]
+                        , [rs !! 3, is !! 4, is !! 5, is !! 6, is !! 7, is !! 8, is !! 9, is !! 10]
+                        ] (mt <$> [ "r_1", "r_2", "i_1", "r_3", "i_2", "i_3", "i_4", "r_4"
+                                  , "i_5", "i_6", "i_7", "i_8", "i_9", "i_{10}", "i_{11}" ])
+                          [ rs !! 0, rs !! 1, is !! 0, rs !! 2, is !! 1, is !! 2, is !! 3, rs !! 3
+                          , is !! 4, is !! 5, is !! 6, is !! 7, is !! 8, is !! 9, is !! 10 ]
+                          (".45" <> textwidth) (".50" <> textwidth))
+      item Nothing <> do
+        textit "Сложить номера всех 5 вариантов заданий. Умножить полученное число на 4. Принять данное число как число информационных разрядов в передаваемом сообщении. Вычислить для данного числа минимальное число проверочных разрядов и коэффициент избыточности." >> lnbk >> newline
+        "Минимальное число проверочных разрядов определяется как " <> mt "2^r - r - 1 \\geqslant i" <> "." >> newline >> lnbk
+        let for' = flip fmap
+        let ns = for' (messages ++ [message15b]) (\(Message n _ _) -> n)
+        let rnum = head [ r | r <- [3..], (2^r - r - 1 >= (sum ns)) ] :: Int
+        "Число информационных разрядов равно " <> mconcat (intersperse " + " (for' ns (\n -> fromString $ show n)))
+        " = " <> fromIntegral (sum ns) <> "." >> newline
+        raw $ "Наименьшее возможное $r$ при $i = " <> fromString (show $ sum ns) <> "$ -- $r$ = " <> fromString (show rnum) <> "."
+        newline >> lnbk
+        "Вычислим коэффициент избыточности, то есть отношения числа проверочных к общему числу разрядов:" >> newline
+        mathDisplay $ do
+          raw $ "k = \\frac{r}{r+i}, \\quad k = \\frac{" <> fromString (show rnum) <> "}{" <> fromString (show $ sum ns + rnum) <> "} \\approx " <> fromString (printf "%0.3f" ((fromIntegral rnum) / fromIntegral (sum ns + rnum) :: Double))
 
 syndromeEqs :: Int -> LaTeXM ()
 syndromeEqs blen = mapM_ ((<> lnbk) . eq) [1..(pnum - 1)] <> eq pnum <> raw "&"
@@ -104,11 +131,16 @@ syndromeEqs blen = mapM_ ((<> lnbk) . eq) [1..(pnum - 1)] <> eq pnum <> raw "&"
                pos -> pos + 1
     pow2 n = (== 0) . sum $ bitwiseAnd (decToBits n) (decToBits (n - 1))
 
-analyze7BitMessage :: [R] -> [I] -> LaTeXM ()
-analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
-  minipage (Just Top) (".28" <> textwidth) $ do
+-- All of it can be automated (see syndromeEqs), but I'll pass on this one
+-- But really, it's so horrible
+-- I swear I don't usually code like that
+-- There's just not... enough... time
+-- ugh
+analyzeMessage :: [[Int]] -> [LaTeXM ()] -> [Int] -> LaTeXM () -> LaTeXM () -> LaTeXM ()
+analyzeMessage addends bitLabels sourceMessage rightpaged leftpaged = do
+  minipage (Just Top) (rightpaged) $ do
     forM_ (zip ['1'..] equations) equationLine
-  minipage (Just Top) (".62" <> textwidth) $ do
+  minipage (Just Top) (leftpaged) $ do
     "Десятичное значение синдромов последовательности, записанных последовательно (" <>
       (mconcat $ fromIntegral <$> sums) <> "),  равно " <> fromIntegral sumsDec
       <> ", что указывает на " <> if sumsDec == 0
@@ -118,6 +150,7 @@ analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
   when (sumsDec /= 0) $ do
     newline
     "Получим правильное сообщение, инвертировав ошибочный бит: "
+    (if (length sourceMessage > 7) then newline else "") -- ahahah
     highlightErr sourceMessage <> raw " \\rightarrow$\\!$ " <> highlightErr correctedMessage
     where
       equationLine (n, eq) = mt ("s_" <> fromString [n] <> "=") <> " " <> eq <> newline
@@ -125,13 +158,8 @@ analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
       eqn (adds, s) = (math $ mconcat $
         (intersperse $ raw " \\oplus ") (fromIntegral <$> adds))
         <> " " <> (mt "=" <> " " <> fromIntegral s)
-      addends = [ [r1, i1, i2, i4]
-                , [r2, i1, i3, i4]
-                , [r3, i2, i3, i4] ]
       sums = sumMod2 <$> addends
       sumsDec = bitsToDec sums
-      bitLabels = mt <$> ["r_1", "r_2", "i_1", "r_3", "i_2", "i_3", "i_4"]
-      sourceMessage = [r1, r2, i1, r3, i2, i3, i4]
       correctedMessage =
         let m = sourceMessage
             pos = sumsDec - 1
@@ -142,6 +170,16 @@ analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] = do
         in mconcat $ take pos mtext ++ textbf (mtext !! pos) : drop (pos + 1) mtext
       complement 1 = 0
       complement 0 = 1
+
+analyze7BitMessage :: [R] -> [I] -> LaTeXM ()
+analyze7BitMessage [r1, r2, r3] [i1, i2, i3, i4] =
+  analyzeMessage addends bitLabels sourceMessage (".28" <> textwidth) (".62" <> textwidth)
+    where
+      addends = [ [r1, i1, i2, i4]
+                , [r2, i1, i3, i4]
+                , [r3, i2, i3, i4] ]
+      bitLabels = mt <$> ["r_1", "r_2", "i_1", "r_3", "i_2", "i_3", "i_4"]
+      sourceMessage = [r1, r2, i1, r3, i2, i3, i4]
 
 bitwiseAnd :: [Int] -> [Int] -> [Int]
 bitwiseAnd as bs = bitand <$> (zip (pad as) (pad bs))
@@ -166,11 +204,10 @@ bitsToDec = (foldr digitToPower 0) . (zip powers) . reverse
 powers :: [Int]
 powers = [0..]
 
+-- This thing cracks me up for some reason
 locWithPrep :: Int -> LaTeXM ()
 locWithPrep 1 = "в первом"
 locWithPrep 2 = "во втором"
 locWithPrep 3 = "в третьем"
-locWithPrep 4 = "в четвертом"
-locWithPrep 5 = "в пятом"
-locWithPrep 6 = "в шестом"
 locWithPrep 7 = "в седьмом"
+locWithPrep 11 = "в одиннадцатом"
