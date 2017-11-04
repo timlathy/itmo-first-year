@@ -53,7 +53,7 @@ maxterms :: BoolTruthTable -> [BoolTerm]
 maxterms = ((Or . argsToVarterms) <$>) . (selectArgs (== F))
 
 dontcareminterms :: BoolTruthTable -> [BoolTerm]
-dontcareminterms = ((Or . argsToVarterms) <$>) . (selectArgs (== D))
+dontcareminterms = ((And . argsToVarterms) <$>) . (selectArgs (== D))
 
 selectArgs :: (BoolFuncValue -> Bool) -> BoolTruthTable -> [[Bool]]
 selectArgs p = (fst <$>) . (filter (p . snd))

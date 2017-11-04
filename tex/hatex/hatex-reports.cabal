@@ -30,7 +30,9 @@ library
     , split
     , containers
   exposed-modules:
+      Binary
       CS.Lab3
+      CS.Lab4
       DM.Coursework
       DM.CourseworkTruthTable
       DM.Logic
