@@ -38,6 +38,8 @@ baseHeader = do
   usepackage [] "graphicx"
   -- Tables
   usepackage [] "multirow"
+  -- Alignment
+  usepackage [] "adjustbox"
 
 baseTitlePage :: (LaTeXM (), LaTeXM (), Maybe (LaTeXM ()), LaTeXM ()) -> LaTeXM ()
 baseTitlePage (reportTitle, reportSubject, reportComment, reportYear) =

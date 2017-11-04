@@ -13,7 +13,6 @@ reportTeX = do
   baseHeader
   -- https://tex.stackexchange.com/a/157400
   raw "\\usepackage{array}\\newcolumntype{P}[1]{>{\\centering\\arraybackslash}p{#1}}"
-  raw "\\usepackage{adjustbox}"
   document $ do
     baseTitlePage ("ЛАБОРАТОРНАЯ РАБОТА №3", "Основы вычислительной техники", Just "Вариант 987", "2017 г.")
     sectionstar "Цель работы"
