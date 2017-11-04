@@ -70,3 +70,20 @@ defineWidebar = raw "\\DeclareFontFamily{U}{mathx}{\\hyphenchar\\font45}\
                       \\\widebar{\\box\\z@}%\n\
                     \}\
                     \\\makeatother"
+
+-- Source: https://tex.stackexchange.com/a/12161
+defineSqcases :: LaTeXM ()
+defineSqcases = raw "\\makeatletter\
+                    \\\newenvironment{sqcases}{%\n\
+                    \\\matrix@check\\sqcases\\env@sqcases\
+                    \}{%\n\
+                    \\\endarray\\right.%\n\
+                    \}\
+                    \\\def\\env@sqcases{%\n\
+                      \\\let\\@ifnextchar\\new@ifnextchar\n\
+                      \\\left\\lbrack\n\
+                      \\\def\\arraystretch{1.2}%\n\
+                      \\\array{@{}l@{\\quad}l@{}}%\n\
+                    \}\
+                    \\\makeatother"
+
