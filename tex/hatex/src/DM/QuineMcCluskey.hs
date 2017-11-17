@@ -1,14 +1,20 @@
+{-# LANGUAGE ScopedTypeVariables #-} 
+
 module DM.QuineMcCluskey where
 
-import Data.List ((\\), union, sortBy)
+import Control.Arrow ((&&&))
+import Control.Monad (forM_, when)
+import Data.List ((\\), union, sortBy, groupBy, nubBy, intersperse, transpose)
 import Data.Foldable (toList)
 import Data.Function (on)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import Text.LaTeX (Render, render, (<>), fromString)
+import Text.LaTeX.Base.Class (fromLaTeX)
 
 import DM.Logic
+import DM.CourseworkTruthTable
 import qualified Binary as B
+import ReportBase
 
 --
 -- Types
@@ -17,14 +23,22 @@ import qualified Binary as B
 type CubeLabel = Int
 
 data Cube = Cube [CubeLabel] (Seq CubeValue)
-  deriving (Show)
 
 data CubeValue = Bound Bool | Unbound
-  deriving (Show)
+  deriving (Eq)
+
+instance Show Cube where
+  show (Cube ls vals) =
+    ((mconcat . intersperse ("-") . (show <$>)) ls) <> " " <> mconcat (show <$> (toList vals))
+
+instance Show CubeValue where
+  show (Bound True) = "1"
+  show (Bound False) = "0"
+  show (Unbound) = "X"
 
 instance Render Cube where
   render (Cube ls vals) = (mconcat . toList) (render <$> vals) <>
-    " (" <> fromString (show =<< ls) <> ")"
+    " (" <> (fromString . mconcat . (intersperse "-") . (show <$>)) ls <> ")"
 
 instance Render CubeValue where
   render (Bound True) = "1"
@@ -44,19 +58,31 @@ zeroCubes = (cube <$>)
     unwrap (X _) = True
     unwrap (Not (X _)) = False
 
-cubeDisplaySort :: [Cube] -> [Cube]
-cubeDisplaySort = sortBy (compare `on` (\(Cube _ vals) -> B.bitsToDec . toList $ valBit <$> vals))
+numOfOnes :: Cube -> Int
+numOfOnes (Cube _ vs) = length . (filter ((==) (Bound True))) . toList $ vs
+
+sortByOnes :: [Cube] -> [Cube]
+sortByOnes = sortBy p
   where
+    p a b = ((compare `on` numOfOnes) a b) `mappend` ((compare `on` decValue) a b)
+    decValue = B.bitsToDec . (valBit <$>) . vallist
+    vallist (Cube _ vs) = toList vs
     valBit (Bound True) = 1
     valBit (_) = 0
 
+groupByOnes :: [Cube] -> [[Cube]]
+groupByOnes = groupBy ((==) `on` numOfOnes)
+
 combineCubes :: [Cube] -> [Cube]
-combineCubes cs = [ combine c1 c2 | c1 <- cs, c2 <- cs,
-    equalUnbound c1 c2, let ds = boundDiffs c1 c2 in length ds == 1 ]
+combineCubes cs = [ combine (c1, i1) (c2, i2) |
+    (c1, i1) <- (zip cs [1..]),
+    (c2, i2) <- (zip cs [1..]),
+    equalUnbound c1 c2,
+    let ds = boundDiffs c1 c2 in length ds == 1 ]
   where
-    combine c1@(Cube l1 s1) c2@(Cube l2 _) =
+    combine (c1@(Cube _ s1), i1) (c2@(Cube _ _), i2) =
       let [d] = boundDiffs c1 c2
-      in Cube (l1 ++ l2) (Seq.update d Unbound s1)
+      in Cube [i1, i2] (Seq.update d Unbound s1)
     boundDiffs :: Cube -> Cube -> [Int]
     boundDiffs (Cube _ s1) (Cube _ s2) =
       (Seq.findIndicesL is1 s1) `diff` (Seq.findIndicesL is1 s2)
@@ -68,3 +94,40 @@ combineCubes cs = [ combine c1 c2 | c1 <- cs, c2 <- cs,
     isUnbound _ = False
     is1 (Bound True) = True
     is1 _ = False
+
+combineToMaxCubes :: [Cube] -> [[Cube]]
+combineToMaxCubes = reverse . go . pure
+  where
+    go :: [[Cube]] -> [[Cube]]
+    go acc@([]:_) = acc
+    go acc@(prev:_) = go ((combined prev) : acc)
+    combined = dedupe . sortByOnes . combineCubes
+    dedupe = nubBy (\(Cube ls1 _) (Cube ls2 _) -> ls1 == reverse ls2)
+
+insertCubeGroupBreaks :: [[Cube]] -> ([Cube], [Int])
+insertCubeGroupBreaks = (go ([], []))
+  where
+    go acc [] = acc
+    go (acc, []) (x:xs) = go (acc ++ x, [length x]) xs
+    go (acc, (breaks@(b:_))) (x:xs) = go (acc ++ x, ((length x) + b) : breaks) xs
+
+implicantTable :: LaTeXM ()
+implicantTable =
+  borderedtable [(CenterColumn, maxcube)] $ do
+    hline
+    forM_ (zip rows [1..]) tablerow
+  where
+    tablerow (cells, rowi) = tfreerow (fromLaTeX <$> cells) <> mconcat (rowborders rowi)
+    rowborders i = (flip fmap) (zip breaks [1..]) (\(bs, ci) -> if i `elem` bs then (cline ci ci) else mempty)
+    breaks = snd <$> table
+    rows :: [[LaTeX]] = (transpose . (balance <$>)) cols
+    balance col = if length col < maxcollen
+                    then col ++ (replicate (maxcollen - (length col)) mempty)
+                    else col
+    maxcollen = maximum (length <$> cols)
+    cols :: [[LaTeX]] = ((rendertex <$>) . fst) <$> table
+    table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> (groupByOnes <$> cubegroups)
+    maxcube = length cubegroups
+    cubegroups = combineToMaxCubes zcubes
+    zcubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms) $ truthTable
+  
