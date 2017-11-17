@@ -33,8 +33,14 @@ alignstar = environment "align*"
 landscapemode :: LaTeXC l => l -> l
 landscapemode = environment "landscape"
 
+centerbox :: LaTeXC l => l -> l
+centerbox = environment2 "adjustbox" [FixArg "center"]
+
 environment :: LaTeXC l => String -> l -> l
-environment name = liftL $ TeXEnv name []
+environment name = environment2 name []
+
+environment2 :: LaTeXC l => String -> [TeXArg] -> l -> l
+environment2 name = liftL . (TeXEnv name)
 
 trow :: LaTeXC l => [l] -> l
 trow cols = tfreerow cols <> hline
