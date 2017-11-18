@@ -4,7 +4,7 @@ module DM.QuineMcCluskey where
 
 import Control.Arrow ((&&&))
 import Control.Monad (forM_, when)
-import Data.Text (unpack)
+import Data.Text (pack, unpack)
 import Data.Tuple (swap)
 import Data.List ((\\), union, sortBy, groupBy, nubBy, intersperse, transpose)
 import Data.Foldable (toList)
@@ -43,14 +43,11 @@ instance Show CubeValue where
   show (Unbound) = "X"
 
 instance Render Cube where
-  render (Cube ls vals)
-    | (length ls) < 2 = rendervals <> "\\quad" <>
-        ("\\quad") <> (fromString . mconcat . (intersperse " ") . (show <$>)) ls
-    | otherwise = "\\multirowcell{" <> (fromString . show . length) ls <> "}{" <>
-        rendervals <> "\\quad" <>
-        (fromString . mconcat . (intersperse " \\\\ ") . (show <$>)) ls <> "}"
+  render (Cube ls vals) = values <> "\\quad" <> labels
     where
-      rendervals = (mconcat . toList) (render <$> vals) 
+      values = (mconcat . toList) (render <$> vals)
+      labels = (fromString . mconcat . (intersperse " ") . (label <$>)) ls
+      label (c1, c2) = show c1 <> "-" <> show c2
   
 instance Render CubeValue where
   render (Bound True) = "1"
@@ -133,22 +130,19 @@ insertCubeGroupBreaks = (go ([], []))
     go (acc, (breaks@(b:_))) (x:xs) = go (acc ++ x, ((length x) + b) : breaks) xs
 
 implicantTable :: LaTeXM ()
-implicantTable =
+implicantTable = centerbox $ do
   borderedtable [(LeftColumn, maxcube)] $ do
     hline
+    trow [mt "K^0(f) \\cup N(f)", mt "K^1(f)", mt "K^2(f)", mt "K^3(f)"]
     forM_ (zip rows [1..]) tablerow
+    hline
   where
-    tablerow (cells, rowi) = tfreerow (fromLaTeX <$> cells) <> mconcat (rowborders rowi)
+    tablerow (cells, rowi) = tfreerow (fromLaTeX . (number rowi) <$> cells) <> mconcat (rowborders rowi)
     rowborders i = (flip fmap) (zip breaks [1..]) (\(bs, ci) -> if i `elem` bs then (cline ci ci) else mempty)
+    number i (TeXRaw rc) = TeXRaw $ (pack $ show i) <> ". " <> rc
+    number _ r = r
     breaks = snd <$> table
-    rows :: [[LaTeX]] = (transpose . (balance <$>) . (handleMultirow <$>)) cols
-    handleMultirow = go []
-      where
-        go acc [] = acc
-        go acc ((r@(TeXRaw rc)):rs) = let c = unpack rc in case splitAt 14 c of
-          ("\\multirowcell{", n:_) -> go (acc ++ r : (replicate (read [n] - 1) TeXEmpty)) rs
-          _ -> go (acc ++ [r]) rs
-        go acc (r:rs) = go (acc ++ [r]) rs
+    rows :: [[LaTeX]] = (transpose . (balance <$>)) cols
     balance col = if length col < maxcollen
                     then col ++ (replicate (maxcollen - (length col)) mempty)
                     else col
@@ -159,4 +153,3 @@ implicantTable =
     cubegroups = combineToMaxCubes zcubes
     zcubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms) $ truthTable
  
-
