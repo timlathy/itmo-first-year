@@ -38,6 +38,7 @@ baseHeader = do
   usepackage [] "graphicx"
   -- Tables
   usepackage [] "multirow"
+  usepackage [] "makecell"
   -- Alignment
   usepackage [] "adjustbox"
 

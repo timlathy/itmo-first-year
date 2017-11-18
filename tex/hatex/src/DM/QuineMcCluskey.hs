@@ -4,25 +4,31 @@ module DM.QuineMcCluskey where
 
 import Control.Arrow ((&&&))
 import Control.Monad (forM_, when)
+import Data.Text (unpack)
+import Data.Tuple (swap)
 import Data.List ((\\), union, sortBy, groupBy, nubBy, intersperse, transpose)
 import Data.Foldable (toList)
 import Data.Function (on)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Text.LaTeX.Base.Class (fromLaTeX)
+import Text.LaTeX.Base.Syntax (LaTeX (..))
 
 import DM.Logic
 import DM.CourseworkTruthTable
 import qualified Binary as B
 import ReportBase
 
+import Debug.Trace
+
 --
 -- Types
 --
 
-type CubeLabel = Int
+type CubeCombination = (Int, Int)
 
-data Cube = Cube [CubeLabel] (Seq CubeValue)
+data Cube = Cube [CubeCombination] (Seq CubeValue)
+  deriving (Eq)
 
 data CubeValue = Bound Bool | Unbound
   deriving (Eq)
@@ -37,9 +43,15 @@ instance Show CubeValue where
   show (Unbound) = "X"
 
 instance Render Cube where
-  render (Cube ls vals) = (mconcat . toList) (render <$> vals) <>
-    " (" <> (fromString . mconcat . (intersperse "-") . (show <$>)) ls <> ")"
-
+  render (Cube ls vals)
+    | (length ls) < 2 = rendervals <> "\\quad" <>
+        ("\\quad") <> (fromString . mconcat . (intersperse " ") . (show <$>)) ls
+    | otherwise = "\\multirowcell{" <> (fromString . show . length) ls <> "}{" <>
+        rendervals <> "\\quad" <>
+        (fromString . mconcat . (intersperse " \\\\ ") . (show <$>)) ls <> "}"
+    where
+      rendervals = (mconcat . toList) (render <$> vals) 
+  
 instance Render CubeValue where
   render (Bound True) = "1"
   render (Bound False) = "0"
@@ -52,9 +64,7 @@ instance Render CubeValue where
 zeroCubes :: [BoolTerm] -> [Cube]
 zeroCubes = (cube <$>)
   where
-    cube (And terms) = Cube 
-      [bitsToDec $ unwrap <$> terms]
-      (Seq.fromList $ (Bound . unwrap) <$> terms)
+    cube (And terms) = Cube [] (Seq.fromList $ (Bound . unwrap) <$> terms)
     unwrap (X _) = True
     unwrap (Not (X _)) = False
 
@@ -82,7 +92,7 @@ combineCubes cs = [ combine (c1, i1) (c2, i2) |
   where
     combine (c1@(Cube _ s1), i1) (c2@(Cube _ _), i2) =
       let [d] = boundDiffs c1 c2
-      in Cube [i1, i2] (Seq.update d Unbound s1)
+      in Cube [(i1, i2)] (Seq.update d Unbound s1)
     boundDiffs :: Cube -> Cube -> [Int]
     boundDiffs (Cube _ s1) (Cube _ s2) =
       (Seq.findIndicesL is1 s1) `diff` (Seq.findIndicesL is1 s2)
@@ -99,10 +109,21 @@ combineToMaxCubes :: [Cube] -> [[Cube]]
 combineToMaxCubes = reverse . go . pure
   where
     go :: [[Cube]] -> [[Cube]]
-    go acc@([]:_) = acc
+    go ([]:maxcubes) = maxcubes
     go acc@(prev:_) = go ((combined prev) : acc)
-    combined = dedupe . sortByOnes . combineCubes
-    dedupe = nubBy (\(Cube ls1 _) (Cube ls2 _) -> ls1 == reverse ls2)
+    combined = dumbJoin . (nubBy dedupe) . sortByOnes . combineCubes
+    dedupe (Cube [c1] _) (Cube [c2] _) = (swap c1) == c2
+    dedupe _ _ = False
+    dumbJoin = go []
+      where
+        go uniq [] = uniq
+        go uniq ((c@(Cube _ srcvs)):cs) =
+          case filter (\(Cube _ vs) -> vs == srcvs) cs of
+            [] -> go (uniq ++ [c]) cs
+            same -> go (uniq ++ [merge (c : same)]) (cs \\ same)
+        merge cubes@((Cube _ vs):_) = Cube combs vs
+          where
+            combs = cubes >>= (\(Cube cbs _) -> cbs) 
 
 insertCubeGroupBreaks :: [[Cube]] -> ([Cube], [Int])
 insertCubeGroupBreaks = (go ([], []))
@@ -113,14 +134,21 @@ insertCubeGroupBreaks = (go ([], []))
 
 implicantTable :: LaTeXM ()
 implicantTable =
-  borderedtable [(CenterColumn, maxcube)] $ do
+  borderedtable [(LeftColumn, maxcube)] $ do
     hline
     forM_ (zip rows [1..]) tablerow
   where
     tablerow (cells, rowi) = tfreerow (fromLaTeX <$> cells) <> mconcat (rowborders rowi)
     rowborders i = (flip fmap) (zip breaks [1..]) (\(bs, ci) -> if i `elem` bs then (cline ci ci) else mempty)
     breaks = snd <$> table
-    rows :: [[LaTeX]] = (transpose . (balance <$>)) cols
+    rows :: [[LaTeX]] = (transpose . (balance <$>) . (handleMultirow <$>)) cols
+    handleMultirow = go []
+      where
+        go acc [] = acc
+        go acc ((r@(TeXRaw rc)):rs) = let c = unpack rc in case splitAt 14 c of
+          ("\\multirowcell{", n:_) -> go (acc ++ r : (replicate (read [n] - 1) TeXEmpty)) rs
+          _ -> go (acc ++ [r]) rs
+        go acc (r:rs) = go (acc ++ [r]) rs
     balance col = if length col < maxcollen
                     then col ++ (replicate (maxcollen - (length col)) mempty)
                     else col
@@ -130,4 +158,5 @@ implicantTable =
     maxcube = length cubegroups
     cubegroups = combineToMaxCubes zcubes
     zcubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms) $ truthTable
-  
+ 
+

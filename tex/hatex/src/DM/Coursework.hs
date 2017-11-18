@@ -14,7 +14,6 @@ reportTeX :: LaTeXM ()
 reportTeX = do
   baseHeader
   defineWidebar
-  usepackage [] "longtable"
   document $ do
     baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 59", "2017 г.")
     sectionstar "Функция"
