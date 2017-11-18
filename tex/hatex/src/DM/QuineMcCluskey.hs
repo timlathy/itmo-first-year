@@ -164,9 +164,11 @@ implicantTable = centerbox $ do
                     else col
     maxcollen = maximum (length <$> cols)
     cols :: [[LaTeX]] = (insertNotes . (((rendertex <$>) . fst) <$>)) $ table
-    insertNotes [c1, c2, c3, c4] = [c1, c2, c3, c4 ++ [TeXEmpty, TeXSeq TeXEmpty $ (raw "$K^4 = \\varnothing$")]]
+    insertNotes [c1, c2, c3, c4] = [c1, c2, c3, c4 ++ [TeXEmpty, TeXSeq TeXEmpty $ (raw "$K^4 = \\varnothing$")], zcubestex]
+    zcubestex = (TeXSeq TeXEmpty) <$> rendertex <$> zcubes
+    zcubes = (\(Cube _ cov vs) -> Cube [] cov vs) <$> filter (\(Cube _ (_, inc) _) -> inc) (concat cubegroups)
     table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> (groupByOnes <$> cubegroups)
     maxcube = length cubegroups
-    cubegroups = determineCoverage $ combineToMaxCubes zcubes
-    zcubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms) $ truthTable
+    cubegroups = determineCoverage $ combineToMaxCubes zerocubes
+    zerocubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms) $ truthTable
  
