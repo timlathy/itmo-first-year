@@ -26,4 +26,4 @@ reportTeX = do
     "ККНФ: " <> (math . rendertex . productOfSums) truthTable <> parbreak
     newpage
     sectionstar "Нахождение минимальных форм методом Квайна--Мак-Класки"
-    implicantTable
+    implicantTable <> lnbk <> parbreak

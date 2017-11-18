@@ -9,6 +9,9 @@ import Text.LaTeX.Packages.AMSMath
 setmainfont :: LaTeXC l => [l] -> String -> l
 setmainfont opts name = liftListL (\ls_ -> TeXComm "setmainfont" [MOptArg ls_ ,FixArg $ fromString name]) opts
 
+setmathfont :: LaTeXC l => [l] -> String -> l
+setmathfont opts name = liftListL (\ls_ -> TeXComm "setmathfont" [MOptArg ls_ ,FixArg $ fromString name]) opts
+
 setmonofont :: LaTeXC l => [l] -> String -> l
 setmonofont opts name = liftListL (\ls_ -> TeXComm "setmonofont" [MOptArg ls_ ,FixArg $ fromString name]) opts
 

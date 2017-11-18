@@ -12,7 +12,7 @@ import Data.Function (on)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Text.LaTeX.Base.Class (fromLaTeX)
-import Text.LaTeX.Base.Syntax (LaTeX (..))
+import Text.LaTeX.Base.Syntax (LaTeX (..), MathType (..))
 
 import DM.Logic
 import DM.CourseworkTruthTable
@@ -131,9 +131,9 @@ insertCubeGroupBreaks = (go ([], []))
 
 implicantTable :: LaTeXM ()
 implicantTable = centerbox $ do
-  borderedtable [(LeftColumn, maxcube)] $ do
+  borderedtable [(LeftColumn, maxcube + 1)] $ do
     hline
-    trow [mt "K^0(f) \\cup N(f)", mt "K^1(f)", mt "K^2(f)", mt "K^3(f)"]
+    trow [mt "K^0(f) \\cup N(f)", mt "K^1(f)", mt "K^2(f)", mt "K^3(f)", mt "Z(f)"]
     forM_ (zip rows [1..]) tablerow
     hline
   where
@@ -147,7 +147,8 @@ implicantTable = centerbox $ do
                     then col ++ (replicate (maxcollen - (length col)) mempty)
                     else col
     maxcollen = maximum (length <$> cols)
-    cols :: [[LaTeX]] = ((rendertex <$>) . fst) <$> table
+    cols :: [[LaTeX]] = (insertNotes . (((rendertex <$>) . fst) <$>)) $ table
+    insertNotes [c1, c2, c3, c4] = [c1, c2, c3, c4 ++ [TeXEmpty, TeXSeq TeXEmpty $ (raw "$K^4 = \\varnothing$")]]
     table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> (groupByOnes <$> cubegroups)
     maxcube = length cubegroups
     cubegroups = combineToMaxCubes zcubes

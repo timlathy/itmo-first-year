@@ -19,12 +19,13 @@ baseHeader = do
   -- Fonts
   usepackage [] "fontspec, unicode-math"
   setmainfont ["Ligatures=TeX"] "CMU Serif"
+  setmathfont [raw "range=\\varnothing"] "Asana Math"
   setmonofont [] "CMU Typewriter Text"
   -- Russian language support
   usepackage ["english", "russian"] "babel"
   -- Proper quotes
   usepackage [] "upquote"
-  -- Math alignment
+  -- Math
   usepackage ["fleqn"] "amsmath"
   -- tikz
   usepackage [] "tikz"
