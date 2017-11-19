@@ -6,8 +6,8 @@ buildscript {
     mavenCentral()
  }
  dependencies {
-  classpath(kotlin("gradle-plugin"))
-   classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
+   //classpath(kotlin("gradle-plugin"))
+   //classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
  }
 }
 
@@ -24,6 +24,7 @@ application {
 dependencies {
   compile(kotlin("stdlib"))
   compile("com.github.michaelbull:kotlin-result:1.0.0")
+  classpath("com.google.code.gson:2.8.2")
 }
 
 repositories {

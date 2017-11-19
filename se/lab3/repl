@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
 ( cd src/main/java/ru/ifmo/se/lab3;
-  kotlinc-jvm -cp $(find ~/.gradle -name kotlin-result-1.0.0.jar) )
+  kotlinc-jvm )
