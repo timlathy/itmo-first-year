@@ -29,7 +29,7 @@ verboseSourceFun [x1, x2, x3, x4, x5] =
 bits :: [Bool]
 bits = [False, True]
 
-truthTable :: [([Bool], BoolFuncValue)]
+truthTable :: BoolTruthTable
 truthTable = [ let args = [x1, x2, x3, x4, x5] in (args, sourceFun args) |
   x1 <- bits, x2 <- bits, x3 <- bits, x4 <- bits, x5 <- bits ]
 

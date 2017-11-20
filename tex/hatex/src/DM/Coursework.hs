@@ -1,6 +1,7 @@
 module DM.Coursework where
 
-import Text.LaTeX.Packages.AMSMath (math, mathDisplay)
+import Text.LaTeX.Packages.AMSMath (math)
+import Text.LaTeX.Packages.Graphicx (IGOption (..), includegraphics)
 
 import ReportBase
 import DM.Logic
@@ -26,4 +27,30 @@ reportTeX = do
     "ККНФ: " <> (math . rendertex . productOfSums) truthTable <> parbreak
     newpage
     sectionstar "Нахождение минимальных форм методом Квайна--Мак-Класки"
+    textit "Нахождение простых импликант (максимальных кубов):" <> lnbk <> parbreak
+    cubeTable <> newpage
+    textit "Составление импликантной таблицы:" <> lnbk <> parbreak
     implicantTable <> lnbk <> parbreak
+    "Все импликанты, исключая " <> textbf "XX10X" <> ", являются существенными, так как покрывают вершины, не покрытые другими импликантами." <> lnbk <> parbreak
+    mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 1XX00, 10X0X, 100X0}}" <> lnbk <> parbreak
+    mt "S^a = 2 + 3 + 3 + 3 + 3 + 3 + 4 = 21, \\quad S^b = 21 + 7 = 28" <> lnbk <> parbreak
+    "МДНФ: " <> (math . rendertex $ Or [ And [Not (X 1), X 3]
+                                       , And [Not (X 1), X 2, X 4]
+                                       , And [Not (X 1), X 2, X 5]
+                                       , And [Not (X 1), X 4, X 5]
+                                       , And [X 1, Not (X 4), Not (X 5)]
+                                       , And [X 1, Not (X 2), Not (X 4)]
+                                       , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ])
+    newpage
+    sectionstar "Минимизация булевой функции на картах Карно"
+    includegraphics [IGWidth $ Cm 12] "../src/DM/KarnaughMap.pdf" <> lnbk <> parbreak
+    mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 10X0X, 1XX00, 100X0}}" <> lnbk <> parbreak
+    mt "S^a = 2 + 3 + 3 + 3 + 3 + 3 + 4 = 21, \\quad S^b = 21 + 7 = 28" <> lnbk <> parbreak
+    "МДНФ: " <> (math . rendertex $ Or [ And [Not (X 1), X 3]
+                                       , And [Not (X 1), X 2, X 4]
+                                       , And [Not (X 1), X 2, X 5]
+                                       , And [Not (X 1), X 4, X 5]
+                                       , And [X 1, Not (X 2), Not (X 4)]
+                                       , And [X 1, Not (X 4), Not (X 5)]
+                                       , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ]) <> lnbk <> parbreak
+    "Можно заметить, что в данном случае минимальное покрытие, полученное с помощью карт Карно, полностью совпадает с минимальным покрытием, полученным методом Квайна--Мак-Класки."

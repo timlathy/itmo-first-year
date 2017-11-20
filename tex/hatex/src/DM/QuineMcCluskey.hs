@@ -145,8 +145,8 @@ determineCoverage = (go []) . reverse
         coveredIndices = ((\(a, b) -> [a, b]) =<<) =<< (\(Cube ls _ _) -> ls) <$> hoccovering
         hoccovering = filter (\(Cube _ (cov, inc) _) -> cov || inc) higheroc 
 
-implicantTable :: LaTeXM ()
-implicantTable = centerbox $ do
+cubeTable :: LaTeXM ()
+cubeTable = centerbox $ do
   borderedtable [(LeftColumn, maxcube + 1)] $ do
     hline
     trow [mt "K^0(f) \\cup N(f)", mt "K^1(f)", mt "K^2(f)", mt "K^3(f)", mt "Z(f)"]
@@ -165,10 +165,47 @@ implicantTable = centerbox $ do
     maxcollen = maximum (length <$> cols)
     cols :: [[LaTeX]] = (insertNotes . (((rendertex <$>) . fst) <$>)) $ table
     insertNotes [c1, c2, c3, c4] = [c1, c2, c3, c4 ++ [TeXEmpty, TeXSeq TeXEmpty $ (raw "$K^4 = \\varnothing$")], zcubestex]
-    zcubestex = (TeXSeq TeXEmpty) <$> rendertex <$> zcubes
-    zcubes = (\(Cube _ cov vs) -> Cube [] cov vs) <$> filter (\(Cube _ (_, inc) _) -> inc) (concat cubegroups)
-    table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> (groupByOnes <$> cubegroups)
-    maxcube = length cubegroups
-    cubegroups = determineCoverage $ combineToMaxCubes zerocubes
-    zerocubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms) $ truthTable
- 
+    zcubestex = (TeXSeq TeXEmpty) <$> rendertex <$> reverse (zcubes (cubegroups truthTable))
+    table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> (groupByOnes <$> (cubegroups truthTable))
+    maxcube = length (cubegroups truthTable)
+
+cubegroups :: BoolTruthTable -> [[Cube]]
+cubegroups = determineCoverage . combineToMaxCubes . zerocubes
+
+zcubes :: [[Cube]] -> [Cube]
+zcubes = (eraseLabel <$>) . (filter included) . concat
+  where
+    eraseLabel (Cube _ cov vs) = Cube [] cov vs
+    included (Cube _ (_, inc) _) = inc
+
+zerocubes :: BoolTruthTable -> [Cube]
+zerocubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms)
+
+implicantTable :: LaTeXM ()
+implicantTable =
+  borderedtable [(LeftColumn, (length $ mtms) + 1)] $ do
+    hline
+    trow ("Простые импликанты" : (raw <$> renderMinterms))
+    forM_ zcbs renderImplicant
+  where
+    renderImplicant c = trow $ (rendertex c) : ((\t -> if coversMinterm c t then "*" else "") <$> mtms)
+    --singleCovering c = or (coversMinterm c <$> singleCoverage)
+    --singleCoverage = (fst <$>) $ filter snd $ zip mtms $ (\c -> length (filter id c) == 1) <$>
+    --  (transpose ((\c -> (coversMinterm c) <$> mtms) <$> zcbs))
+    renderMinterms = (\(And vals) -> "\\makecell{" <>
+      mconcat (intersperse " \\\\ " (renderx <$> vals)) <> "}") <$> mtms
+    renderx (X _) = "1"
+    renderx (Not (X _)) = "0"
+    zcbs = reverse $ zcubes $ cubegroups truthTable
+    mtms = minterms truthTable
+
+coversMinterm :: Cube -> BoolTerm -> Bool
+coversMinterm (Cube _ _ vals) (And terms) = match (serialize <$> terms) (toList $ show <$> vals)
+  where
+    match [] [] = True
+    match (_:ts) ("X":vs) = match ts vs
+    match ("1":ts) ("1":vs) = match ts vs
+    match ("0":ts) ("0":vs) = match ts vs
+    match _ _ = False
+    serialize (X _) = "1"
+    serialize (Not (X _)) = "0"

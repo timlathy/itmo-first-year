@@ -19,8 +19,6 @@ baseHeader = do
   -- Fonts
   usepackage [] "fontspec, unicode-math"
   setmainfont ["Ligatures=TeX"] "CMU Serif"
-  setmathfont [raw "range=\\varnothing"] "Asana Math"
-  setmathfont [raw "range=\\checkmark"] "Asana Math"
   setmonofont [] "CMU Typewriter Text"
   -- Russian language support
   usepackage ["english", "russian"] "babel"
@@ -28,6 +26,7 @@ baseHeader = do
   usepackage [] "upquote"
   -- Math
   usepackage ["fleqn"] "amsmath"
+  usepackage [] "braket"
   -- tikz
   usepackage [] "tikz"
   -- Trees
