@@ -66,23 +66,27 @@ zeroCubes :: [BoolTerm] -> [Cube]
 zeroCubes = (cube <$>)
   where
     cube (And terms) = Cube [] defaultCoverage (Seq.fromList $ (Bound . unwrap) <$> terms)
+    cube (Or terms) = Cube [] defaultCoverage (Seq.fromList $ (Bound . unwrap) <$> terms)
     unwrap (X _) = True
     unwrap (Not (X _)) = False
 
 numOfOnes :: Cube -> Int
 numOfOnes (Cube _ _ vs) = length . (filter ((==) (Bound True))) . toList $ vs
 
-sortByOnes :: [Cube] -> [Cube]
-sortByOnes = sortBy p
+numOfZeroes :: Cube -> Int
+numOfZeroes (Cube _ _ vs) = length . (filter ((==) (Bound False))) . toList $ vs
+
+sortOnValues :: (Cube -> Int) -> [Cube] -> [Cube]
+sortOnValues pred = sortBy p
   where
-    p a b = ((compare `on` numOfOnes) a b) `mappend` ((compare `on` decValue) a b)
+    p a b = ((compare `on` pred) a b) `mappend` ((compare `on` decValue) a b)
     decValue = B.bitsToDec . (valBit <$>) . vallist
     vallist (Cube _ _ vs) = toList vs
     valBit (Bound True) = 1
     valBit (_) = 0
 
-groupByOnes :: [Cube] -> [[Cube]]
-groupByOnes = groupBy ((==) `on` numOfOnes)
+groupOnValues :: (Cube -> Int) -> [Cube] -> [[Cube]]
+groupOnValues p = groupBy ((==) `on` p)
 
 combineCubes :: [Cube] -> [Cube]
 combineCubes cs = [ combine (c1, i1) (c2, i2) |
@@ -106,13 +110,13 @@ combineCubes cs = [ combine (c1, i1) (c2, i2) |
     is1 (Bound True) = True
     is1 _ = False
 
-combineToMaxCubes :: [Cube] -> [[Cube]]
-combineToMaxCubes = reverse . go . pure
+combineToMaxCubes :: (Cube -> Int) -> [Cube] -> [[Cube]]
+combineToMaxCubes sortpred = reverse . go . pure
   where
     go :: [[Cube]] -> [[Cube]]
     go ([]:maxcubes) = maxcubes
     go acc@(prev:_) = go ((combined prev) : acc)
-    combined = dumbJoin . (nubBy dedupe) . sortByOnes . combineCubes
+    combined = dumbJoin . (nubBy dedupe) . (sortOnValues sortpred) . combineCubes
     dedupe (Cube [c1] _ _) (Cube [c2] _ _) = (swap c1) == c2
     dedupe _ _ = False
     dumbJoin = go []
@@ -145,8 +149,8 @@ determineCoverage = (go []) . reverse
         coveredIndices = ((\(a, b) -> [a, b]) =<<) =<< (\(Cube ls _ _) -> ls) <$> hoccovering
         hoccovering = filter (\(Cube _ (cov, inc) _) -> cov || inc) higheroc 
 
-cubeTable :: LaTeXM ()
-cubeTable = centerbox $ do
+cubeTable :: (BoolTruthTable -> [[Cube]]) -> (Cube -> Int) -> LaTeXM ()
+cubeTable groupingf sortingf = centerbox $ do
   borderedtable [(LeftColumn, maxcube + 1)] $ do
     hline
     trow [mt "K^0(f) \\cup N(f)", mt "K^1(f)", mt "K^2(f)", mt "K^3(f)", mt "Z(f)"]
@@ -165,12 +169,19 @@ cubeTable = centerbox $ do
     maxcollen = maximum (length <$> cols)
     cols :: [[LaTeX]] = (insertNotes . (((rendertex <$>) . fst) <$>)) $ table
     insertNotes [c1, c2, c3, c4] = [c1, c2, c3, c4 ++ [TeXEmpty, TeXSeq TeXEmpty $ (raw "$K^4 = \\varnothing$")], zcubestex]
-    zcubestex = (TeXSeq TeXEmpty) <$> rendertex <$> reverse (zcubes (cubegroups truthTable))
-    table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> (groupByOnes <$> (cubegroups truthTable))
-    maxcube = length (cubegroups truthTable)
+    zcubestex = (TeXSeq TeXEmpty) <$> rendertex <$> reverse (zcubes (groupingf truthTable))
+    table :: [([Cube], [Int])] = insertCubeGroupBreaks <$> ((groupOnValues sortingf) <$> (groupingf truthTable))
+    maxcube = length (groupingf truthTable)
 
 cubegroups :: BoolTruthTable -> [[Cube]]
-cubegroups = determineCoverage . combineToMaxCubes . zerocubes
+cubegroups = determineCoverage . (combineToMaxCubes numOfOnes) .
+  (sortOnValues numOfOnes) . zeroCubes .
+  (uncurry (++)) . (minterms &&& dontcareminterms)
+
+cubegroupspos :: BoolTruthTable -> [[Cube]]
+cubegroupspos = determineCoverage . (combineToMaxCubes numOfZeroes) .
+  (sortOnValues numOfZeroes) . zeroCubes .
+  (uncurry (++)) . (maxterms &&& dontcaremaxterms)
 
 zcubes :: [[Cube]] -> [Cube]
 zcubes = (eraseLabel <$>) . (filter included) . concat
@@ -178,29 +189,27 @@ zcubes = (eraseLabel <$>) . (filter included) . concat
     eraseLabel (Cube _ cov vs) = Cube [] cov vs
     included (Cube _ (_, inc) _) = inc
 
-zerocubes :: BoolTruthTable -> [Cube]
-zerocubes = sortByOnes . zeroCubes . (uncurry (++)) . (minterms &&& dontcareminterms)
-
-implicantTable :: LaTeXM ()
-implicantTable =
-  borderedtable [(LeftColumn, (length $ mtms) + 1)] $ do
+implicantTable :: (BoolTruthTable -> [BoolTerm]) -> (BoolTruthTable -> [[Cube]]) -> LaTeXM ()
+implicantTable termf cubef =
+  borderedtable [(LeftColumn, (length tms) + 1)] $ do
     hline
-    trow ("Простые импликанты" : (raw <$> renderMinterms))
+    trow ("Простые импликанты" : ((raw . renderTerms) <$> tms))
     forM_ zcbs renderImplicant
   where
-    renderImplicant c = trow $ (rendertex c) : ((\t -> if coversMinterm c t then "*" else "") <$> mtms)
-    --singleCovering c = or (coversMinterm c <$> singleCoverage)
-    --singleCoverage = (fst <$>) $ filter snd $ zip mtms $ (\c -> length (filter id c) == 1) <$>
-    --  (transpose ((\c -> (coversMinterm c) <$> mtms) <$> zcbs))
-    renderMinterms = (\(And vals) -> "\\makecell{" <>
-      mconcat (intersperse " \\\\ " (renderx <$> vals)) <> "}") <$> mtms
+    renderImplicant c = trow $ (rendertex c) : ((\t -> if coversTerm c t then "*" else "") <$> tms)
+    --wraprow c t = if singleCovering c then raw "\\rowcolor{gray!60}" <> t else t
+    singleCovering c = or (coversTerm c <$> singleCoverage)
+    singleCoverage = (fst <$>) $ filter snd $ zip tms $ (\c -> length (filter id c) == 1) <$>
+      (transpose ((\c -> (coversTerm c) <$> tms) <$> zcbs))
+    renderTerms (And vals) = "\\makecell{" <> mconcat (intersperse " \\\\ " (renderx <$> vals)) <> "}"
+    renderTerms (Or vals) = "\\makecell{" <> mconcat (intersperse " \\\\ " (renderx <$> vals)) <> "}"
     renderx (X _) = "1"
     renderx (Not (X _)) = "0"
-    zcbs = reverse $ zcubes $ cubegroups truthTable
-    mtms = minterms truthTable
+    zcbs = reverse $ zcubes $ cubef truthTable
+    tms = termf truthTable
 
-coversMinterm :: Cube -> BoolTerm -> Bool
-coversMinterm (Cube _ _ vals) (And terms) = match (serialize <$> terms) (toList $ show <$> vals)
+coversTerm :: Cube -> BoolTerm -> Bool
+coversTerm (Cube _ _ vals) terms = match (serialize <$> extract terms) (toList $ show <$> vals)
   where
     match [] [] = True
     match (_:ts) ("X":vs) = match ts vs
@@ -209,3 +218,5 @@ coversMinterm (Cube _ _ vals) (And terms) = match (serialize <$> terms) (toList 
     match _ _ = False
     serialize (X _) = "1"
     serialize (Not (X _)) = "0"
+    extract (And ts) = ts
+    extract (Or ts) = ts

@@ -12,7 +12,7 @@ import qualified Identity.Institution as Institution
 
 baseHeader :: LaTeXM ()
 baseHeader = do
-  documentclass [a4paper, "12pt"] report
+  documentclass [a4paper, "12pt", "table"] report
   usepackage [ "a4paper", "mag=1000"
              , "left=1.5cm", "right=1.5cm", "top=1.5cm", "bottom=1.5cm"
              , "headsep=0.7cm", "footskip=1cm" ] "geometry"

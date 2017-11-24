@@ -55,6 +55,9 @@ maxterms = ((Or . argsToVarterms) <$>) . (selectArgs (== F))
 dontcareminterms :: BoolTruthTable -> [BoolTerm]
 dontcareminterms = ((And . argsToVarterms) <$>) . (selectArgs (== D))
 
+dontcaremaxterms :: BoolTruthTable -> [BoolTerm]
+dontcaremaxterms = ((Or . argsToVarterms) <$>) . (selectArgs (== D))
+
 selectArgs :: (BoolFuncValue -> Bool) -> BoolTruthTable -> [[Bool]]
 selectArgs p = (fst <$>) . (filter (p . snd))
 
@@ -63,6 +66,12 @@ argsToVarterms = zipWith complementTerm [1..]
   where
     complementTerm i True = X i
     complementTerm i False = Not $ X i
+
+costQ :: BoolTerm -> Int
+costQ (And terms) = 1 + sum (costQ <$> terms)
+costQ (Or terms) = 1 + sum (costQ <$> terms)
+costQ (Not term) = costQ term
+costQ (X _) = 1
 
 --
 -- Utils

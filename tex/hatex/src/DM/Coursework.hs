@@ -25,23 +25,28 @@ reportTeX = do
     sectionstar "Представление функции в аналитическом виде"
     "КДНФ: " <> (math . rendertex . sumOfProducts) truthTable <> parbreak
     "ККНФ: " <> (math . rendertex . productOfSums) truthTable <> parbreak
-    newpage
-    sectionstar "Нахождение минимальных форм методом Квайна--Мак-Класки"
+    newpage ------
+--    sectionstar "Нахождение МДНФ методом Квайна--Мак-Класки"
+--    textit "Нахождение простых импликант (максимальных кубов):" <> lnbk <> parbreak
+--    (cubeTable cubegroups numOfOnes) <> newpage
+--    textit "Составление импликантной таблицы:" <> lnbk <> parbreak
+--    (implicantTable minterms cubegroups) <> lnbk <> parbreak
+--    "Все импликанты, исключая " <> textbf "XX10X" <> ", являются существенными, так как покрывают вершины, не покрытые другими импликантами." <> lnbk <> parbreak
+--    mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 1XX00, 10X0X, 100X0}}" <> lnbk <> parbreak
+--    mt "S^a = 2 + 3 + 3 + 3 + 3 + 3 + 4 = 21, \\quad S^b = 21 + 7 = 28" <> lnbk <> parbreak
+--    "МДНФ: " <> (math . rendertex $ Or [ And [Not (X 1), X 3]
+--                                       , And [Not (X 1), X 2, X 4]
+--                                       , And [Not (X 1), X 2, X 5]
+--                                       , And [Not (X 1), X 4, X 5]
+--                                       , And [X 1, Not (X 4), Not (X 5)]
+--                                       , And [X 1, Not (X 2), Not (X 4)]
+--                                       , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ])
+    newpage ------
+    sectionstar "Нахождение МКНФ методом Квайна--Мак-Класки"
     textit "Нахождение простых импликант (максимальных кубов):" <> lnbk <> parbreak
-    cubeTable <> newpage
+    (cubeTable cubegroupspos numOfZeroes) <> newpage
     textit "Составление импликантной таблицы:" <> lnbk <> parbreak
-    implicantTable <> lnbk <> parbreak
-    "Все импликанты, исключая " <> textbf "XX10X" <> ", являются существенными, так как покрывают вершины, не покрытые другими импликантами." <> lnbk <> parbreak
-    mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 1XX00, 10X0X, 100X0}}" <> lnbk <> parbreak
-    mt "S^a = 2 + 3 + 3 + 3 + 3 + 3 + 4 = 21, \\quad S^b = 21 + 7 = 28" <> lnbk <> parbreak
-    "МДНФ: " <> (math . rendertex $ Or [ And [Not (X 1), X 3]
-                                       , And [Not (X 1), X 2, X 4]
-                                       , And [Not (X 1), X 2, X 5]
-                                       , And [Not (X 1), X 4, X 5]
-                                       , And [X 1, Not (X 4), Not (X 5)]
-                                       , And [X 1, Not (X 2), Not (X 4)]
-                                       , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ])
-    newpage
+    (implicantTable maxterms cubegroupspos) <> lnbk <> parbreak
     sectionstar "Минимизация булевой функции на картах Карно"
     includegraphics [IGWidth $ Cm 12] "../src/DM/KarnaughMap.pdf" <> lnbk <> parbreak
     mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 10X0X, 1XX00, 100X0}}" <> lnbk <> parbreak
@@ -67,3 +72,62 @@ reportTeX = do
                                         , Or [Not (X 1), Not (X 4), Not (X 5)]
                                         , Or [Not (X 1), Not (X 2), Not (X 5)]
                                         , Or [Not (X 1), Not (X 2), Not (X 4)] ])
+    newpage
+    sectionstar "Преобразование минимальных форм булевой функции"
+    raw "\\quad" <> lnbk
+    textbf "Факторное преобразование для МДНФ:"
+    flalignstar $ do
+      let transform1 = Or [ And [Not (X 1), X 3]
+                          , And [Not (X 1), X 2, X 4]
+                          , And [Not (X 1), X 2, X 5]
+                          , And [Not (X 1), X 4, X 5]
+                          , And [X 1, Not (X 2), Not (X 4)]
+                          , And [X 1, Not (X 4), Not (X 5)]
+                          , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ]
+      rendertex transform1 <> raw ("&\\quad\\quad S_Q = " <> fromString (show $ costQ transform1)) <> lnbk
+      let transform2 = Or [ And [Not (X 1), Or [X 3, And [X 2, X 4], And [X 2, X 5], And [X 4, X 5]]]
+                          , And [X 1, Or [ And [Not (X 2), Not (X 4)]
+                                         , And [Not (X 4), Not (X 5)]
+                                         , And [Not (X 2), Not (X 3), Not (X 5)]]] ]
+      rendertex transform2 <> raw ("&\\quad\\quad S_Q = " <> fromString (show $ costQ transform2)) <> lnbk
+      let transform3 = Or [ And [Not (X 1), Or [X 3, And [X 4, Or [X 2, X 5]], And [X 2, X 5]]]
+                          , And [X 1, Or [ And [Not (X 4), Or [Not (X 2), Not (X 5)]]
+                                         , And [Not (X 2), Not (X 3), Not (X 5)]]] ]
+      rendertex transform3 <> raw ("&\\quad\\quad S_Q = " <> fromString (show $ costQ transform3) <> "&")
+    textbf "Факторное преобразование для МКНФ:"
+    flalignstar $ do
+      let transform1 = And [ Or [X 1, X 2, X 4]
+                           , Or [X 1, X 4, X 5]
+                           , Or [X 1, X 2, X 3, X 5]
+                           , Or [Not (X 1), Not (X 3)]
+                           , Or [Not (X 1), Not (X 4), Not (X 5)]
+                           , Or [Not (X 1), Not (X 2), Not (X 5)]
+                           , Or [Not (X 1), Not (X 2), Not (X 4)] ]
+      raw "&" <> rendertex transform1 <> lnbk <> raw ("&\\quad S_Q = " <> fromString (show $ costQ transform1)) <> lnbk
+      let transform2 = And [ Or [X 1, And [Or [X 2, X 4], Or [X 4, X 5], Or [X 2, X 3, X 5]]]
+                           , Or [Not (X 1), And [ Not (X 3)
+                                                , Or [Not (X 4), Not (X 5)]
+                                                , Or [Not (X 2), Not (X 5)]
+                                                , Or [Not (X 2), Not (X 4)] ]]]
+      raw "&" <> rendertex transform2 <> lnbk <> raw ("&\\quad S_Q = " <> fromString (show $ costQ transform2)) <> lnbk
+      let transform3 = And [ Or [X 1, And [Or [X 4, And [X 2, X 5]], Or [X 2, X 3, X 5]]]
+                           , Or [Not (X 1), And [ Not (X 3)
+                                                , Or [Not (X 4), And [Not (X 5), Not (X 2)]]
+                                                , Or [Not (X 2), Not (X 5)] ]]]
+      raw "&" <> rendertex transform3 <> lnbk <> raw ("&\\quad S_Q = " <> fromString (show $ costQ transform3)) <> lnbk
+      let transform4 = Or [ And [X 1, Not (X 3)
+                                    , Or [Not (X 4), And [Not (X 5), Not (X 2)]]
+                                    , Or [Not (X 2), Not (X 5)]]
+                          , And [Not (X 1), Or [X 4, And [X 2, X 5]], Or [X 2, X 3, X 5]] ]
+      raw "&" <> rendertex transform4 <> lnbk <> raw ("&\\quad S_Q = " <> fromString (show $ costQ transform4) <> "&")
+    raw "Введем вспомогательную функцию $\\varphi = " <> rendertex (Or [Not (X 2), Not (X 5)]) <> raw "$,"
+    raw "$\\enspace\\widebar{\\varphi} = " <> rendertex (And [X 2, X 5])
+    raw "\\enspace(S_Q = " <> fromString (show $ costQ $ Or [Not (X 2), Not (X 5)]) <> raw ")$:"
+    flalignstar $ do
+      raw "&x_1\\widebar{x_3}(\\widebar{x_4} \\lor \\widebar{x_2}\\widebar{x_5})\\varphi\\lor"
+      raw "\\widebar{x_1}(x_4 \\lor \\widebar{\\varphi})(x_2 \\lor x_3 \\lor x_5)" <> lnbk
+      let phonyFunForSQ = Or [ And [X 1, Not (X 3), Or [Not (X 4), And [Not (X 5), Not (X 2)], X 10]]
+                             , And [Not (X 1), Or [X 4, X 10], Or [X 2, X 3, X 5]] ]
+      let costq1 = costQ phonyFunForSQ
+      raw "&\\quad S_Q = " <> fromString (show costq1) <> " + 3 = " <> fromString (show $ costq1 + 3) <> raw "&"
+
