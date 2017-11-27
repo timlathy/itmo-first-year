@@ -1,0 +1,13 @@
+- word: "*"
+  requires: [MUL]
+  code: |
+    ; *
+    CLA
+- word: "+"
+  code: |
+    ; +
+    CLA
+    ADD (DSP)
+    JSR INCDSP
+    ADD (DSP)
+    MOV (DSP)

@@ -1,0 +1,32 @@
+name: forth
+version: 0.0.0
+synopsis: Toy Forth compiler
+description: Toy Forth compiler for BCOMP (extended IS)
+maintainer: thymelous
+license: OtherLicense
+github: thymelous/ifmo
+category: Education
+
+default-extensions:
+  - OverloadedStrings
+
+ghc-options: -Wall
+
+dependencies:
+  - base >= 4.7 && < 5
+  - mtl
+  - split
+  - strict
+  - containers
+  - yaml
+
+library:
+  source-dirs: src
+
+executables:
+  malachite:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+      - forth
+

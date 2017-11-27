@@ -1,0 +1,17 @@
+- word: STACK
+  code: |
+    ORG 600
+    DECDSP: WORD 0000
+    CLA
+    ADD DSP
+    DEC
+    MOV DSP
+    BR (DECDSP)
+
+    INCDSP: WORD 0000
+    ISZ DSP
+    NOP
+    BR (INCDSP)
+
+    ORG 7FF
+    DSP: WORD 07FF
