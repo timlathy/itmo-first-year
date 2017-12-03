@@ -1,0 +1,13 @@
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily, keepspaces=true}
+
+\lstset{emph=[1]{%  
+    CLA,ADD,MOV,CLC,JSR,SUB,BMI,BEQ,CMA,INC,ISZ,BR,ROR,ORG,WORD,HLT,TSF,IN,OUT,CLF%
+    },emphstyle=[1]{\textbf}%
+}%
+\lstset{emph=[2]{%  
+    ITER,CHAR_CNT,BEGIN,RESET_STATE,ADDR,GET_REQUESTED_LEN,VALIDATE_LEN,INVALID_OR_FULL_LEN,RESTORE_LEN,LEN,MAIN_LOOP,SECOND_CHAR,SHIFT_CHAR,END,IO_PRINT,AWAIT_IO,IO_READ,AWAIT_IO2,CONTENTS%
+    },emphstyle=[2]{\underbar}%
+}%
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}

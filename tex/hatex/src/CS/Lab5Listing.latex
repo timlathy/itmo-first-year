@@ -1,0 +1,78 @@
+\begin{lstlisting}
+
+ORG 00A
+ITER: WORD 0000     ; адрес ячейки с блоком из двух символов, 
+                    ; к которой происходит обращение в цикле
+
+CHAR_CNT: WORD 0000 ; число символов, которые требуется вывести
+
+ORG 561
+BEGIN:
+RESET_STATE:        ; восстановление исходного состояния программы
+  CLA
+  ADD ADDR          ; установление адреса ячейки - итератора -
+  MOV ITER          ; в начало строки
+  CLA
+
+GET_REQUESTED_LEN:  ; считывание числа символов,
+  JSR IO_READ       ; которые требуется вывести
+
+VALIDATE_LEN:       ; введенное значение должно быть
+  SUB LEN           ; меньше или равно длине строки
+  BMI RESTORE_LEN
+INVALID_OR_FULL_LEN:
+  CLA
+RESTORE_LEN:
+  ADD LEN
+  CMA
+  INC
+  MOV CHAR_CNT      ; записать проверенное число символов,
+                    ; которые требуется вывести
+
+MAIN_LOOP:          ; цикл вывода символов
+  CLA
+  ADD (ITER)        ; загрузка блока символов
+  JSR IO_PRINT      ; вывод младших 8 бит - первого символа
+  ISZ CHAR_CNT
+  BR SECOND_CHAR    ; если выведены все необходимые символы,
+  BR END            ; то цикл прекращается,
+SECOND_CHAR:        ; иначе блок символов сдвигается на 8 бит
+  SHIFT_CHAR:
+    ROR
+    ROR
+    ROR
+    ROR
+    ROR
+    ROR
+    ROR
+    ROR
+  JSR IO_PRINT      ; вывод старших 8 бит - второго символа
+  ISZ CHAR_CNT      ; аналогичная проверка на число оставшихся символов
+  BR MAIN_LOOP
+END:
+  HLT
+
+IO_PRINT: WORD 0000 ; процедура вывода младших 8 бит А на ВУ-3
+  AWAIT_IO:         ; цикл spin опроса в ожидании готовности
+    TSF 3
+    BR AWAIT_IO
+  OUT 3             ; вывод
+  CLF 3             ; сброс готовности
+  BR (IO_PRINT)
+
+IO_READ: WORD 0000  ; процедура чтения младших 8 бит из ВУ-3 в А
+  AWAIT_IO2:        ; цикл spin опроса в ожидании готовности
+    TSF 3
+    BR AWAIT_IO2
+  IN 3              ; ввод
+  CLF 3             ; сброс готовности
+  BR (IO_READ)
+
+ORG 650
+ADDR: WORD 0652     ; 650: адрес первого блока символов строки
+LEN: WORD 0005      ; 651: длина строки
+CONTENTS:
+  WORD DBC1         ; 652-654: строка, взятая в качестве примера
+  WORD D2D8         ; в кодировке ISO-8859-5
+  WORD 00D0         ; - Слива
+\end{lstlisting}
