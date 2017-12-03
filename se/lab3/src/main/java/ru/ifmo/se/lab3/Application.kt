@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Bean
 @SpringBootApplication
 class Application {
   @Bean
-  fun init(characters: CharacterRepository,
-           shoutedRemarks: ShoutedRemarkRepository) = CommandLineRunner {
-    val ne = characters.save(Character("Ne"))
-    val ko = characters.save(Character("Ko"))
+  fun init(people: PersonRepository,
+           actions: ActionRepository) = CommandLineRunner {
+    val ne = people.save(Person("Ne"))
+    val ko = people.save(Person("Ko"))
 
-    shoutedRemarks.save(ShoutedRemark("Hey", ne))
+    actions.save(LocationChangeAction(ne, "new location", TransportationMeans.BY_FOOT))
   }
 }
 
