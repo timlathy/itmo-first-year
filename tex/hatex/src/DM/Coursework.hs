@@ -15,6 +15,7 @@ reportTeX :: LaTeXM ()
 reportTeX = do
   baseHeader
   defineWidebar
+  usepackage [] "caption"
   document $ do
     baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 59", "2017 г.")
     sectionstar "Функция"
@@ -26,27 +27,27 @@ reportTeX = do
     "КДНФ: " <> (math . rendertex . sumOfProducts) truthTable <> parbreak
     "ККНФ: " <> (math . rendertex . productOfSums) truthTable <> parbreak
     newpage ------
---    sectionstar "Нахождение МДНФ методом Квайна--Мак-Класки"
---    textit "Нахождение простых импликант (максимальных кубов):" <> lnbk <> parbreak
---    (cubeTable cubegroups numOfOnes) <> newpage
---    textit "Составление импликантной таблицы:" <> lnbk <> parbreak
---    (implicantTable minterms cubegroups) <> lnbk <> parbreak
---    "Все импликанты, исключая " <> textbf "XX10X" <> ", являются существенными, так как покрывают вершины, не покрытые другими импликантами." <> lnbk <> parbreak
---    mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 1XX00, 10X0X, 100X0}}" <> lnbk <> parbreak
---    mt "S^a = 2 + 3 + 3 + 3 + 3 + 3 + 4 = 21, \\quad S^b = 21 + 7 = 28" <> lnbk <> parbreak
---    "МДНФ: " <> (math . rendertex $ Or [ And [Not (X 1), X 3]
---                                       , And [Not (X 1), X 2, X 4]
---                                       , And [Not (X 1), X 2, X 5]
---                                       , And [Not (X 1), X 4, X 5]
---                                       , And [X 1, Not (X 4), Not (X 5)]
---                                       , And [X 1, Not (X 2), Not (X 4)]
---                                       , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ])
-    newpage ------
-    sectionstar "Нахождение МКНФ методом Квайна--Мак-Класки"
+    sectionstar "Нахождение МДНФ методом Квайна--Мак-Класки"
     textit "Нахождение простых импликант (максимальных кубов):" <> lnbk <> parbreak
-    (cubeTable cubegroupspos numOfZeroes) <> newpage
+    (cubeTable cubegroups numOfOnes) <> newpage
     textit "Составление импликантной таблицы:" <> lnbk <> parbreak
-    (implicantTable maxterms cubegroupspos) <> lnbk <> parbreak
+    (implicantTable minterms cubegroups) <> lnbk <> parbreak
+    "Все импликанты, исключая " <> textbf "XX10X" <> ", являются существенными, так как покрывают вершины, не покрытые другими импликантами." <> lnbk <> parbreak
+    mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 1XX00, 10X0X, 100X0}}" <> lnbk <> parbreak
+    mt "S^a = 2 + 3 + 3 + 3 + 3 + 3 + 4 = 21, \\quad S^b = 21 + 7 = 28" <> lnbk <> parbreak
+    "МДНФ: " <> (math . rendertex $ Or [ And [Not (X 1), X 3]
+                                       , And [Not (X 1), X 2, X 4]
+                                       , And [Not (X 1), X 2, X 5]
+                                       , And [Not (X 1), X 4, X 5]
+                                       , And [X 1, Not (X 4), Not (X 5)]
+                                       , And [X 1, Not (X 2), Not (X 4)]
+                                       , And [X 1, Not (X 2), Not (X 3), Not (X 5)] ])
+    newpage ------
+--    sectionstar "Нахождение МКНФ методом Квайна--Мак-Класки"
+--    textit "Нахождение простых импликант (максимальных кубов):" <> lnbk <> parbreak
+--    (cubeTable cubegroupspos numOfZeroes) <> newpage
+--    textit "Составление импликантной таблицы:" <> lnbk <> parbreak
+--    (implicantTable maxterms cubegroupspos) <> lnbk <> parbreak
     sectionstar "Минимизация булевой функции на картах Карно"
     includegraphics [IGWidth $ Cm 12] "../src/DM/KarnaughMap.pdf" <> lnbk <> parbreak
     mt "C_{min} = \\set{\\text{0X1XX, 01X1X, 01XX1, 0XX11, 10X0X, 1XX00, 100X0}}" <> lnbk <> parbreak
@@ -130,4 +131,26 @@ reportTeX = do
                              , And [Not (X 1), Or [X 4, X 10], Or [X 2, X 3, X 5]] ]
       let costq1 = costQ phonyFunForSQ
       raw "&\\quad S_Q = " <> fromString (show costq1) <> " + 3 = " <> fromString (show $ costq1 + 3) <> raw "&"
-
+    "Полученное в результате декомпозиции выражение обладает наименьшей ценой схемы при условии, что схема строится на элементах булева базиса с парафазными входами."
+    newpage
+    sectionstar "Синтез комбинационных схем в булевом базисе"
+    minipage (Just Top) (".34" <> textwidth) $ do
+      vspace (Mm 1)
+      "Комбинационная схема с парафазными входами, реализующая последнее выражение, представлена справа." <> lnbk <> lnbk
+      raw "Задержка схемы $T=5\\tau$, цена $S_Q=22$." <> lnbk
+    hfill
+    minipage (Just Top) (".58" <> textwidth) $ do
+      vspace (Mm 1)
+      includegraphics [IGWidth $ Cm 9] "../src/DM/BooleanLogicCircuitParaPh.pdf" <> lnbk <> parbreak
+    parbreak <> vspace (Mm 6)
+    minipage (Just Top) (".34" <> textwidth) $ do
+      vspace (Mm 1)
+      "При посмотрении схемы с однофазными входами было учтено, что выражение, не обладающее минимальной ценой, но имеющее наименьшее число инверсных входных переменных, может оказаться более оптимальным." <> lnbk
+      "Каждое из преобразованных выражений содержит инверсии всех пяти переменных, поэтому для построения схемы с однофазными входами использовалось то же выражение, что и для построения с парафазными входами." <> lnbk <> lnbk
+      raw "Задержка схемы $T=6\\tau$, цена $S_Q=22 + 5 = 27$." <> lnbk <> parbreak
+    hfill
+    minipage (Just Top) (".58" <> textwidth) $ do
+      vspace (Mm 1)
+      includegraphics [IGWidth $ Cm 11] "../src/DM/BooleanLogicCircuitSinglePh.pdf" <> lnbk <> parbreak
+    
+        
