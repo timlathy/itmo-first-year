@@ -5,9 +5,9 @@ import javax.persistence.*
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 abstract class Action(
-    @ManyToOne
-    @JoinColumn(name="actor_id")
-    val actor: Person,
+  @ManyToOne
+  @JoinColumn(name="actor_id")
+  val actor: Person,
 
-    @Id @GeneratedValue
-    val id: Long = -1)
+  @Id @GeneratedValue
+  val id: Long = -1)

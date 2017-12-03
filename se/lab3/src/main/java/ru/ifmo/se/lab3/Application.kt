@@ -10,9 +10,12 @@ import org.springframework.context.annotation.Bean
 class Application {
   @Bean
   fun init(people: PersonRepository,
+           bankAccounts: BankAccountRepository,
            actions: ActionRepository) = CommandLineRunner {
-    val ne = people.save(Person("Ne"))
-    val ko = people.save(Person("Ko"))
+    val ne = people.save(Person(name = "Ne",
+      bankAccount = bankAccounts.save(BankAccount(10))))
+    val ko = people.save(Person(name = "Ko",
+      bankAccount = bankAccounts.save(BankAccount(30))))
 
     actions.save(LocationChangeAction(ne, "new location", TransportationMeans.BY_FOOT))
   }
