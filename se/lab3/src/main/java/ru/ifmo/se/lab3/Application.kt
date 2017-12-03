@@ -9,8 +9,12 @@ import org.springframework.context.annotation.Bean
 @SpringBootApplication
 class Application {
   @Bean
-  fun init(repo: CharacterRepository) = CommandLineRunner {
-    repo.save(Character("N"))
+  fun init(characters: CharacterRepository,
+           shoutedRemarks: ShoutedRemarkRepository) = CommandLineRunner {
+    val ne = characters.save(Character("Ne"))
+    val ko = characters.save(Character("Ko"))
+
+    shoutedRemarks.save(ShoutedRemark("Hey", ne))
   }
 }
 

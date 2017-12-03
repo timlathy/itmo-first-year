@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CharacterController(private val repository: CharacterRepository) {
+class CharacterController(private val repo: CharacterRepository) {
   @GetMapping("/characters/{name}")
-  fun findByName(@PathVariable name: String) = repository.findByName(name)
+  fun findByName(@PathVariable name: String) = repo.findByName(name)
 }
