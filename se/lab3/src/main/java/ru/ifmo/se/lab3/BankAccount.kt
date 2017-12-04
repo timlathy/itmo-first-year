@@ -4,7 +4,7 @@ import javax.persistence.*
 
 @Entity
 data class BankAccount(
-    val balance: Int,
+  var balance: Int,
 
-    @Id @GeneratedValue
-    val id: Long = -1)
+  @Id @GeneratedValue
+  val id: Long = -1)

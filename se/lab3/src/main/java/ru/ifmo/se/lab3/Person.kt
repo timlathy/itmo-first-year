@@ -11,4 +11,9 @@ data class Person(
   
   @OneToOne
   @JoinColumn(name="bank_account_id")
-  var bankAccount: BankAccount)
+  var bankAccount: BankAccount) : TransactionParty {
+
+  override fun getTransactionParty() = this
+  override fun getTransactionPartyLabel() = "Individual $name"
+  override fun getTransactionAccount() = bankAccount
+}
