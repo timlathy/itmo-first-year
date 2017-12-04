@@ -9,7 +9,7 @@
 (defn -main [& args]
   (run! println (prepare-report)))
 
-(def host "http://localhost:8087/")
+(def host "http://localhost:8080/")
 
 (defn fetch-json [endpoint]
   (-> (str host endpoint) client/get :body (json/parse-string true)))
@@ -20,9 +20,9 @@
                              (fetch-json "actions/Козлик")))
         transactions (map describe-transaction
                         (distinct (concat (fetch-json "transactions/drawer/Незнайка")
-                                          (fetch-json "transactions/drawer/Незнайка")
+                                          (fetch-json "transactions/drawer/Козлик")
                                           (fetch-json "transactions/drawee/Незнайка")
-                                          (fetch-json "transactions/drawee/Незнайка"))))
+                                          (fetch-json "transactions/drawee/Козлик"))))
         conversations (map describe-conversation
                          (distinct (concat (fetch-json "conversations/Незнайка")
                                            (fetch-json "conversations/Козлик"))))]
@@ -39,7 +39,7 @@
 
 (defn describe-conversation [c]
   {:description (str "A conversation has been observed between "
-                      (str/join ", " (map (-> :participants :name) c))
+                      (str/join ", " (map :name (:participants c)))
                      " and decoded to \"" (:recognizedContent c) "\"")
    :date (-> c :date parse-date)})
 
