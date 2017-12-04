@@ -13,6 +13,7 @@ class Application {
   fun init(people: PersonRepository,
            bankAccounts: BankAccountRepository,
            transactions: BankTransactionService,
+           businesses: BusinessRepository,
            actions: ActionRepository,
            conversations: RecordedConversationRepository) = CommandLineRunner {
     val ne = people.save(Person(name = "Незнайка",
@@ -41,11 +42,17 @@ class Application {
     transactions.transitFunds(amount = 12, drawee = richPeople[0], drawer = ne,
       date = LocalDateTime.of(2028, Month.JUNE, 12, 9, 51))
 
+    // Eating
     conversations.save(
       RecordedConversation(
         participants = setOf(ne, ko),
         recognizedContent = "придется ... одноразовое питание ... лучше всего питаться вечером перед сном ... если проешь свои денежки днем или утром к вечеру ... проголодаешься и ночью не сможешь заснуть",
-        date = LocalDateTime.of(2028, Month.JUNE, 13, 19, 49)))
+        date = LocalDateTime.of(2028, Month.JUNE, 12, 19, 19)))
+    val diner = instantiateCheapDiner(people, businesses, bankAccounts)
+    transactions.transitFunds(amount = 20, drawee = ko, drawer = ne,
+      date = LocalDateTime.of(2028, Month.JUNE, 12, 19, 24))
+    transactions.transitFunds(amount = 45, drawee = ne, drawer = diner,
+      date = LocalDateTime.of(2028, Month.JUNE, 12, 19, 27))
   }
 
   fun instantiateRichPeople(people: PersonRepository,
@@ -54,6 +61,13 @@ class Application {
     people.save(Person(name = "Скряга Сэм", bankAccount = bankAccounts.save(BankAccount(16_384)))),
     people.save(Person(name = "Толстосум Том", bankAccount = bankAccounts.save(BankAccount(32_768))))
   )
+
+  fun instantiateCheapDiner(people: PersonRepository,
+                            businesses: BusinessRepository,
+                            bankAccounts: BankAccountRepository): Business = businesses.save(
+    Business(name = "Умберто's",
+             owner = people.save(Person(name = "Упитанный Умберто",
+                                        bankAccount = bankAccounts.save(BankAccount(2_816))))))
 }
 
 fun main(args: Array<String>) {
