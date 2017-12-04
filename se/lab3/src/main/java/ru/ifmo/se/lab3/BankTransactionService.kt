@@ -3,11 +3,13 @@ package ru.ifmo.se.lab3
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
 
+import java.time.LocalDateTime
+
 @Service
 @Transactional
 class BankTransactionService(private val repo: BankTransactionRepository,
                              private val accountRepo: BankAccountRepository) {
-  fun transitFunds(amount: Int, drawee: TransactionParty, drawer: TransactionParty) {
+  fun transitFunds(amount: Int, drawee: TransactionParty, drawer: TransactionParty, date: LocalDateTime) {
     /* TODO: make sure the drawee has enough funds to withdraw */
     val draweeAcc = drawee.getTransactionAccount()
     draweeAcc.balance -= amount
@@ -17,7 +19,7 @@ class BankTransactionService(private val repo: BankTransactionRepository,
     drawerAcc.balance += amount
     accountRepo.save(drawerAcc)
 
-    val transaction = BankTransaction(amount,
+    val transaction = BankTransaction(amount = amount, date = date,
       drawee = drawee.getTransactionParty(),
       draweeLabel = drawee.getTransactionPartyLabel(),
       drawer = drawer.getTransactionParty(),

@@ -1,6 +1,7 @@
 package ru.ifmo.se.lab3
 
 import javax.persistence.*
+import java.time.LocalDateTime
 
 @Entity
 data class BankTransaction(
@@ -17,6 +18,8 @@ data class BankTransaction(
   val drawer: Person,
 
   val drawerLabel: String,
+
+  val date: LocalDateTime,
 
   @Id @GeneratedValue
   val id: Long = -1)

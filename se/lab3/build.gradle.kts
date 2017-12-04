@@ -41,6 +41,7 @@ dependencies {
   compile("com.h2database:h2")
   compile("org.jetbrains.kotlin:kotlin-stdlib")
   compile("org.jetbrains.kotlin:kotlin-reflect")
+  compile("com.fasterxml.jackson.module:jackson-module-kotlin")
 }
 
 tasks {
