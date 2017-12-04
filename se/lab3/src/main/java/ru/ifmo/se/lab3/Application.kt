@@ -49,10 +49,22 @@ class Application {
         recognizedContent = "придется ... одноразовое питание ... лучше всего питаться вечером перед сном ... если проешь свои денежки днем или утром к вечеру ... проголодаешься и ночью не сможешь заснуть",
         date = LocalDateTime.of(2028, Month.JUNE, 12, 19, 19)))
     val diner = instantiateCheapDiner(people, businesses, bankAccounts)
-    transactions.transitFunds(amount = 20, drawee = ko, drawer = ne,
+    transactions.transitFunds(amount = 20, drawee = ne, drawer = ko,
       date = LocalDateTime.of(2028, Month.JUNE, 12, 19, 24))
-    transactions.transitFunds(amount = 45, drawee = ne, drawer = diner,
+    transactions.transitFunds(amount = 45, drawee = ko, drawer = diner,
       date = LocalDateTime.of(2028, Month.JUNE, 12, 19, 27))
+
+    // Going to a cheaper place
+    actions.save(
+      LocationChangeAction(ne, LocalDateTime.of(2028, Month.JUNE, 12, 21, 1), "Outskirts", TransportationMeans.BY_FOOT))
+    actions.save( 
+      LocationChangeAction(ko, LocalDateTime.of(2028, Month.JUNE, 12, 21, 0), "Outskirts", TransportationMeans.BY_FOOT))
+
+    val flophouse = instantiateFlophouse(people, businesses, bankAccounts)
+    transactions.transitFunds(amount = 5, drawee = ne, drawer = ko,
+      date = LocalDateTime.of(2028, Month.JUNE, 12, 21, 8))
+    transactions.transitFunds(amount = 45, drawee = ko, drawer = flophouse,
+      date = LocalDateTime.of(2028, Month.JUNE, 12, 21, 8))
   }
 
   fun instantiateRichPeople(people: PersonRepository,
@@ -68,6 +80,13 @@ class Application {
     Business(name = "Умберто's",
              owner = people.save(Person(name = "Упитанный Умберто",
                                         bankAccount = bankAccounts.save(BankAccount(2_816))))))
+
+  fun instantiateFlophouse(people: PersonRepository,
+                           businesses: BusinessRepository,
+                           bankAccounts: BankAccountRepository): Business = businesses.save(
+    Business(name = "Ночлежка Грега",
+             owner = people.save(Person(name = "Грязный Грег",
+                                        bankAccount = bankAccounts.save(BankAccount(384))))))
 }
 
 fun main(args: Array<String>) {

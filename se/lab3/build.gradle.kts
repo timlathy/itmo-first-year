@@ -11,7 +11,7 @@ buildscript {
     classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.0.M7")
     classpath("org.jetbrains.kotlin:kotlin-noarg:1.2.0")
     //classpath(kotlin("gradle-plugin"))
-    //classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
+    classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
   }
 }
 
@@ -51,11 +51,16 @@ tasks {
     }
   }
 }
-//val shadowJar: ShadowJar by tasks
-//shadowJar.apply {
-//  manifest.attributes.apply {
-//    put("Main-Class", "ru.ifmo.se.lab3.MainKt")
-//  }
-//  
-//  baseName = project.name + "-all"
-//}
+
+application {
+  mainClassName = "ru.ifmo.se.lab3.ApplicationKt"
+}
+
+val shadowJar: ShadowJar by tasks
+shadowJar.apply {
+  manifest.attributes.apply {
+    put("Main-Class", "ru.ifmo.se.lab3.ApplicationKt")
+  }
+  
+  baseName = project.name + "-all"
+}
