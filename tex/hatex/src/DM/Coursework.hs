@@ -152,5 +152,37 @@ reportTeX = do
     minipage (Just Top) (".58" <> textwidth) $ do
       vspace (Mm 1)
       includegraphics [IGWidth $ Cm 11] "../src/DM/BooleanLogicCircuitSinglePh.pdf" <> lnbk <> parbreak
-    
-        
+    newpage
+    sectionstar "Синтез комбинационных схем в универсальных базисах"
+    "Приведем функцию к базису И-НЕ, используя законы двойственности:"
+    flalignstar $ do
+      raw "&x_1\\widebar{x_3}(\\widebar{x_4} \\lor \\widebar{x_2}\\widebar{x_5})\\varphi\\lor"
+      raw "\\widebar{x_1}(x_4 \\lor \\widebar{\\varphi})(x_2 \\lor x_3 \\lor x_5) = " <> lnbk
+      raw "&(\\widebar{x_1 \\mid \\widebar{x_3}})(x_4 \\mid (\\widebar{x_2} \\mid \\widebar{x_5}))\\varphi"
+      raw " \\lor \\widebar{x_1}(\\widebar{x_4} \\mid \\varphi)"
+      raw "((\\overline{\\widebar{x_2} \\mid \\widebar{x_3}}) \\mid \\widebar{x_5}) = " <> lnbk
+      raw "&(((\\overline{(x_1 \\mid \\widebar{x_3}) \\mid (x_4 \\mid (\\widebar{x_2} \\mid \\widebar{x_5})})"
+      raw " \\mid \\varphi) \\mid "
+      raw "((\\overline{\\widebar{x_1} \\mid (\\widebar{x_4} \\mid \\varphi)}) \\mid"
+      raw "((\\overline{\\widebar{x_2} \\mid \\widebar{x_3}}) \\mid \\widebar{x_5}))"
+    parbreak
+    raw "Вспомогательная функция $\\varphi$ примет следующий вид:"
+    flalignstar $ do
+      raw "\\varphi = \\widebar{x_2} \\lor \\widebar{x_5} = \\widebar{x_2x_5} = x_2 \\mid x_5"
+    parbreak
+    raw "Цена схемы $S_Q = 28 + 3 = 31$, задержка $T = 6\\tau$." <> lnbk <> vspace (Mm 6) <> parbreak
+    includegraphics [IGWidth $ Cm 15] "../src/DM/NANDCircuit.pdf" <> lnbk <> parbreak
+    newpage
+    sectionstar "Синтез комбинационных схем в сокращенных булевых базисах"
+    "Функцию выгоднее представить в базисе ИЛИ, НЕ, что связано с отсутствием необходимости выходного инвертора. Преобразуем исходное выражение:"
+    flalignstar $ do
+      raw "&x_1\\widebar{x_3}(\\widebar{x_4} \\lor \\widebar{x_2}\\widebar{x_5})\\varphi\\lor"
+      raw "\\widebar{x_1}(x_4 \\lor \\widebar{\\varphi})(x_2 \\lor x_3 \\lor x_5) = " <> lnbk
+      raw "&(\\overline{\\widebar{x_1} \\lor x_3 \\lor (\\overline{\\widebar{x_4} \\lor \\overline{x_2 \\lor x_5}}) \\lor \\varphi})"
+      raw " \\lor (\\overline{x_1 \\lor (\\overline{x_4 \\lor \\widebar{\\varphi}}) \\lor (\\overline{x_2 \\lor x_3 \\lor x_5})})" <> lnbk
+    parbreak
+    raw "Вспомогательное выражение $\\varphi = \\widebar{x_2} \\lor \\widebar{x_5}$ останется без изменения."
+    lnbk <> parbreak
+    raw "Цена схемы с парафазными входами равна $S_Q = 25 + 3 \\ (\\varphi) + 1 \\ (\\text{инвертор } \\varphi) = 29$."
+
+
