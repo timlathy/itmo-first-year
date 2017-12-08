@@ -6,5 +6,11 @@ import javax.persistence.*
 data class BankAccount(
   var balance: Int,
 
+  val transactionPartyTitle: String,
+
+  @OneToOne
+  @JoinColumn(name="owner_id")
+  val owner: Person,
+
   @Id @GeneratedValue
   val id: Long = -1)

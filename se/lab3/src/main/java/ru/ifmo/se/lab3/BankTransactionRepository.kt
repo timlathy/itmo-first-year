@@ -4,6 +4,6 @@ import org.springframework.data.repository.CrudRepository
 import org.springframework.data.jpa.repository.Query
 
 interface BankTransactionRepository : CrudRepository<BankTransaction, Long> {
-  fun findByDrawee(drawee: Person): Iterable<BankTransaction>
-  fun findByDrawer(drawer: Person): Iterable<BankTransaction>
+  fun findByDraweeAccountOwnerName(name: String): Iterable<BankTransaction>
+  fun findByDrawerAccountOwnerName(name: String): Iterable<BankTransaction>
 }
