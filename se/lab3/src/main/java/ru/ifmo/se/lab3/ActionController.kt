@@ -12,7 +12,7 @@ class ActionController(private val repo: ActionRepository,
   @PreAuthorize("hasRole('ROLE_BIG_BROTHER')")
   @GetMapping("/actions/{actorName}")
   fun readByActor(@PathVariable actorName: String) =
-    repo.findByActor(personRepo.findByName(actorName))
+    repo.findByActorName(actorName)
 
   @PreAuthorize("hasRole('ROLE_SURV_DEVICE')")
   @PostMapping("/actions/location_changes")
