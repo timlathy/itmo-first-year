@@ -153,7 +153,7 @@ reportTeX = do
       vspace (Mm 1)
       includegraphics [IGWidth $ Cm 11] "../src/DM/BooleanLogicCircuitSinglePh.pdf" <> lnbk <> parbreak
     newpage
-    sectionstar "Синтез комбинационных схем в универсальных базисах"
+    sectionstar "Синтез комбинационной схемы в универсальном базисе"
     "Приведем функцию к базису И-НЕ, используя законы двойственности:"
     flalignstar $ do
       raw "&x_1\\widebar{x_3}(\\widebar{x_4} \\lor \\widebar{x_2}\\widebar{x_5})\\varphi\\lor"
@@ -173,7 +173,7 @@ reportTeX = do
     raw "Цена схемы $S_Q = 28 + 3 = 31$, задержка $T = 6\\tau$." <> lnbk <> vspace (Mm 6) <> parbreak
     includegraphics [IGWidth $ Cm 15] "../src/DM/NANDCircuit.pdf" <> lnbk <> parbreak
     newpage
-    sectionstar "Синтез комбинационных схем в сокращенных булевых базисах"
+    sectionstar "Синтез комбинационной схемы в сокращенном булевом базисе"
     "Функцию выгоднее представить в базисе ИЛИ, НЕ, что связано с отсутствием необходимости выходного инвертора. Преобразуем исходное выражение:"
     flalignstar $ do
       raw "&x_1\\widebar{x_3}(\\widebar{x_4} \\lor \\widebar{x_2}\\widebar{x_5})\\varphi\\lor"
@@ -184,5 +184,8 @@ reportTeX = do
     raw "Вспомогательное выражение $\\varphi = \\widebar{x_2} \\lor \\widebar{x_5}$ останется без изменения."
     lnbk <> parbreak
     raw "Цена схемы с парафазными входами равна $S_Q = 25 + 3 \\ (\\varphi) + 1 \\ (\\text{инвертор } \\varphi) = 29$."
-
+    lnbk <> vspace (Mm 6) <> parbreak
+    includegraphics [IGWidth $ Cm 15] "../src/DM/NOT_ORCircuit.pdf" <> lnbk <> parbreak
+    newpage
+    baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 61", "2017 г.")
 
