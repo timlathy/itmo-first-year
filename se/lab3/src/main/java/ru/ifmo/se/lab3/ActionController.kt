@@ -9,11 +9,12 @@ import org.springframework.security.access.prepost.PreAuthorize
 class ActionController(private val repo: ActionRepository,
                        private val personRepo: PersonRepository,
                        private val actionService: ActionService) {
+  @PreAuthorize("hasRole('ROLE_BIG_BROTHER')")
   @GetMapping("/actions/{actorName}")
   fun readByActor(@PathVariable actorName: String) =
     repo.findByActor(personRepo.findByName(actorName))
 
-  @PreAuthorize("hasRole('ROLE_DEVICE')") 
+  @PreAuthorize("hasRole('ROLE_SURV_DEVICE')")
   @PostMapping("/actions/location_changes")
   fun createLocationChange(authorizedActor: Principal,
                            @Valid @RequestBody action: LocationChangeAction.Dto) =

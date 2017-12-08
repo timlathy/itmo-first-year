@@ -16,6 +16,9 @@ const val JWT_HEADER = "Authorization"
 const val JWT_HEADER_PREFIX = "Bearer "
 const val JWT_SECRET = "RandomSecretSharedWithTheAuthService"
 
+const val JWT_SUB_BIG_BROTHER = "BIG_BROTHER"
+const val JWT_SUB_DEVICE_PREFIX = "DEVICE_OF "
+
 class JwtAuthFilter(private val authManager: AuthenticationManager): BasicAuthenticationFilter(authManager) {
   override fun doFilterInternal(req: HttpServletRequest, res: HttpServletResponse, chain: FilterChain) {
     val authHeader = req.getHeader(JWT_HEADER)
@@ -30,8 +33,20 @@ class JwtAuthFilter(private val authManager: AuthenticationManager): BasicAuthen
   fun getJwtAuth(authHeader: String): UsernamePasswordAuthenticationToken {
     val tokenString = authHeader.replaceFirst(JWT_HEADER_PREFIX, "")
     val token = Jwts.parser().setSigningKey(JWT_SECRET.toByteArray()).parseClaimsJws(tokenString)
-    val user = token.getBody().getSubject()
+    val subject = token.getBody().getSubject()
+    
+    val (user, roles) =
+      if (subject.startsWith(JWT_SUB_DEVICE_PREFIX)) {
+        val username = subject.replaceFirst(JWT_SUB_DEVICE_PREFIX, "")
+        Pair(username, arrayListOf(SimpleGrantedAuthority("ROLE_SURV_DEVICE")))
+      }
+      else if (subject == JWT_SUB_BIG_BROTHER) {
+        Pair("Big Brother", arrayListOf(SimpleGrantedAuthority("ROLE_BIG_BROTHER")))
+      }
+      else {
+        Pair(subject, arrayListOf())
+      }
 
-    return UsernamePasswordAuthenticationToken(user, null, arrayListOf(SimpleGrantedAuthority("ROLE_DEVICE")))
+    return UsernamePasswordAuthenticationToken(user, null, roles)
   }
 }
