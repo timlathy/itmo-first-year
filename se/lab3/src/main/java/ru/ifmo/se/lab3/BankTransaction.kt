@@ -25,8 +25,8 @@ data class BankTransaction(
   @Id @GeneratedValue
   val id: Long = -1) {
 
-  fun drawee(): String = draweeAccount.transactionPartyTitle
-  fun drawer(): String = drawerAccount.transactionPartyTitle
+  val drawee: String = draweeAccount.name
+  val drawer: String = drawerAccount.name
   
   /**
    * A DTO representing a new BankTransaction record.
@@ -38,7 +38,7 @@ data class BankTransaction(
   data class Dto(
     @Min(1)
     val amount: Int,
-    
-    @NotNull
-    val drawerId: Long)
+
+    @NotBlank
+    val drawerName: String)
 }

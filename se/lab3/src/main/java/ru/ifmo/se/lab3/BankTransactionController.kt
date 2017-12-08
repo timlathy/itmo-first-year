@@ -1,12 +1,13 @@
 package ru.ifmo.se.lab3
 
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RestController
+import java.security.Principal;
+import javax.validation.Valid;
+import org.springframework.web.bind.annotation.*
+import org.springframework.security.access.prepost.PreAuthorize
 
 @RestController
 class BankTransactionController(private val repo: BankTransactionRepository,
-                                private val accountRepo: BankAccountRepository) {
+                                private val transactionService: BankTransactionService) {
   @GetMapping("/transactions/drawee/{personName}")
   fun findByDrawee(@PathVariable personName: String) =
     repo.findByDraweeAccountOwnerName(personName)
@@ -14,4 +15,10 @@ class BankTransactionController(private val repo: BankTransactionRepository,
   @GetMapping("/transactions/drawer/{personName}")
   fun findByDrawer(@PathVariable personName: String) =
     repo.findByDrawerAccountOwnerName(personName)
+
+  @PreAuthorize("hasRole('ROLE_DEVICE')")
+  @PostMapping("/transactions")
+  fun createTransaction(authorizedDrawee: Principal,
+                        @Valid @RequestBody transaction: BankTransaction.Dto) =
+    transactionService.transitFunds(authorizedDrawee.getName(), transaction)
 }

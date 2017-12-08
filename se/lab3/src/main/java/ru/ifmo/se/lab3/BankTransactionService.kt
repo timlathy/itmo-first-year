@@ -1,29 +1,32 @@
 package ru.ifmo.se.lab3
 
+import javax.validation.ValidationException
+import java.time.LocalDateTime
+
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.stereotype.Service
-
-import java.time.LocalDateTime
 
 @Service
 @Transactional
 class BankTransactionService(private val repo: BankTransactionRepository,
                              private val accountRepo: BankAccountRepository) {
-  fun transitFunds(amount: Int, drawee: TransactionParty, drawer: TransactionParty, date: LocalDateTime) {
-    /* TODO: make sure the drawee has enough funds to withdraw */
-    val draweeAcc = drawee.getTransactionAccount()
-    draweeAcc.balance -= amount
+  fun transitFunds(draweeName: String, dto: BankTransaction.Dto) {
+    val draweeAcc = accountRepo.findByOwnerName(draweeName)
+    val drawerAcc = accountRepo.findByOwnerName(dto.drawerName)
+
+    if (draweeAcc.balance < dto.amount)
+      throw ValidationException("Drawee has insufficient funds to perform the transaction")
+
+    draweeAcc.balance -= dto.amount
     accountRepo.save(draweeAcc)
 
-    val drawerAcc = drawer.getTransactionAccount()
-    drawerAcc.balance += amount
+    drawerAcc.balance += dto.amount
     accountRepo.save(drawerAcc)
 
-    val transaction = BankTransaction(amount = amount, date = date,
-      drawee = drawee.getTransactionParty(),
-      draweeLabel = drawee.getTransactionPartyLabel(),
-      drawer = drawer.getTransactionParty(),
-      drawerLabel = drawer.getTransactionPartyLabel())
-    repo.save(transaction)
+    repo.save(BankTransaction(
+      amount = dto.amount,
+      date = LocalDateTime.now(),
+      draweeAccount = draweeAcc,
+      drawerAccount = drawerAcc))
   }
 }
