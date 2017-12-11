@@ -24,6 +24,9 @@ class LocationChangeAction(
   data class Dto(
     @NotBlank
     val newLocation: String,
+
+    @NotNull
+    val date: LocalDateTime,
     
     @NotNull
     @Enumerated(EnumType.STRING)

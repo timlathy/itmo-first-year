@@ -15,7 +15,7 @@ class ActionController(private val repo: ActionRepository,
     repo.findByActorName(actorName)
 
   @PreAuthorize("hasRole('ROLE_SURV_DEVICE')")
-  @PostMapping("/actions/location_changes")
+  @PostMapping("/actions/locationChanges")
   fun createLocationChange(authorizedActor: Principal,
                            @Valid @RequestBody action: LocationChangeAction.Dto) =
     actionService.createLocationChangeAction(loadAuthorizedPerson(authorizedActor), action)
