@@ -12,6 +12,7 @@ class PersonController(private val repo: PersonRepository,
   fun createPerson(@Valid @RequestBody dto: Person.Dto) =
     personService.createPerson(dto)
 
+  @PreAuthorize("hasRole('ROLE_BIG_BROTHER')")
   @GetMapping("/people/{name}")
   fun findByName(@PathVariable name: String) = repo.findByName(name)
 }

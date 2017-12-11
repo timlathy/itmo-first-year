@@ -2,16 +2,24 @@ package ru.ifmo.se.lab3
 
 import javax.persistence.*
 import javax.validation.constraints.*
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.*
 
 @Entity
 data class Person(
   @Column(unique = true)
   val name: String,
-
+  
   @Id @GeneratedValue
   val id: Long = -1) {
-  
+
+  @JsonIgnore
+  @OneToOne(mappedBy = "owner")
+  var account: BankAccount? = null
+
+  @JsonProperty
+  fun getSocialClass(): PersonSocialClass? =
+    account?.balance?.let { PersonSocialClass.fromAccountBalance(it) }
+
   /**
    * A DTO representing a new Person record.
    *
