@@ -5,9 +5,11 @@
             [clj-http.client :as client]
             [cheshire.core :as json]))
 
-(declare prepare-report describe-action describe-transaction describe-conversation)
+(declare prepare-people-report prepare-report
+         person-report describe-action describe-transaction describe-conversation)
 
 (defn -main [& args]
+  (run! println (prepare-people-report))
   (run! println (prepare-report)))
 
 (def host "http://localhost:8080")
@@ -17,6 +19,9 @@
       (client/get {:headers (auth/http-headers (auth/jwt-big-brother))})
       :body
       (json/parse-string true)))
+
+(defn prepare-people-report []
+  (map person-report '("Незнайка" "Козлик" "Богач Билли")))
 
 (defn prepare-report []
   (let [actions (map describe-action
@@ -31,6 +36,9 @@
                          (distinct (concat (fetch-json "/conversations/Незнайка")
                                            (fetch-json "/conversations/Козлик"))))]
   (->> (concat actions transactions conversations) (sort-by :date) (map :description))))
+
+(defn person-report [person-name]
+  (->> (fetch-json (str "/people/" person-name)) :socialClass (str person-name " is ")))
 
 (defn parse-date [ds]
   (.parse (java.text.SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss") ds))
