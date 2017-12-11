@@ -35,18 +35,15 @@ class JwtAuthFilter(private val authManager: AuthenticationManager): BasicAuthen
     val token = Jwts.parser().setSigningKey(JWT_SECRET.toByteArray()).parseClaimsJws(tokenString)
     val subject = token.getBody().getSubject()
     
-    val (user, roles) =
-      if (subject.startsWith(JWT_SUB_DEVICE_PREFIX)) {
+    val (user, roles) = when (subject) {
+      JWT_SUB_BIG_BROTHER -> 
+        Pair(null, arrayListOf(SimpleGrantedAuthority("ROLE_BIG_BROTHER")))
+      else -> {
         val username = subject.replaceFirst(JWT_SUB_DEVICE_PREFIX, "")
         Pair(username, arrayListOf(SimpleGrantedAuthority("ROLE_SURV_DEVICE")))
       }
-      else if (subject == JWT_SUB_BIG_BROTHER) {
-        Pair("Big Brother", arrayListOf(SimpleGrantedAuthority("ROLE_BIG_BROTHER")))
-      }
-      else {
-        Pair(subject, arrayListOf())
-      }
-
+    }
+    
     return UsernamePasswordAuthenticationToken(user, null, roles)
   }
 }
