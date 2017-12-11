@@ -1,6 +1,7 @@
 package ru.ifmo.se.lab3
 
 import javax.persistence.*
+import javax.validation.constraints.*
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 @Entity
@@ -9,15 +10,26 @@ data class Business(
 
   @OneToOne
   @JoinColumn(name="owner_id")
-  var owner: Person,
-  
-  @Id @GeneratedValue
-  val id: Long = -1) : TransactionParty {
+  val owner: Person,
 
+  @ManyToMany
+  @JoinTable(name = "business_employees")
   @JsonIgnore
-  override fun getTransactionParty() = owner
-  @JsonIgnore
-  override fun getTransactionPartyLabel() = "Business $name"
-  @JsonIgnore
-  override fun getTransactionAccount() = owner.bankAccount
+  val employees: Set<Person> = setOf(),
+
+  @Id @GeneratedValue
+  val id: Long = -1) {
+
+  /**
+   * A DTO representing a new Business record.
+   *
+   * Owner is instantiated by [BusinessService], which
+   * performs further validation and converts the DTO to an entity bean.
+   */
+  data class Dto(
+    @NotBlank
+    val name: String,
+    
+    @NotBlank
+    val ownerName: String)
 }
