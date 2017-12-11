@@ -36,9 +36,9 @@
   (.parse (java.text.SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss") ds))
 
 (defn describe-transaction [t]
-  {:description (str (-> t :draweeLabel) " transferred "
+  {:description (str (-> t :drawee) " transferred "
                      (-> t :amount) " currency units to "
-                     (-> t :drawerLabel))
+                     (-> t :drawer))
    :date (-> t :date parse-date)})
 
 (defn describe-conversation [c]
