@@ -1,7 +1,7 @@
 package ru.ifmo.se.lab3
 
-import java.security.Principal;
-import javax.validation.Valid;
+import java.security.Principal
+import javax.validation.Valid
 import org.springframework.web.bind.annotation.*
 import org.springframework.security.access.prepost.PreAuthorize
 
