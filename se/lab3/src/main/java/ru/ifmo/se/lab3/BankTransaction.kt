@@ -29,7 +29,8 @@ data class BankTransaction(
   val drawer: String = drawerAccount.name
   
   /**
-   * A DTO representing a new BankTransaction record.
+   * A DTO representing a new BankTransaction record between
+   * a) two people, b) a person and a business.
    *
    * Drawee is assumed to be initiating the request,
    * drawer is instantiated by [BankTransactionService],
@@ -39,6 +40,9 @@ data class BankTransaction(
     @Min(1)
     val amount: Int,
 
-    @NotBlank
-    val drawerName: String)
+    val personName: String?,
+    val businessName: String?,
+
+    @NotNull
+    val date: LocalDateTime)
 }

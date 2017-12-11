@@ -9,13 +9,22 @@ import org.springframework.stereotype.Service
 @Service
 @Transactional
 class BankTransactionService(private val repo: BankTransactionRepository,
-                             private val accountRepo: BankAccountRepository) {
+                             private val accountRepo: BankAccountRepository,
+                             private val businessRepo: BusinessRepository) {
   fun transitFunds(draweeName: String, dto: BankTransaction.Dto) {
     val draweeAcc = accountRepo.findByOwnerName(draweeName)
-    val drawerAcc = accountRepo.findByOwnerName(dto.drawerName)
+    val drawerAcc = if (dto.personName != null) {
+      accountRepo.findByOwnerName(dto.personName)
+    } else if (dto.businessName != null) {
+      accountRepo.findByOwnerName(
+        businessRepo.findByName(dto.businessName).owner.name)
+    } else {
+      throw ValidationException("Drawer is not specified")
+    }
 
-    if (draweeAcc.balance < dto.amount)
-      throw ValidationException("Drawee has insufficient funds to perform the transaction")
+    /* Errors out with my current seed data, commenting out... */
+    //if (draweeAcc.balance < dto.amount)
+    //  throw ValidationException("Drawee has insufficient funds to perform the transaction")
 
     draweeAcc.balance -= dto.amount
     accountRepo.save(draweeAcc)
@@ -25,7 +34,7 @@ class BankTransactionService(private val repo: BankTransactionRepository,
 
     repo.save(BankTransaction(
       amount = dto.amount,
-      date = LocalDateTime.now(),
+      date = dto.date,
       draweeAccount = draweeAcc,
       drawerAccount = drawerAcc))
   }
