@@ -24,11 +24,11 @@
                                        (auth/jwt-big-brother)))
   (-> {:newLocation "Downtown"
        :means "By foot"
-       :date "2028-06-12'T'08:17:30"} (post-json "/actions/locationChanges"
+       :date "2028-06-12T08:17:30"} (post-json "/actions/locationChanges"
                                                  (auth/jwt-device "Незнайка")))
   (-> {:newLocation "Downtown"
        :means "By foot"
-       :date "2028-06-12'T'08:18:30"} (post-json "/actions/locationChanges"
+       :date "2028-06-12T08:18:30"} (post-json "/actions/locationChanges"
                                                  (auth/jwt-device "Козлик")))
   )
 
