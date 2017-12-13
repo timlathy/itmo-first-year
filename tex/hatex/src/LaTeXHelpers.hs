@@ -5,6 +5,7 @@ import Text.LaTeX hiding (titlepage)
 import Text.LaTeX.Base.Class
 import Text.LaTeX.Base.Syntax
 import Text.LaTeX.Packages.AMSMath
+import Text.LaTeX.Base.Render (renderAppend)
 
 setmainfont :: LaTeXC l => [l] -> String -> l
 setmainfont opts name = liftListL (\ls_ -> TeXComm "setmainfont" [MOptArg ls_ ,FixArg $ fromString name]) opts
@@ -52,9 +53,12 @@ tfreerow :: LaTeXC l => [l] -> l
 tfreerow cols = mconcat (intersperse (raw "&") cols) <> lnbk
 
 borderedtable :: LaTeXC l => [(TableSpec, Int)] -> l -> l
-borderedtable spec = tabular Nothing ((addBorders . expandSpec) spec)
+borderedtable spec = tabular Nothing (expandspec spec)
+
+expandspec :: [(TableSpec, Int)] -> [TableSpec]
+expandspec = addBorders . expand
   where
-    expandSpec = ((\(s, times) -> replicate times s) =<<)
+    expand = ((\(s, times) -> replicate times s) =<<)
     addBorders = (flip (++) $ [VerticalLine]) . ((:) VerticalLine) . (intersperse VerticalLine)
 
 multirow :: LaTeXC l => Int -> Maybe Measure -> l -> l

@@ -1,12 +1,13 @@
 module DM.Coursework where
 
-import Text.LaTeX.Packages.AMSMath (math)
+import Text.LaTeX.Packages.AMSMath (math, mathDisplay)
 import Text.LaTeX.Packages.Graphicx (IGOption (..), includegraphics)
 
 import ReportBase
 import DM.Logic
 import DM.CourseworkTruthTable
 import DM.QuineMcCluskey
+import qualified DM.CourseworkSecondTable as SecondTable
 
 writeReport :: IO ()
 writeReport = renderFile "./renders/DM-Coursework.tex" (execLaTeXM reportTeX)
@@ -16,6 +17,7 @@ reportTeX = do
   baseHeader
   defineWidebar
   usepackage [] "caption"
+  usepackage [] "longtable"
   document $ do
     baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 59", "2017 г.")
     sectionstar "Функция"
@@ -188,4 +190,13 @@ reportTeX = do
     includegraphics [IGWidth $ Cm 15] "../src/DM/NOT_ORCircuit.pdf" <> lnbk <> parbreak
     newpage
     baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 61", "2017 г.")
+    sectionstar "Синтез сумматора"
+    "Комбинационная схема должна выполнять операцию сложения двух трехразрядных знаковых двоичных чисел с фиксацией переноса:"
+    mathDisplay $ do
+      "C = A + B" <> raw "\\text{, где } A = (a_{sign}, a_1, a_2), B = (b_{sign}, b_1, b_2), C = (c_{carry}, c_{sign}, c_{1}, c_{2})"    
+    sectionstar "Составление таблицы истинности"
+    SecondTable.truthTableTeX
+    sectionstar "Минимизация булевых функций системы"
+    includegraphics [IGWidth $ Cm 13] "../src/DM/KarnaughCCarry.pdf" <> lnbk <> parbreak
+    parbreak <> mt "C_{carry} = \\{XX1X11, X11XX1, X1XX1X, 1XX1XX\\}"
 
