@@ -1,6 +1,7 @@
 module DM.Coursework where
 
-import Text.LaTeX.Packages.AMSMath (math, mathDisplay)
+import Data.List (intersperse)
+import Text.LaTeX.Packages.AMSMath (math, mathDisplay, cases)
 import Text.LaTeX.Packages.Graphicx (IGOption (..), includegraphics)
 
 import ReportBase
@@ -191,12 +192,40 @@ reportTeX = do
     newpage
     baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 61", "2017 г.")
     sectionstar "Синтез сумматора"
-    "Комбинационная схема должна выполнять операцию сложения двух трехразрядных знаковых двоичных чисел с фиксацией переноса:"
+    "Комбинационная схема должна выполнять операцию сложения двух трехразрядных знаковых двоичных чисел, представленных в прямом коде, с фиксацией переполнения:"
     mathDisplay $ do
-      "C = A + B" <> raw "\\text{, где } A = (a_{sign}, a_1, a_2), B = (b_{sign}, b_1, b_2), C = (c_{carry}, c_{sign}, c_{1}, c_{2})"    
+      "C = A + B" <> raw "\\text{, где } A = (a_{sign}, a_1, a_2), B = (b_{sign}, b_1, b_2), C = (c_{overflow}, c_{sign}, c_{1}, c_{2})"    
     sectionstar "Составление таблицы истинности"
     SecondTable.truthTableTeX
-    sectionstar "Минимизация булевых функций системы"
-    includegraphics [IGWidth $ Cm 13] "../src/DM/KarnaughCCarry.pdf" <> lnbk <> parbreak
-    parbreak <> mt "C_{carry} = \\{XX1X11, X11XX1, X1XX1X, 1XX1XX\\}"
+    sectionstar "Минимизация булевых функций системы. Поиск МДНФ"
+    let cubeList = mconcat . (intersperse ",") . (fromString <$>)
+    -- overflow
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughCOverflow.pdf" <> lnbk <> parbreak
+    let csOverflow = ["0110X1", "0X1011", "01X01X", "1111X1", "1X1111", "11X11X"]
+    mt ("C_{overflow} = \\{" <> cubeList csOverflow <> "\\}") <> lnbk <> parbreak
+    -- sign
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughCSign.pdf" <> lnbk <> parbreak
+    let csSign = ["X001X1", "XX0111", "X0X11X", "1X1X00", "111XX0", "11XX0X", "1XX1X1", "11X11X"]
+    mt ("C_{sign} = \\{" <> cubeList csSign <> "\\}") <> lnbk <> parbreak
+    -- c1
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughC1.pdf" <> lnbk
+    let cs1 = ["X1XX00", "X00X1X", "001001", "01000X", "011011", "00X010", "11100X", "10X011", "01110X", "00X111", "101101", "11010X", "111111", "10X110"]
+    flalignstar $ do
+      raw ("C_1 = \\{&" <> cubeList (take 6 cs1) <> ",") <> lnbk
+      raw ("&" <> cubeList (drop 6 cs1) <> "\\}") <> lnbk
+    -- c2
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughC2.pdf" <> lnbk
+    let cs2 = ["XX1X00", "X10XX1"]
+    flalignstar $ raw ("C_2 = \\{&" <> cubeList cs2 <> "\\}") <> lnbk
+    -- cases
+    mathDisplay $ cases $ do
+      raw "C_{overflow} =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " csOverflow <> lnbk
+      raw "C_{sign} =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " csSign <> lnbk
+      raw "C_1 =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " cs1 <> lnbk
+      raw "C_2 =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " cs2
+    flalignstar $ do
+      raw "&S_Q^{C_{overflow}} =\\ " <> SecondTable.sQuineEq csOverflow <> lnbk
+      raw "&S_Q^{C_{sign}} =\\ "  <> SecondTable.sQuineEq csSign <> lnbk
+      raw "&S_Q^{C_1} =\\ "  <> SecondTable.sQuineEq cs1 <> lnbk
+      raw "&S_Q^{C_2} =\\ "  <> SecondTable.sQuineEq cs2 <> lnbk
 
