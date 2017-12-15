@@ -1,4 +1,4 @@
-module DM.CourseworkSecondTable (renderSopCube, renderCubesInChunksOf, sQuineEq, truthTableTeX) where
+module DM.CourseworkSecondTable (renderCubesInChunksOf, renderPoSCubesInChunksOf, sQuineEq, sQuineSum, truthTableTeX) where
 
 import Data.List (intersperse)
 import Data.List.Split (chunksOf)
@@ -16,12 +16,34 @@ truthTableTeX = environment2 "longtable" [FixArg $ TeXRaw "| c | c c | c | c c |
     a0 <- [False, True], b0 <- [False, True], 
     a1 <- [False, True], a2 <- [False, True], b1 <- [False, True], b2 <- [False, True] ]
 
-renderCubesInChunksOf :: Int -> String -> [String] -> LaTeXM ()
-renderCubesInChunksOf n sep = (mapM_ line) . (chunksOf n)
+renderCubesInChunksOf :: Int -> [String] -> LaTeXM ()
+renderCubesInChunksOf n = (mapM_ line) . (chunksOf n)
   where
-    line = (<> linebreak) . (alignment <>) . mconcat . intersperse (raw $ fromString sep) . (renderSopCube <$>)
+    line = (<> linebreak) . (alignment <>) . mconcat . intersperse (raw $ fromString " \\lor ") . ((renderCube sopCube "") <$>)
     alignment = raw "&"
     linebreak = raw "\\\\\n"
+    sopCube (name, 'X') = ""
+    sopCube (name, '0') = "\\widebar{" <> name <> "}"
+    sopCube (name, '1') = name
+
+renderPoSCubesInChunksOf :: Int -> [String] -> LaTeXM ()
+renderPoSCubesInChunksOf n = (mapM_ line) . (chunksOf n)
+  where
+    line = (<> linebreak) . (alignment <>) . mconcat . intersperse (raw $ fromString ")(") . ((renderCube posCube " \\lor ") <$>)
+    alignment = raw "&("
+    linebreak = raw ")\\\\\n"
+    posCube (name, 'X') = ""
+    posCube (name, '0') = name
+    posCube (name, '1') = "\\widebar{" <> name <> "}"
+
+renderCube :: ((Text, Char) -> Text) -> Text -> String -> LaTeXM ()
+renderCube print sep = raw . mconcat . (intersperse sep) . filter (/= "") . (print <$>) . (zip labels)
+  where
+    labels = ["a_{sign}" <> hfix, "a_1" <> hfix, "a_2" <> hfix, "b_{sign}", "b_1", "b_2"] 
+    hfix = "\\text{\\vphantom{b}}"
+
+sQuineSum :: [[String]] -> Int
+sQuineSum = sum . ((sum . (sQuineByCube <$>)) <$>)
 
 sQuineEq :: [String] -> LaTeXM ()
 sQuineEq cs = withResult . (mconcat . withOps) . ((fromIntegral . sQuineByCube) <$>) $ cs
@@ -31,13 +53,6 @@ sQuineEq cs = withResult . (mconcat . withOps) . ((fromIntegral . sQuineByCube) 
 
 sQuineByCube :: String -> Int
 sQuineByCube = (+ 1) . sum . ((\v -> if v == 'X' then 0 else 1) <$>)
-
-renderSopCube :: String -> LaTeXM ()
-renderSopCube = raw . mconcat . (print <$>) . (zip ["a_{sign}\\text{\\vphantom{b}}", "a_1", "a_2", "b_{sign}", "b_1", "b_2"])
-  where
-    print (name, 'X') = ""
-    print (name, '0') = "\\widebar{" <> name <> "}"
-    print (name, '1') = name
 
 makerow :: [Bool] -> [Bool] -> LaTeXM ()
 makerow as bs = trow (

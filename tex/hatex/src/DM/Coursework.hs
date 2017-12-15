@@ -215,17 +215,55 @@ reportTeX = do
       raw ("&" <> cubeList (drop 6 cs1) <> "\\}") <> lnbk
     -- c2
     includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughC2.pdf" <> lnbk
-    let cs2 = ["XX1X00", "X10XX1"]
+    let cs2 = ["XX1XX0", "XX0XX1"]
     flalignstar $ raw ("C_2 = \\{&" <> cubeList cs2 <> "\\}") <> lnbk
     -- cases
     mathDisplay $ cases $ do
-      raw "C_{overflow} =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " csOverflow <> lnbk
-      raw "C_{sign} =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " csSign <> lnbk
-      raw "C_1 =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " cs1 <> lnbk
-      raw "C_2 =" <> SecondTable.renderCubesInChunksOf 4 " \\lor " cs2
+      raw "C_{overflow} =" <> SecondTable.renderCubesInChunksOf 4 csOverflow <> lnbk
+      raw "C_{sign} =" <> SecondTable.renderCubesInChunksOf 4 csSign <> lnbk
+      raw "C_1 =" <> SecondTable.renderCubesInChunksOf 4 cs1 <> lnbk
+      raw "C_2 =" <> SecondTable.renderCubesInChunksOf 4 cs2
     flalignstar $ do
       raw "&S_Q^{C_{overflow}} =\\ " <> SecondTable.sQuineEq csOverflow <> lnbk
       raw "&S_Q^{C_{sign}} =\\ "  <> SecondTable.sQuineEq csSign <> lnbk
       raw "&S_Q^{C_1} =\\ "  <> SecondTable.sQuineEq cs1 <> lnbk
       raw "&S_Q^{C_2} =\\ "  <> SecondTable.sQuineEq cs2 <> lnbk
+      raw "&S_Q^{\\Sigma} =\\ " <> fromIntegral (SecondTable.sQuineSum [csOverflow, csSign, cs1, cs2]) <> lnbk
+    ----
+    newpage
+    sectionstar "Минимизация булевых функций системы. Поиск МКНФ"
+    -- overflow
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughPoSCOverflow.pdf" <> lnbk <> parbreak
+    let posOverflow = ["XXXX00", "XX0X0X", "X00XXX", "X0XX0X", "X0XXX0", "0XX1XX", "1XX0XX"]
+    mt ("C_{overflow}(\\widebar{f}) = \\{" <> cubeList posOverflow <> "\\}") <> lnbk <> parbreak
+    -- sign
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughPoSCSign.pdf"
+    let posSign = ["X00X00", "XX001X", "01XXX0", "0X1X0X", "01XX0X", "011XXX", "X0X0X1", "X0X01X", "XXX011"]
+    flalignstar $ do
+      raw ("C_{sign}(\\widebar{f}) = \\{&" <> cubeList (take 6 posSign) <> ",") <> lnbk
+      raw ("&" <> cubeList (drop 6 posSign) <> "\\}") <> lnbk
+    -- c1
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughPoSC1.pdf"
+    let posC1 = [ "X00X0X", "X0XX00", "011001", "001011", "X10X1X", "X1XX10", "00X10X", "0101X1", "0X1110"
+                , "01X11X", "10X00X", "1100X1", "1X1010", "11X01X", "111101", "101111"]
+    flalignstar $ do
+      raw ("C_{1}(\\widebar{f}) = \\{&" <> cubeList (take 6 posC1) <> ",") <> lnbk
+      raw ("&" <> cubeList (take 6 (drop 6 posC1)) <> ",") <> lnbk
+      raw ("&" <> cubeList (drop 12 posC1) <> "\\}") <> lnbk
+    -- c2
+    includegraphics [IGWidth $ Cm 14] "../src/DM/KarnaughPoSC2.pdf" <> lnbk <> parbreak
+    let posC2 = ["XX0XX0", "XX1XX1"]
+    mt ("C_2(\\widebar{f}) = \\{" <> cubeList posC2 <> "\\}") <> lnbk <> parbreak
+-- cases
+    mathDisplay $ cases $ do
+      raw "C_{overflow} =" <> SecondTable.renderPoSCubesInChunksOf 4 posOverflow <> lnbk
+      raw "C_{sign} =" <> SecondTable.renderPoSCubesInChunksOf 4 posSign <> lnbk
+      raw "C_1 =" <> SecondTable.renderPoSCubesInChunksOf 3 posC1 <> lnbk
+      raw "C_2 =" <> SecondTable.renderPoSCubesInChunksOf 4 posC2
+    flalignstar $ do
+      raw "&S_Q^{C_{overflow}} =\\ " <> SecondTable.sQuineEq posOverflow <> lnbk
+      raw "&S_Q^{C_{sign}} =\\ "  <> SecondTable.sQuineEq posSign <> lnbk
+      raw "&S_Q^{C_1} =\\ "  <> SecondTable.sQuineEq posC1 <> lnbk
+      raw "&S_Q^{C_2} =\\ "  <> SecondTable.sQuineEq posC2 <> lnbk
+      raw "&S_Q^{\\Sigma} =\\ " <> fromIntegral (SecondTable.sQuineSum [posOverflow, posSign, posC1, posC2]) <> lnbk
 
