@@ -19,7 +19,7 @@ truthTableTeX = environment2 "longtable" [FixArg $ TeXRaw "| c | c c | c | c c |
 renderCubesInChunksOf :: Int -> [String] -> LaTeXM ()
 renderCubesInChunksOf n = (mapM_ line) . (chunksOf n)
   where
-    line = (<> linebreak) . (alignment <>) . mconcat . intersperse (raw $ fromString " \\lor ") . ((renderCube sopCube "") <$>)
+    line = (<> linebreak) . (alignment <>) . mconcat . intersperse (raw $ fromString "\\ \\lor \\ ") . ((renderCube sopCube "") <$>)
     alignment = raw "&"
     linebreak = raw "\\\\\n"
     sopCube (name, 'X') = ""

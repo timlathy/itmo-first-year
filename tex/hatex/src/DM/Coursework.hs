@@ -219,10 +219,10 @@ reportTeX = do
     flalignstar $ raw ("C_2 = \\{&" <> cubeList cs2 <> "\\}") <> lnbk
     -- cases
     mathDisplay $ cases $ do
-      raw "C_{overflow} =" <> SecondTable.renderCubesInChunksOf 4 csOverflow <> lnbk
-      raw "C_{sign} =" <> SecondTable.renderCubesInChunksOf 4 csSign <> lnbk
-      raw "C_1 =" <> SecondTable.renderCubesInChunksOf 4 cs1 <> lnbk
-      raw "C_2 =" <> SecondTable.renderCubesInChunksOf 4 cs2
+      raw "C_{overflow} =" <> SecondTable.renderCubesInChunksOf 3 csOverflow <> lnbk
+      raw "C_{sign} =" <> SecondTable.renderCubesInChunksOf 3 csSign <> lnbk
+      raw "C_1 =" <> SecondTable.renderCubesInChunksOf 3 cs1 <> lnbk
+      raw "C_2 =" <> SecondTable.renderCubesInChunksOf 3 cs2
     flalignstar $ do
       raw "&S_Q^{C_{overflow}} =\\ " <> SecondTable.sQuineEq csOverflow <> lnbk
       raw "&S_Q^{C_{sign}} =\\ "  <> SecondTable.sQuineEq csSign <> lnbk
