@@ -3,6 +3,7 @@
 module DM.Logic where
 
 import Data.List (intersperse)
+import Data.Text (Text)
 import Text.LaTeX (Render, render, (<>))
 
 --
@@ -13,6 +14,7 @@ data BoolTerm = And [BoolTerm]
               | Or [BoolTerm]
               | Not BoolTerm
               | X Int -- refers to the variable position in the input set; starts from 1
+              | L Text -- labelled variable
   deriving (Show)
 
 data BoolFuncValue = T | F | D
@@ -25,11 +27,14 @@ instance Render BoolTerm where
   render (And [term]) = render term
   render (And terms) = mconcat $ (flip fmap) terms (\case
     var@(X _) -> render var
+    var@(L _) -> render var
     negvar@(Not (X _)) -> render negvar
+    negvar@(Not (L _)) -> render negvar
     term -> "(" <> render term <> ")")
   render (Or terms) = mconcat $ intersperse " \\lor " (render <$> terms)
   render (Not term) = "\\widebar{" <> render term <> "}"
   render (X i) = "x_" <> render i
+  render (L l) = l
 
 instance Show BoolFuncValue where
   show T = "1"
@@ -72,6 +77,7 @@ costQ (And terms) = 1 + sum (costQ <$> terms)
 costQ (Or terms) = 1 + sum (costQ <$> terms)
 costQ (Not term) = costQ term
 costQ (X _) = 1
+costQ (L _) = 1
 
 --
 -- Utils
