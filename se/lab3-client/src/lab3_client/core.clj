@@ -1,6 +1,7 @@
 (ns lab3-client.core
   (:gen-class)
   (:require [lab3-client.auth :as auth]
+            [lab3-client.seed :as seed]
             [clojure.string :as str]
             [clj-http.client :as client]
             [cheshire.core :as json]))
@@ -9,6 +10,9 @@
          person-report describe-action describe-transaction describe-conversation)
 
 (defn -main [& args]
+  (println "Seeding the app...")
+  (seed/post-data)
+  (println "---")
   (run! println (prepare-people-report))
   (run! println (prepare-report)))
 
