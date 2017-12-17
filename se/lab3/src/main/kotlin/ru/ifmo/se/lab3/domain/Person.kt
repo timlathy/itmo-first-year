@@ -3,6 +3,8 @@ package ru.ifmo.se.lab3.domain
 import javax.persistence.*
 import javax.validation.constraints.*
 import com.fasterxml.jackson.annotation.*
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.core.JsonGenerator
 
 @Entity
 data class Person(
@@ -30,4 +32,14 @@ data class Person(
   data class Dto(
     @NotBlank
     val name: String)
+
+  /**
+   * A serializer that can be used with @JsonSerialize to
+   * convert a [Person] instance into a string with its [name] field.
+   */
+  class ToNameStringSerializer: JsonSerializer<Person>() {
+    override fun serialize(person: Person, gen: JsonGenerator, _p: SerializerProvider) =
+      gen.writeObject(person.name)
+  }
 }
+

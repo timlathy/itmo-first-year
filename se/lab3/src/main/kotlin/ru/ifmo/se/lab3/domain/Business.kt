@@ -3,6 +3,7 @@ package ru.ifmo.se.lab3.domain
 import javax.persistence.*
 import javax.validation.constraints.*
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 
 @Entity
 data class Business(
@@ -10,6 +11,7 @@ data class Business(
 
   @OneToOne
   @JoinColumn(name="owner_id")
+  @JsonSerialize(using = Person.ToNameStringSerializer::class)
   val owner: Person,
 
   @ManyToMany

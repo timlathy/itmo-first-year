@@ -1,11 +1,13 @@
 package ru.ifmo.se.lab3.domain
 
+import java.time.LocalDateTime
 import javax.persistence.*
 import javax.validation.constraints.*
-import java.time.LocalDateTime
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 
 @Entity
 class LocationChangeAction(
+  @JsonSerialize(using = Person.ToNameStringSerializer::class)
   actor: Person,
 
   date: LocalDateTime,

@@ -1,13 +1,15 @@
 package ru.ifmo.se.lab3.domain
 
+import java.time.LocalDateTime
 import javax.persistence.*
 import javax.validation.constraints.*
-import java.time.LocalDateTime
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 
 @Entity
 data class RecordedConversation(
   @ManyToMany
   @JoinTable(name = "recorded_conversation_participants")
+  @JsonSerialize(contentUsing = Person.ToNameStringSerializer::class)
   val participants: Set<Person>,
 
   val recognizedContent: String,
