@@ -1,4 +1,7 @@
-module DM.CourseworkSecondTable (renderCubesInChunksOf, renderPoSCubesInChunksOf, sQuineEq, sQuineSum, truthTableTeX) where
+module DM.CourseworkSecondTable ( renderCubesInChunksOf
+                                , renderPoSCubesInChunksOf
+                                , sQuine, sQuineEq, sQuineSum
+                                , truthTableTeX) where
 
 import Data.List (intersperse)
 import Data.List.Split (chunksOf)
@@ -50,6 +53,15 @@ sQuineEq cs = withResult . (mconcat . withOps) . ((fromIntegral . sQuineByCube) 
   where
     withResult = (<> (" = " <> (fromIntegral . sum . (sQuineByCube <$>)) cs))
     withOps = intersperse (raw "+")
+
+sQuine :: BoolTerm -> Int
+sQuine = ((flip (-)) 1) . go
+  where
+    go (And terms) = 1 + sum (costQ <$> terms)
+    go (Or terms) = 1 + sum (costQ <$> terms)
+    go (Not term) = costQ term
+    go (X _) = 1
+    go (L _) = 1
 
 sQuineByCube :: String -> Int
 sQuineByCube = (+ 1) . sum . ((\v -> if v == 'X' then 0 else 1) <$>)

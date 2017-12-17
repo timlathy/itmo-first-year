@@ -8,7 +8,7 @@ import ReportBase
 import DM.Logic
 import DM.CourseworkTruthTable
 import DM.QuineMcCluskey
-import qualified DM.CourseworkSecondTable as SecondTable
+import qualified DM.CourseworkSecondTable as Snd
 
 writeReport :: IO ()
 writeReport = renderFile "./renders/DM-Coursework.tex" (execLaTeXM reportTeX)
@@ -196,7 +196,7 @@ reportTeX = do
     mathDisplay $ do
       "C = A + B" <> raw "\\text{, где } A = (a_{sign}, a_1, a_2), B = (b_{sign}, b_1, b_2), C = (c_{overflow}, c_{sign}, c_{1}, c_{2})"    
     sectionstar "Составление таблицы истинности"
-    SecondTable.truthTableTeX
+    Snd.truthTableTeX
     sectionstar "Минимизация булевых функций системы. Поиск МДНФ"
     let cubeList = mconcat . (intersperse ",") . (fromString <$>)
     -- overflow
@@ -219,16 +219,16 @@ reportTeX = do
     flalignstar $ raw ("C_2 = \\{&" <> cubeList cs2 <> "\\}") <> lnbk
     -- cases
     mathDisplay $ cases $ do
-      raw "C_{overflow} =" <> SecondTable.renderCubesInChunksOf 3 csOverflow <> lnbk
-      raw "C_{sign} =" <> SecondTable.renderCubesInChunksOf 3 csSign <> lnbk
-      raw "C_1 =" <> SecondTable.renderCubesInChunksOf 3 cs1 <> lnbk
-      raw "C_2 =" <> SecondTable.renderCubesInChunksOf 3 cs2
+      raw "C_{overflow} =" <> Snd.renderCubesInChunksOf 3 csOverflow <> lnbk
+      raw "C_{sign} =" <> Snd.renderCubesInChunksOf 3 csSign <> lnbk
+      raw "C_1 =" <> Snd.renderCubesInChunksOf 3 cs1 <> lnbk
+      raw "C_2 =" <> Snd.renderCubesInChunksOf 3 cs2
     flalignstar $ do
-      raw "&S_Q^{C_{overflow}} =\\ " <> SecondTable.sQuineEq csOverflow <> lnbk
-      raw "&S_Q^{C_{sign}} =\\ "  <> SecondTable.sQuineEq csSign <> lnbk
-      raw "&S_Q^{C_1} =\\ "  <> SecondTable.sQuineEq cs1 <> lnbk
-      raw "&S_Q^{C_2} =\\ "  <> SecondTable.sQuineEq cs2 <> lnbk
-      raw "&S_Q^{\\Sigma} =\\ " <> fromIntegral (SecondTable.sQuineSum [csOverflow, csSign, cs1, cs2]) <> lnbk
+      raw "&S_Q^{C_{overflow}} =\\ " <> Snd.sQuineEq csOverflow <> lnbk
+      raw "&S_Q^{C_{sign}} =\\ "  <> Snd.sQuineEq csSign <> lnbk
+      raw "&S_Q^{C_1} =\\ "  <> Snd.sQuineEq cs1 <> lnbk
+      raw "&S_Q^{C_2} =\\ "  <> Snd.sQuineEq cs2 <> lnbk
+      raw "&S_Q^{\\Sigma} =\\ " <> fromIntegral (Snd.sQuineSum [csOverflow, csSign, cs1, cs2]) <> lnbk
     ----
     newpage
     sectionstar "Минимизация булевых функций системы. Поиск МКНФ"
@@ -256,32 +256,91 @@ reportTeX = do
     flalignstar $ raw ("C_2(\\widebar{f}) = \\{" <> cubeList posC2 <> "\\}") <> lnbk
     -- cases
     mathDisplay $ cases $ do
-      raw "C_{overflow} =" <> SecondTable.renderPoSCubesInChunksOf 4 posOverflow <> lnbk
-      raw "C_{sign} =" <> SecondTable.renderPoSCubesInChunksOf 4 posSign <> lnbk
-      raw "C_1 =" <> SecondTable.renderPoSCubesInChunksOf 3 posC1 <> lnbk
-      raw "C_2 =" <> SecondTable.renderPoSCubesInChunksOf 4 posC2
+      raw "C_{overflow} =" <> Snd.renderPoSCubesInChunksOf 4 posOverflow <> lnbk
+      raw "C_{sign} =" <> Snd.renderPoSCubesInChunksOf 4 posSign <> lnbk
+      raw "C_1 =" <> Snd.renderPoSCubesInChunksOf 3 posC1 <> lnbk
+      raw "C_2 =" <> Snd.renderPoSCubesInChunksOf 4 posC2
     flalignstar $ do
-      raw "&S_Q^{C_{overflow}} =\\ " <> SecondTable.sQuineEq posOverflow <> lnbk
-      raw "&S_Q^{C_{sign}} =\\ "  <> SecondTable.sQuineEq posSign <> lnbk
-      raw "&S_Q^{C_1} =\\ "  <> SecondTable.sQuineEq posC1 <> lnbk
-      raw "&S_Q^{C_2} =\\ "  <> SecondTable.sQuineEq posC2 <> lnbk
-      raw "&S_Q^{\\Sigma} =\\ " <> fromIntegral (SecondTable.sQuineSum [posOverflow, posSign, posC1, posC2]) <> lnbk
+      raw "&S_Q^{C_{overflow}} =\\ " <> Snd.sQuineEq posOverflow <> lnbk
+      raw "&S_Q^{C_{sign}} =\\ "  <> Snd.sQuineEq posSign <> lnbk
+      raw "&S_Q^{C_1} =\\ "  <> Snd.sQuineEq posC1 <> lnbk
+      raw "&S_Q^{C_2} =\\ "  <> Snd.sQuineEq posC2 <> lnbk
+      raw "&S_Q^{\\Sigma} =\\ " <> fromIntegral (Snd.sQuineSum [posOverflow, posSign, posC1, posC2]) <> lnbk
     --
     sectionstar "Факторизация и декомпозиция минимальной формы булевых функций системы"
     "Дальнейшие преобразования будут производиться с МКНФ, которая обладает меньшей по сравнению с МДНФ ценой по Квайну." <> lnbk
+    --
+    -- transforms
+    --
+    let ph = "\\text{\\vphantom{b}}"
+    let eqbreak = L "\\\\&"
+    let indent = L "\\quad"
+    let (asign, bsign, a1, a2, b1, b2, notasign, notbsign, nota1, nota2, notb1, notb2) = (L "a_{sign}", L "b_{sign}", L "a_1", L "a_2", L "b_1", L "b_2", Not (L $ "a_{sign}" <> ph), Not (L "b_{sign}"), Not (L $ "a_1" <> ph), Not (L $ "a_2" <> ph) , Not (L "b_1"), Not (L "b_2"))
+    -- overflow
+    let tsOverflow = And [Or [a1, And [a2, b2]], Or [b1, And [a1, a2, b2]], Or [asign, notbsign], Or [notasign, bsign]]
+    -- sign
+    let tsSign = And [ Or [asign, And [Or [nota1, And [nota2, b1, b2]], Or [nota2, b1]]]
+                     , Or [bsign, And [Or [notb1, And [a1, a2, notb2]], Or [a1, notb2]]] ]
+    -- c1
+    let tsC1 = And [ Or [a1, b1, And [a2, b2]]
+                   , eqbreak
+                   , Or [ asign
+                        , And [ eqbreak, indent
+                              , Or [ bsign, nota2, notb2, And [Or [nota1, b1], Or [a1, notb1]]]
+                              , eqbreak, indent
+                              , Or [ notbsign, And [ Or [a1, b1]
+                                                   , Or [nota1, a2, notb2]
+                                                   , Or [nota2, notb1, b2]
+                                                   , Or [nota1, notb2] ]]]]
+                   , eqbreak
+                   , Or [ notasign
+                        , And [ eqbreak, indent
+                              , Or [ bsign, And [ Or [a1, b1],
+                                                  Or [nota1, a2, notb2],
+                                                  Or [nota2, notb1, b2],
+                                                  Or [nota1, notb1] ]]
+                              , eqbreak, indent
+                              , Or [ notbsign, nota2, notb2, And [Or [nota1, b1], Or [a1, notb1] ]]]]]
+    let tsC2 = And [Or [a2, b2], Or [nota2, notb2]]
+    -- equations
+    mathDisplay $ cases $ do
+      raw "C_{overflow} =\\ &" <> rendertex tsOverflow <> lnbk <> lnbk
+      raw "C_{sign} =\\ &" <> rendertex tsSign <> lnbk <> lnbk
+      raw "C_1 =\\ &" <> rendertex tsC1 <> lnbk <> lnbk
+      raw "C_2 =\\ &" <> rendertex tsC2 <> lnbk
+    -- cost deltas
+    lnbk <> parbreak
+    "Определим результат факторизации как уменьшение цены по Квайну для схем, построенных по каждому из выражений системы:"
     flalignstar $ do
-      let ph = "\\text{\\vphantom{b}}"
-      let tsOverflow = And [ Or [L "a_1", And [L "a_2", L "b_2"]]
-                           , Or [L "b_1", And [L "a_2", L "b_2", L "a_1"]]
-                           , Or [L "a_{sign}", Not (L "b_{sign}")]
-                           , Or [Not (L $ "a_{sign}" <> ph), L "b_{sign}"] ]
-      raw "&C_{overflow} =\\ " <> rendertex tsOverflow <> lnbk
-      raw ("&\\quad \\Delta S_Q = " <> fromString (show $ SecondTable.sQuineSum [posOverflow] - costQ tsOverflow)) <> lnbk
-      let tsSign = And [ Or [L "a_{sign}", And [ Or [ Not (L $ "a_1" <> ph)
-                                                    , And [Not (L $ "a_2" <> ph), L "b_1", L "b_2"] ]
-                                               , Or [Not (L $ "a_2" <> ph), L "b_1"] ]]
-                       , Or [L "b_{sign}", And [ Or [ Not (L "b_1")
-                                                    , And [L "a_1", L "a_2", Not (L "b_2")] ]
-                                               , Or [L "a_1", Not (L "b_2")] ]] ]
-      raw "&C_{sign} =\\ " <> rendertex tsSign <> lnbk
-      raw ("&\\quad \\Delta S_Q = " <> fromString (show $ SecondTable.sQuineSum [posSign] - costQ tsSign)) <> lnbk
+      raw "&\\Delta S_Q^{C_{overflow}} = " <> fromIntegral (Snd.sQuineSum [posOverflow] - Snd.sQuine tsOverflow) <> lnbk
+      raw "&\\Delta S_Q^{C_{sign}} = " <> fromIntegral (Snd.sQuineSum [posSign] - Snd.sQuine tsSign) <> lnbk
+      raw "&\\Delta S_Q^{C_1} = " <> fromIntegral (Snd.sQuineSum [posC1] - Snd.sQuine tsC1) <> lnbk
+      raw "&\\Delta S_Q^{C_2} = " <> fromIntegral (Snd.sQuineSum [posC2] - Snd.sQuine tsC2) <> raw "&" <> lnbk
+    parbreak <> raw "Введем вспомогательные функции $z_0, z_1$:"
+    let z0 = And [Or [a1, b1], Or [nota1, a2, notb2], Or [nota2, notb1, b2], Or [nota1, notb2]]
+    let z1 = Or [nota2, notb2, And [Or [nota1, b1], Or [a1, notb1]]]
+    let tssC1 = And [ Or [a1, b1, And [a2, b2]]
+                    , Or [asign, And [Or [notbsign, L "z_0"], Or [bsign, L "z_1"]]]
+                    , Or [notasign, And [Or [bsign, L "z_0"], Or [notbsign, L "z_1"]]] ]
+    flalignstar $ do
+      raw "&z_0 = " <> rendertex z0 <> lnbk
+      raw "&z_1 = " <> rendertex z1 <> raw "&" <> lnbk
+    parbreak <> "Преобразуем систему:"
+    mathDisplay $ cases $ do
+      raw "z_0 =\\ &" <> rendertex z0 <> lnbk <> lnbk
+      raw "z_1 =\\ &" <> rendertex z1 <> lnbk <> lnbk
+      raw "C_{overflow} =\\ &" <> rendertex tsOverflow <> lnbk <> lnbk
+      raw "C_{sign} =\\ &" <> rendertex tsSign <> lnbk <> lnbk
+      raw "C_1 =\\ &" <> rendertex tssC1 <> lnbk <> lnbk
+      raw "C_2 =\\ &" <> rendertex tsC2 <> lnbk
+    lnbk <> parbreak <> "Вычислим результат факторизации и декомпозиции:"
+    flalignstar $ do
+      raw "&S_Q^{z_0} = " <> fromIntegral (Snd.sQuine z0) <> lnbk
+      raw "&S_Q^{z_1} = " <> fromIntegral (Snd.sQuine z1) <> lnbk
+      raw "&S_Q^{C_{overflow}} = " <> fromIntegral (Snd.sQuine tsOverflow) <> lnbk
+      raw "&S_Q^{C_{sign}} = " <> fromIntegral (Snd.sQuine tsSign) <> lnbk
+      raw "&S_Q^{C_1} = " <> fromIntegral (Snd.sQuine tssC1) <> lnbk
+      raw "&S_Q^{C_2} = " <> fromIntegral (Snd.sQuine tsC2) <> lnbk
+      raw "&S_Q^{\\Sigma} = " <> fromIntegral (sum $ Snd.sQuine <$> [z0, z1, tsOverflow, tsSign, tssC1, tsC2]) <> raw "&" <> lnbk
+    newpage
+    sectionstar "Синтез комбинационной схемы в булевом базисе"
