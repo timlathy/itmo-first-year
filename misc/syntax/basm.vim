@@ -9,11 +9,12 @@
 
 syn keyword bpcAddrCmd ISZ AND JSR MOV ADD ADC SUB BCS BPL BMI BEQ BR nextgroup=bpcAddr,bpcAddrLabel skipwhite
 syn keyword bpcFixedCmd HLT NOP CLA CLC CMA CMC ROL ROR INC DEC EI DI
-syn keyword bpcIOCmd CLF TSF IN OUT
+syn keyword bpcIOCmd CLF TSF IN OUT nextgroup=bpcIOAddr skipwhite
 
 syn match bpcAddrLabel /[(]\?[_$.a-zA-Z0-9]\+[)]\?/ contained 
 syn match bpcAddr /[(]\?[a-fA-F0-9]\+[)]\?\([^a_$.a-zA-Z0-9]\|$\)/ contained
 syn match bpcIndirectAddrParens /[()]/ contained containedin=bpcAddr,bpcAddrLabel
+syn match bpcIOAddr /[0-9A0F]\+/ contained
 
 " Assembly-specific constructs
 
@@ -35,6 +36,7 @@ hi def link bpcIOCmd Statement
 hi def link bpcAddr Number
 hi def link bpcAddrLabel Constant
 hi def link bpcIndirectAddrParens Statement
+hi def link bpcIOAddr Number
 
 hi def link bpcAsmLabel Constant
 
