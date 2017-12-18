@@ -43,11 +43,9 @@
       (http/post-json "/businesses" (auth/jwt-big-brother))))
 
 (defn create-employment-request [person status details]
-  (http/post-json {}
-                  "/employment/requests"
-                  (auth/jwt-device person))
-  (let [id ((http/get-json
-              (str "/employment/requests/" person)) :id)]
+  (let [id ((http/post-json {}
+              "/employment/requests/"
+              (auth/jwt-device person)) :id)]
     (-> {:status status
          :details details}
         (http/patch-json
