@@ -11,13 +11,13 @@ import ru.ifmo.se.lab3.repository.PersonRepository
 @Service
 class EmploymentRequestService(private val repo: EmploymentRequestRepository,
                                private val personRepo: PersonRepository) {
-  fun createRequest(applicantName: String) {
+  fun createRequest(applicantName: String): EmploymentRequest {
     /* TODO: Add a database constraint (partial index?) */
     if (repo.existsByApplicantNameAndStatus(applicantName,
           EmploymentRequest.Status.PROCESSING))
       throw ValidationException("You have already submitted a request that is currently being processed.")
 
-    repo.save(EmploymentRequest(
+    return repo.save(EmploymentRequest(
       applicant = personRepo.findByName(applicantName),
       date = LocalDateTime.now()))
   }

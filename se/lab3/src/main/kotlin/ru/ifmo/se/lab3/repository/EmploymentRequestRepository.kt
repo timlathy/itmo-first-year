@@ -5,7 +5,7 @@ import org.springframework.data.repository.CrudRepository
 import ru.ifmo.se.lab3.domain.EmploymentRequest
 
 interface EmploymentRequestRepository : CrudRepository<EmploymentRequest, Long> {
-  fun findByApplicantName(applicantName: String): EmploymentRequest
+  fun findByApplicantName(applicantName: String): Iterable<EmploymentRequest>
 
   fun existsByApplicantNameAndStatus(applicantName: String,
     status: EmploymentRequest.Status): Boolean
