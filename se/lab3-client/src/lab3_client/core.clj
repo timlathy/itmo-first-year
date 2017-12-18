@@ -7,7 +7,8 @@
             [cheshire.core :as json]))
 
 (declare prepare-people-report prepare-report
-         person-report describe-action describe-transaction describe-conversation)
+         person-report describe-action describe-transaction describe-conversation
+         describe-employment-report)
 
 (defn -main [& args]
   (println "Seeding the app...")
@@ -18,6 +19,10 @@
 
 (defn prepare-people-report []
   (map person-report '("Незнайка" "Козлик" "Богач Билли")))
+
+(defn prepare-employment-report [person]
+  (map describe-employment-report (http/get-json
+    (str "/employment/requests/" person))))
 
 (defn prepare-report []
   (let [actions (map describe-action
@@ -31,7 +36,11 @@
         conversations (map describe-conversation
                          (distinct (concat (http/get-json "/conversations/Незнайка")
                                            (http/get-json "/conversations/Козлик"))))]
-  (->> (concat actions transactions conversations) (sort-by :date) (map :description))))
+  (->>
+    (concat actions transactions conversations)
+    (sort-by :date)
+    (map :description)
+    (concat (prepare-employment-report "Незнайка") (prepare-employment-report "Козлик")))))
 
 (defn person-report [person-name]
   (->> (http/get-json (str "/people/" person-name)) :socialClass (str person-name " is ")))
@@ -53,7 +62,13 @@
 
 (defn describe-action [a]
   {:description (str "A location change has been observed for "
-                     (-> a :actor :name)
+                     (-> a :actor)
                      ": new location is " (:newLocation a)
                      ", detected means of transporation: " (:means a))
    :date (-> a :date parse-date)}) 
+
+(defn describe-employment-report [report]
+  (let [person (:applicant report)
+        status (:status report)
+        details (:details report)]
+    (str person " requested an employment; the application status is now " status "; additional details are: \"" details "\"")))
