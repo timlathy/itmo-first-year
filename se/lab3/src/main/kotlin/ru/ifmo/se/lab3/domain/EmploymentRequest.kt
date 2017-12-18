@@ -3,6 +3,7 @@ package ru.ifmo.se.lab3.domain
 import java.time.LocalDateTime
 import javax.persistence.*
 import javax.validation.constraints.*
+import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 
 @Entity
@@ -22,10 +23,13 @@ data class EmploymentRequest(
   @Id @GeneratedValue
   val id: Long = -1) {
 
-  enum class Status {
-    PROCESSING,
-    INTERVIEW_SCHEDULED,
-    REJECTED
+  enum class Status(private val description: String) {
+    PROCESSING("Processing"),
+    INTERVIEW_SCHEDULED("Interview scheduled"),
+    REJECTED("Rejected");
+
+    @JsonValue
+    override fun toString() = description
   }
 
   /**
