@@ -14,7 +14,7 @@ class EmploymentRequestController(private val repo: EmploymentRequestRepository,
                                   private val service: EmploymentRequestService) {
   @PreAuthorize("hasRole('ROLE_BIG_BROTHER')")
   @GetMapping("/employment/requests/{applicantName}")
-  fun readRequests(applicantName: String) =
+  fun readRequests(@PathVariable applicantName: String) =
     repo.findByApplicantName(applicantName)
   
   @PreAuthorize("hasRole('ROLE_SURV_DEVICE')")
