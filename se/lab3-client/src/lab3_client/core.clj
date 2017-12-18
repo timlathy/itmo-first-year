@@ -1,6 +1,6 @@
 (ns lab3-client.core
   (:gen-class)
-  (:require [lab3-client.auth :as auth]
+  (:require [lab3-client.http :as http]
             [lab3-client.seed :as seed]
             [clojure.string :as str]
             [clj-http.client :as client]
@@ -16,33 +16,25 @@
   (run! println (prepare-people-report))
   (run! println (prepare-report)))
 
-(def host "http://localhost:8080")
-
-(defn fetch-json [endpoint]
-  (-> (str host endpoint)
-      (client/get {:headers (auth/http-headers (auth/jwt-big-brother))})
-      :body
-      (json/parse-string true)))
-
 (defn prepare-people-report []
   (map person-report '("Незнайка" "Козлик" "Богач Билли")))
 
 (defn prepare-report []
   (let [actions (map describe-action
-                     (concat (fetch-json "/actions/Незнайка")
-                             (fetch-json "/actions/Козлик")))
+                     (concat (http/get-json "/actions/Незнайка")
+                             (http/get-json "/actions/Козлик")))
         transactions (map describe-transaction
-                        (distinct (concat (fetch-json "/transactions/drawer/Незнайка")
-                                          (fetch-json "/transactions/drawer/Козлик")
-                                          (fetch-json "/transactions/drawee/Незнайка")
-                                          (fetch-json "/transactions/drawee/Козлик"))))
+                        (distinct (concat (http/get-json "/transactions/drawer/Незнайка")
+                                          (http/get-json "/transactions/drawer/Козлик")
+                                          (http/get-json "/transactions/drawee/Незнайка")
+                                          (http/get-json "/transactions/drawee/Козлик"))))
         conversations (map describe-conversation
-                         (distinct (concat (fetch-json "/conversations/Незнайка")
-                                           (fetch-json "/conversations/Козлик"))))]
+                         (distinct (concat (http/get-json "/conversations/Незнайка")
+                                           (http/get-json "/conversations/Козлик"))))]
   (->> (concat actions transactions conversations) (sort-by :date) (map :description))))
 
 (defn person-report [person-name]
-  (->> (fetch-json (str "/people/" person-name)) :socialClass (str person-name " is ")))
+  (->> (http/get-json (str "/people/" person-name)) :socialClass (str person-name " is ")))
 
 (defn parse-date [ds]
   (.parse (java.text.SimpleDateFormat. "yyyy-MM-dd'T'HH:mm:ss") ds))

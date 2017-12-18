@@ -1,51 +1,58 @@
 (ns lab3-client.seed
   (:require [lab3-client.auth :as auth]
+            [lab3-client.http :as http]
             [clojure.string :as str]
-            [clojure.java.io :as io]
-            [clj-http.client :as client]
-            [cheshire.core :as json]
-            [clj-jwt.core :refer [jwt sign to-str]]
             [clojure.core.match :refer [match]]))
 
-(declare post-json)
-
-(defn create-person [person-name account-balance]
-  (-> {:name person-name}
-      (post-json "/people" (auth/jwt-big-brother)))
-  (-> {:ownerName person-name
-       :name (str "Individual " person-name)
+(defn create-person [person account-balance]
+  (-> {:name person}
+      (http/post-json "/people" (auth/jwt-big-brother)))
+  (-> {:ownerName person
+       :name (str "Individual " person)
        :balance account-balance}
-      (post-json "/accounts" (auth/jwt-big-brother))))
+      (http/post-json "/accounts" (auth/jwt-big-brother))))
 
 (defn create-conversation [person other-participants content date]
   (-> {:participantNames other-participants
        :content content
        :date date}
-      (post-json "/conversations" (auth/jwt-device person))))
+      (http/post-json "/conversations" (auth/jwt-device person))))
 
 (defn create-personal-transaction [drawee drawer amount date]
   (-> {:personName drawer
        :amount amount
        :date date}
-      (post-json "/transactions" (auth/jwt-device drawee))))
+      (http/post-json "/transactions" (auth/jwt-device drawee))))
 
 (defn create-business-transaction [drawee drawer amount date]
   (-> {:businessName drawer
        :amount amount
        :date date}
-      (post-json "/transactions" (auth/jwt-device drawee))))
+      (http/post-json "/transactions" (auth/jwt-device drawee))))
 
 (defn create-loc-change [person new-location means date]
   (-> {:newLocation new-location
        :means means
        :date date}
-      (post-json "/actions/locationChanges" (auth/jwt-device person))))
+      (http/post-json "/actions/locationChanges" (auth/jwt-device person))))
 
 (defn create-business-and-owner [business-name owner-name owner-balance]
   (create-person owner-name owner-balance)
   (-> {:name business-name
        :ownerName owner-name}
-      (post-json "/businesses" (auth/jwt-big-brother))))
+      (http/post-json "/businesses" (auth/jwt-big-brother))))
+
+(defn create-employment-request [person status details]
+  (http/post-json {}
+                  "/employment/requests"
+                  (auth/jwt-device person))
+  (let [id ((http/get-json
+              (str "/employment/requests/" person)) :id)]
+    (-> {:status status
+         :details details}
+        (http/patch-json
+          (str "/employment/requests/" id)
+          (auth/jwt-big-brother)))))
 
 (defn post-data []
   ; Main characters
@@ -55,6 +62,9 @@
   (create-person "Богач Билли" 8192)
   (create-person "Скряга Сэм" 16384)
   (create-person "Толстосум Том" 32768)
+  ; Employment history
+  (create-employment-request "Незнайка" "Rejected" "No suitable positions found. The applicant lacks education, has poor appearance and no prior job experience.")
+  (create-employment-request "Козлик" "Rejected" "No suitable positions found. The applicant lacks education, has poor appearance and no prior job experience.")
   ; A day in the life...
   (create-loc-change "Незнайка" "Downtown" "By foot" "2028-06-12T08:17:40")
   (create-loc-change "Козлик" "Downtown" "By foot" "2028-06-12T08:18:00")
@@ -78,17 +88,3 @@
   ; Taking a "good" night's sleep
   (create-business-and-owner "Ночлежка Грега" "Грязный Грег" 376)
   (create-business-transaction "Незнайка" "Ночлежка Грега" 45 "2028-06-12T21:12:10"))
-
-; Internal
-
-(defn post-json [json endpoint token]
-  (->
-    (str "http://localhost:8080" endpoint)
-    (client/post
-      {:body (json/generate-string json)
-       :headers (auth/http-headers token)
-       :content-type :json
-       :accept :json})
-    :body
-    (json/parse-string true)))
-
