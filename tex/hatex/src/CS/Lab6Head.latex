@@ -1,0 +1,16 @@
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily, keepspaces=true}
+
+\lstset{emph=[1]{%  
+    CLA,ADD,MOV,CLC,JSR,SUB,BMI,BEQ,CMA,INC,ISZ,BR,ROR,ORG,WORD,HLT,TSF,IN,OUT,CLF,EI,DI,ROL,ROR,NOP%
+    },emphstyle=[1]{\textbf}%
+}%
+\lstset{emph=[2]{%
+    I_RET,I_HANDLER_START,I_SAVED_A,I_SAVED_C,MAX_X,MIN_X_TO_ZERO,MAGIC_DEC,
+    CHECK_X,HANDLE_DEV2,HANDLE_DEV3,CALC_FUN,8BIT_MASK,RESET_X,
+    I_HANDLER,I_SAVE_REGISTERS,
+    I_CHECK_DEV1,I_CHECK_DEV2,I_CHECK_DEV3,I_FINISH,I_RESTORE_REGISTERS,MAIN_LOOP,BEGIN
+    },emphstyle=[2]{\underbar}%
+}%
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
