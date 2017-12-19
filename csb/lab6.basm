@@ -1,96 +1,119 @@
 ORG 000
-I_RET: WORD 0000     ; 000
+I_RET: WORD 0000         ; адрес возврата из прерывания
 I_HANDLER_START:
-  NOP                ; 001 breakpoint
-  BR I_HANDLER       ; 002
-I_SAVED_A: WORD 0000 ; 003
-I_SAVED_C: WORD 0000 ; 004
+  NOP                    ; точка останова в начале прерывания
+  BR I_HANDLER
+I_SAVED_A: WORD 0000     ; сохраненный A
+I_SAVED_C: WORD 0000     ; сохраненный C
 
 ORG 006
 X: WORD 0000
-MAX_X: WORD 0016 ; 21, 8 bit
-MIN_X_TO_ZERO: WORD FF14 ; 00EC (-20, 8 bit) + FF14 -> 0000
-MAGIC_DEC: WORD 00FD ; -3
+MAX_X: WORD 0015         ; число 21, верхняя граница ОДЗ
+MIN_X_ABS: WORD 0014     ; число 20, модуль нижней границы ОДЗ
+MAGIC_DEC: WORD 00FD     ; число -3 в восьмиб. представлении
 
 ORG 100
 BEGIN:
-  EI
-MAIN_LOOP:
+MAIN_LOOP:               ; === главный цикл
+  DI                     ; запрещение прерываний для предотвращения
+                         ;   race condition: измененный обработчиком пр. X
+                         ;   может быть перезаписан в данном цикле
   CLA
   ADD X
-  ADD MAGIC_DEC
-  JSR CHECK_X
+  ADD MAGIC_DEC          ; сложение X с магической константой (-3)
+  JSR CHECK_X            ; проверка на ОДЗ
   MOV X
+  EI                     ; X записан; прерывания могут быть разрешены
   BR MAIN_LOOP
 
-HANDLE_DEV2: WORD 0000
+HANDLE_DEV2: WORD 0000   ; === обработка второго устройства
   CLA
   IN 2
-  NOP
-  AND X
-  JSR CHECK_X
-  NOP
+  CLF 2
+  NOP                    ; точка останова после ввода логических значений
+  AND X                  ; логическое умножение
+  JSR CHECK_X            ; проверка на ОДЗ
+  NOP                    ; точка останова после проверки на ОДЗ
   MOV X
   BR (HANDLE_DEV2)
-HANDLE_DEV3: WORD 0000
-  JSR CALC_FUN
+HANDLE_DEV3: WORD 0000   ; === обработка третьего устройства
+  JSR CALC_FUN           ; вычисление функции с сохранением значения
+                         ;   в аккумуляторе
   OUT 3
   CLF 3
   BR (HANDLE_DEV3)
 
-CHECK_X: WORD 0000
-  AND 8BIT_MASK
-  ADD MIN_X_TO_ZERO
-  BMI RESET_X
-  SUB MIN_X_TO_ZERO
+CHECK_X: WORD 0000       ; === проверка ОДЗ
+  AND 8BIT_MASK          ; обнуление старших бит, которые могут быть = 1
+                         ;   в результате переноса в арифметических операциях
+  MOV CONVERT_X_TEMP     ; сохранение значения X до проверки
+  CHECK_MIN:
+    ADD MIN_X_ABS        ; сложение восьмиб. числа с константой,
+                         ;   которое приведет к отрицательному восьмиб.
+                         ;   значению, если X выходит
+    AND 8BIT_SIGN        ; логическое умножение для выявления знака числа
+    BEQ CHECK_MAX        ; если знак > 0, то
+    BR RESET_X           ;   число нужно сбросить
+  RESTORE_X:
+    CLA 
+    ADD CONVERT_X_TEMP
+  CHECK_MAX:
+    SUB MAX_X              ; если число при вычитании верхней границы + 1
+                           ;   становится неотрицательным, его нужно сбросить
+    AND 8BIT_SIGN          ; логическое умножения для выявления знака числа
+    BEQ RESET_X            ; если знак = 0, то число нужно сбросить
+  RESTORE_X_2:
+    CLA
+    ADD CONVERT_X_TEMP
   BR (CHECK_X)
   RESET_X:
     CLA
-    ADD MAX_X
-  BR (CHECK_X)
+    ADD MAX_X            ; установка X в максимальную границу ОДЗ
+    BR (CHECK_X)
   8BIT_MASK: WORD 00FF
+  8BIT_SIGN: WORD 0080
+  CONVERT_X_TEMP: WORD 0000
 
-CALC_FUN: WORD 0000
+CALC_FUN: WORD 0000      ; === вычисление F(X) = 6X - 3
   CLA
   ADD X
-  ROL
-  ADD X
-  ROL
-  ADD MAGIC_DEC
-  NOP ; debugging function result
+  ROL                    ; умножение на 2 - A = X * 2
+  ADD X                  ; прибавление X - A = X * 3
+  ROL                    ; умножение на 2 - A = X * 6
+  ADD MAGIC_DEC          ; вычитание 3
+  NOP                    ; точка останова с результатом функции
   BR (CALC_FUN)
 
 ORG 200
-I_HANDLER:
+I_HANDLER:               ; === обработчик прерываний
   I_SAVE_REGISTERS:
-    MOV I_SAVED_A
+    MOV I_SAVED_A        ; сохранение А
     ROL
-    MOV I_SAVED_C
+    MOV I_SAVED_C        ; сохранение С
   
-  I_CHECK_DEV1:
-  CLF 1
+  I_CHECK_DEV1:          ; проверка первого устройства
+  CLF 1                  ; ВУ1 не используется
 
-  I_CHECK_DEV2:
-    TSF 2
-    BR I_CHECK_DEV3 ; skip the handler if device is not ready
-  CLF 2
-  JSR HANDLE_DEV2
+  I_CHECK_DEV2:          ; проверка второго устройства
+    TSF 2           
+    BR I_CHECK_DEV3      ; пропуск обработчика, если устройство не готово
+  JSR HANDLE_DEV2        ; передача управления обработчику прерывания,
+                         ;   который отвечает за сброс флага
 
-  I_CHECK_DEV3:
+  I_CHECK_DEV3:          ; проверка третьего устройства
     TSF 3
-    BR I_FINISH ; skip the handler if device is not ready
-  CLF 3
-  JSR HANDLE_DEV3
+    BR I_FINISH          ; пропуск обработчика, если устройство не готово
+  JSR HANDLE_DEV3        ; передача управления обработчику прерывания,
+                         ;   который отвечает за сброс флага
 
-  I_FINISH:
-  I_RESTORE_REGISTERS:
-    CLA
+  I_FINISH:              ; конец обработчика прерываний,
+  I_RESTORE_REGISTERS:   ; восстановление регистров
+    CLA                  ; восстановление C
     ADD I_SAVED_C
     ROR
-    CLA
-    ; ADD touches the C register
-    CMA
-    AND I_SAVED_A
-  NOP ; interrupt handler finishing
+    CLA                  ; восстановление A:
+    CMA                  ; так как ADD обнуляет carry, используется
+    AND I_SAVED_A        ;   логическое умножение сохраненного А с FFFF
+  NOP                    ; конец обработки прерываний
   EI
   BR (I_RET)
