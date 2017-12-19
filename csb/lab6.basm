@@ -1,0 +1,78 @@
+ORG 000
+I_RET: WORD 0000     ; 000
+I_HANDLER_START:
+  NOP                ; 001 breakpoint
+  BR I_HANDLER       ; 002
+I_SAVED_A: WORD 0000 ; 003
+I_SAVED_C: WORD 0000 ; 004
+
+ORG 006
+X: WORD 0000
+MAX_X: WORD 00EF
+MAGIC_DEC: WORD FFFD ; -3
+
+ORG 100
+BEGIN:
+  EI
+MAIN_LOOP:
+  CLA
+  ADD X
+  ADD MAGIC_DEC
+  BMI RESTORE_X
+  MOV X
+  BR MAIN_LOOP
+RESTORE_X:
+  CLA
+  ADD MAX_X
+  MOV X
+  BR MAIN_LOOP
+
+HANDLE_DEV2: WORD 0000
+  
+  BR (HANDLE_DEV2)
+HANDLE_DEV3: WORD 0000
+  CLA
+  ADD X
+  ROL
+  ROL
+  ROL ; * 6
+  ADD MAGIC_DEC
+  
+  BR (HANDLE_DEV3)
+
+CALC_FUN: WORD 0000
+  CLA
+  ADD X
+  ROL
+  ROL
+  ROL ; * 6
+  
+  
+
+I_HANDLER:
+  I_SAVE_REGISTERS:
+    MOV I_SAVED_A
+    ROL
+    MOV I_SAVED_C
+
+  I_CHECK_DEV2:
+    TSF 2
+    BR I_CHECK_DEV3 ; skip the handler if device is not ready
+  JSR HANDLE_DEV2
+
+  I_CHECK_DEV3:
+    TSF 3
+    BR I_FINISH ; skip the handler if device is not ready
+  JSR HANDLE_DEV3
+
+  I_FINISH:
+  I_RESTORE_REGISTERS:
+    CLA
+    ADD I_SAVED_C
+    ROR
+    CLA
+    ; ADD touches the C register
+    CMA
+    AND I_SAVED_A
+  EI
+  BR (I_RET)
