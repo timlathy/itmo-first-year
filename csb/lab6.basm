@@ -8,8 +8,9 @@ I_SAVED_C: WORD 0000 ; 004
 
 ORG 006
 X: WORD 0000
-MAX_X: WORD 00EF
-MAGIC_DEC: WORD FFFD ; -3
+MAX_X: WORD 0016 ; 21, 8 bit
+MIN_X_TO_ZERO: WORD FF14 ; 00EC (-20, 8 bit) + FF14 -> 0000
+MAGIC_DEC: WORD 00FD ; -3
 
 ORG 100
 BEGIN:
@@ -18,51 +19,67 @@ MAIN_LOOP:
   CLA
   ADD X
   ADD MAGIC_DEC
-  BMI RESTORE_X
-  MOV X
-  BR MAIN_LOOP
-RESTORE_X:
-  CLA
-  ADD MAX_X
+  JSR CHECK_X
   MOV X
   BR MAIN_LOOP
 
 HANDLE_DEV2: WORD 0000
-  
+  CLA
+  IN 2
+  NOP
+  AND X
+  JSR CHECK_X
+  NOP
+  MOV X
   BR (HANDLE_DEV2)
 HANDLE_DEV3: WORD 0000
-  CLA
-  ADD X
-  ROL
-  ROL
-  ROL ; * 6
-  ADD MAGIC_DEC
-  
+  JSR CALC_FUN
+  OUT 3
+  CLF 3
   BR (HANDLE_DEV3)
+
+CHECK_X: WORD 0000
+  AND 8BIT_MASK
+  ADD MIN_X_TO_ZERO
+  BMI RESET_X
+  SUB MIN_X_TO_ZERO
+  BR (CHECK_X)
+  RESET_X:
+    CLA
+    ADD MAX_X
+  BR (CHECK_X)
+  8BIT_MASK: WORD 00FF
 
 CALC_FUN: WORD 0000
   CLA
   ADD X
   ROL
+  ADD X
   ROL
-  ROL ; * 6
-  
-  
+  ADD MAGIC_DEC
+  NOP ; debugging function result
+  BR (CALC_FUN)
 
+ORG 200
 I_HANDLER:
   I_SAVE_REGISTERS:
     MOV I_SAVED_A
     ROL
     MOV I_SAVED_C
+  
+  I_CHECK_DEV1:
+  CLF 1
 
   I_CHECK_DEV2:
     TSF 2
     BR I_CHECK_DEV3 ; skip the handler if device is not ready
+  CLF 2
   JSR HANDLE_DEV2
 
   I_CHECK_DEV3:
     TSF 3
     BR I_FINISH ; skip the handler if device is not ready
+  CLF 3
   JSR HANDLE_DEV3
 
   I_FINISH:
@@ -74,5 +91,6 @@ I_HANDLER:
     ; ADD touches the C register
     CMA
     AND I_SAVED_A
+  NOP ; interrupt handler finishing
   EI
   BR (I_RET)
