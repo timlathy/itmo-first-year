@@ -259,7 +259,7 @@ reportTeX = do
       raw "C_{overflow} =" <> Snd.renderPoSCubesInChunksOf 4 posOverflow <> lnbk
       raw "C_{sign} =" <> Snd.renderPoSCubesInChunksOf 4 posSign <> lnbk
       raw "C_1 =" <> Snd.renderPoSCubesInChunksOf 3 posC1 <> lnbk
-      raw "C_2 =" <> Snd.renderPoSCubesInChunksOf 4 posC2
+      raw "C_2 =" <> Snd.renderPoSCubesInChunksOf 4 posC2 <> lnbk
     flalignstar $ do
       raw "&S_Q^{C_{overflow}} =\\ " <> Snd.sQuineEq posOverflow <> lnbk
       raw "&S_Q^{C_{sign}} =\\ "  <> Snd.sQuineEq posSign <> lnbk
@@ -304,10 +304,10 @@ reportTeX = do
     let tsC2 = And [Or [a2, b2], Or [nota2, notb2]]
     -- equations
     mathDisplay $ cases $ do
-      raw "C_{overflow} =\\ &" <> rendertex tsOverflow <> lnbk <> lnbk
-      raw "C_{sign} =\\ &" <> rendertex tsSign <> lnbk <> lnbk
-      raw "C_1 =\\ &" <> rendertex tsC1 <> lnbk <> lnbk
-      raw "C_2 =\\ &" <> rendertex tsC2 <> lnbk
+      raw "C_{overflow} &=\\ " <> rendertex tsOverflow <> lnbk <> lnbk
+      raw "C_{sign} &=\\ " <> rendertex tsSign <> lnbk <> lnbk
+      raw "C_1 &=\\ " <> rendertex tsC1 <> lnbk <> lnbk
+      raw "C_2 &=\\ " <> rendertex tsC2 <> lnbk
     -- cost deltas
     lnbk <> parbreak
     "Определим результат факторизации как уменьшение цены по Квайну для схем, построенных по каждому из выражений системы:"
@@ -327,12 +327,12 @@ reportTeX = do
       raw "&z_1 = " <> rendertex z1 <> raw "&" <> lnbk
     parbreak <> "Преобразуем систему:"
     mathDisplay $ cases $ do
-      raw "z_0 =\\ &" <> rendertex z0 <> lnbk <> lnbk
-      raw "z_1 =\\ &" <> rendertex z1 <> lnbk <> lnbk
-      raw "C_{overflow} =\\ &" <> rendertex tsOverflow <> lnbk <> lnbk
-      raw "C_{sign} =\\ &" <> rendertex tsSign <> lnbk <> lnbk
-      raw "C_1 =\\ &" <> rendertex tssC1 <> lnbk <> lnbk
-      raw "C_2 =\\ &" <> rendertex tsC2 <> lnbk
+      raw "z_0 &=\\ " <> rendertex z0 <> lnbk <> lnbk
+      raw "z_1 &=\\ " <> rendertex z1 <> lnbk <> lnbk
+      raw "C_{overflow} &=\\ " <> rendertex tsOverflow <> lnbk <> lnbk
+      raw "C_{sign} &=\\ " <> rendertex tsSign <> lnbk <> lnbk
+      raw "C_1 &=\\ " <> rendertex tssC1 <> lnbk <> lnbk
+      raw "C_2 &=\\ " <> rendertex tsC2 <> lnbk
     lnbk <> parbreak <> "Вычислим результат факторизации и декомпозиции:"
     flalignstar $ do
       raw "&S_Q^{z_0} = " <> fromIntegral (Snd.sQuine z0) <> lnbk
@@ -344,3 +344,40 @@ reportTeX = do
       raw "&S_Q^{\\Sigma} = " <> fromIntegral (sum $ Snd.sQuine <$> [z0, z1, tsOverflow, tsSign, tssC1, tsC2]) <> raw "&" <> lnbk
     sectionstar "Синтез комбинационной схемы в булевом базисе"
     includegraphics [IGWidth $ Cm 11.2] "../src/DM/AdderBooleanCircuit.pdf" <> lnbk
+    sectionstar "Синтез комбинационной схемы в универсальном базисе И-НЕ"
+    let dpq = L " \\mid "
+    let nandZ0 = And [ And [nota1, dpq, notb1], dpq
+                     , And [a1, dpq, nota2, dpq, b2], dpq
+                     , And [a2, dpq, b1, dpq, notb2], dpq
+                     , And [a1, dpq, b2] ]
+    let nandZ1 = And [ a2, dpq, b2, dpq
+                     , And [And [a1, dpq, notb1], dpq, And [nota1, dpq, b1]]]
+    let nandOverflow = And [ And [nota1, dpq, And [a2, dpq, b2]], dpq
+                           , And [notb1, dpq, And [a1, dpq, a2, dpq, b2]], dpq
+                           , And [notasign, dpq, bsign], dpq
+                           , And [asign, dpq, notbsign] ]
+    let nandSign = And [ And [notasign, dpq, And [ And [a1, dpq, And [nota2, dpq, b1, b2]], dpq
+                                                 , And [a2, dpq, notb1] ]], dpq
+                       , And [notbsign, dpq, And [ And [b1, dpq, And [a1, dpq, a2, dpq, notb2]], dpq
+                                                 , And [nota1, dpq, b2] ]]]
+    let nandC1 = And [ And [nota1, dpq, notb1, dpq, And [a2, dpq, b2]], dpq
+                     , And [notasign, dpq, And [ And [bsign, dpq, Not $ L "z_0"], dpq
+                                               , And [notbsign, dpq, Not $ L "z_1"]]], dpq
+                     , And [asign, dpq, And [ And [notbsign, dpq, Not $ L "z_0"], dpq
+                                            , And [bsign, dpq, Not $ L "z_1"]]]]
+    let nandC2 = And [And [nota2, dpq, notb2], dpq, And [a2, dpq, b2]]
+    "Преобразуем функции системы к универсальному базису И-НЕ, используя законы двойственности:"
+    mathDisplay $ cases $ do
+      raw "z_0 &=\\ " <> rendertex z0 <> lnbk
+      raw "&=\\ \\overline{" <> rendertex nandZ0 <> raw "}" <> lnbk <> lnbk
+      raw "z_1 &=\\ " <> rendertex z1 <> lnbk
+      raw "&=\\ " <> rendertex nandZ1 <> lnbk <> lnbk
+      raw "C_{overflow} &=\\ " <> rendertex tsOverflow <> lnbk
+      raw "&=\\ \\overline{" <> rendertex nandOverflow <> raw "}" <> lnbk <> lnbk
+      raw "C_{sign} &=\\ " <> rendertex tsSign <> lnbk 
+      raw "&=\\ \\overline{" <> rendertex nandSign <> raw "}" <> lnbk <> lnbk
+      raw "C_1 &=\\ " <> rendertex tssC1 <> lnbk
+      raw "&=\\ \\overline{" <> rendertex nandC1 <> raw "}" <> lnbk <> lnbk
+      raw "C_2 &=\\ " <> rendertex tsC2 <> lnbk
+      raw "&=\\ \\overline{" <> rendertex nandC2 <> raw "}" <> lnbk
+
