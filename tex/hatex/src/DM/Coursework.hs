@@ -342,5 +342,5 @@ reportTeX = do
       raw "&S_Q^{C_1} = " <> fromIntegral (Snd.sQuine tssC1) <> lnbk
       raw "&S_Q^{C_2} = " <> fromIntegral (Snd.sQuine tsC2) <> lnbk
       raw "&S_Q^{\\Sigma} = " <> fromIntegral (sum $ Snd.sQuine <$> [z0, z1, tsOverflow, tsSign, tssC1, tsC2]) <> raw "&" <> lnbk
-    newpage
     sectionstar "Синтез комбинационной схемы в булевом базисе"
+    includegraphics [IGWidth $ Cm 11.2] "../src/DM/AdderBooleanCircuit.pdf" <> lnbk
