@@ -190,7 +190,7 @@ reportTeX = do
     lnbk <> vspace (Mm 6) <> parbreak
     includegraphics [IGWidth $ Cm 15] "../src/DM/NOT_ORCircuit.pdf" <> lnbk <> parbreak
     newpage
-    baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 61", "2017 г.")
+    baseTitlePage ("Курсовая работа", "Дискретная математика", Just "Вариант 61, часть II", "2017 г.")
     sectionstar "Синтез сумматора"
     "Комбинационная схема должна выполнять операцию сложения двух трехразрядных знаковых двоичных чисел, представленных в прямом коде, с фиксацией переполнения:"
     mathDisplay $ do
@@ -344,6 +344,12 @@ reportTeX = do
       raw "&S_Q^{\\Sigma} = " <> fromIntegral (sum $ Snd.sQuine <$> [z0, z1, tsOverflow, tsSign, tssC1, tsC2]) <> raw "&" <> lnbk
     sectionstar "Синтез комбинационной схемы в булевом базисе"
     includegraphics [IGWidth $ Cm 11.2] "../src/DM/AdderBooleanCircuit.pdf" <> lnbk
+    sectionstar "Анализ схем"
+    raw "\\noindent Используем для анализа схем следующие наборы аргументов: $001011$ и $111100$."
+    flalignstar $ do
+      raw "&f(a_{sign}, a_1, a_2, b_{sign}, b_1, b_2) = (c_{overflow}, c_{sign}, c_1, c_2)" <> lnbk
+      raw "&f(001011) = (1000)," <> lnbk
+      raw "&f(111100) = (0111)" <> raw "&"
     sectionstar "Синтез комбинационной схемы в универсальном базисе И-НЕ"
     let dpq = L " \\mid "
     let nandZ0 = And [ And [nota1, dpq, notb1], dpq
@@ -356,15 +362,15 @@ reportTeX = do
                            , And [notb1, dpq, And [a1, dpq, a2, dpq, b2]], dpq
                            , And [notasign, dpq, bsign], dpq
                            , And [asign, dpq, notbsign] ]
-    let nandSign = And [ And [notasign, dpq, And [ And [a1, dpq, And [nota2, dpq, b1, b2]], dpq
+    let nandSign = And [ And [notasign, dpq, And [ And [a1, dpq, And [nota2, dpq, b1, dpq, b2]], dpq
                                                  , And [a2, dpq, notb1] ]], dpq
                        , And [notbsign, dpq, And [ And [b1, dpq, And [a1, dpq, a2, dpq, notb2]], dpq
                                                  , And [nota1, dpq, b2] ]]]
     let nandC1 = And [ And [nota1, dpq, notb1, dpq, And [a2, dpq, b2]], dpq
-                     , And [notasign, dpq, And [ And [bsign, dpq, Not $ L "z_0"], dpq
-                                               , And [notbsign, dpq, Not $ L "z_1"]]], dpq
-                     , And [asign, dpq, And [ And [notbsign, dpq, Not $ L "z_0"], dpq
-                                            , And [bsign, dpq, Not $ L "z_1"]]]]
+                     , And [notasign, dpq, And [ And [bsign, dpq, Not $ L $ "z_0" <> ph], dpq
+                                               , And [notbsign, dpq, Not $ L $ "z_1" <> ph]]], dpq
+                     , And [asign, dpq, And [ And [notbsign, dpq, Not $ L $ "z_0" <> ph], dpq
+                                            , And [bsign, dpq, Not $ L $ "z_1" <> ph]]]]
     let nandC2 = And [And [nota2, dpq, notb2], dpq, And [a2, dpq, b2]]
     "Преобразуем функции системы к универсальному базису И-НЕ, используя законы двойственности:"
     mathDisplay $ cases $ do
@@ -380,4 +386,4 @@ reportTeX = do
       raw "&=\\ \\overline{" <> rendertex nandC1 <> raw "}" <> lnbk <> lnbk
       raw "C_2 &=\\ " <> rendertex tsC2 <> lnbk
       raw "&=\\ \\overline{" <> rendertex nandC2 <> raw "}" <> lnbk
-
+    includegraphics [IGWidth $ Cm 19.2] "../src/DM/AdderNANDCircuit.pdf" <> lnbk
