@@ -21,6 +21,16 @@ pushConstant cid =
   \ADD VAR" ++ show cid ++ "\n" ++
   "MOV (DSP)\n"
 
+setOrgAddr :: String -> String
+setOrgAddr addr =
+  "; org " ++ addr ++ "\n\
+  \ORG " ++ addr ++ "\n"
+
+insertVariable :: String -> String
+insertVariable name =
+  "; variable " ++ name ++ "\n\
+  \VARIABLE_" ++ name ++ ": WORD 0000\n"
+
 tryAsmWord :: String -> V.VocabularyList -> Maybe String
 tryAsmWord w (V.VocabularyList asmWords) =
   V.code <$> find (((==) w) . V.word) asmWords
