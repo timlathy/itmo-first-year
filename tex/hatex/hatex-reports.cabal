@@ -35,7 +35,9 @@ library
       CS.Lab3
       CS.Lab4
       CS.Lab5
+      CS.Lab6
       DM.Coursework
+      DM.CourseworkSecondTable
       DM.CourseworkTruthTable
       DM.Logic
       DM.QuineMcCluskey
