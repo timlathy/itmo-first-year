@@ -1,0 +1,13 @@
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\footnotesize, keepspaces=true}
+
+\lstset{emph=[1]{%  
+    CLA,ADD,MOV,CLC,JSR,SUB,BMI,BEQ,CMA,INC,ISZ,BR,ROR,ORG,WORD,HLT,TSF,IN,OUT,CLF,EI,DI,ROL,ROR,NOP%
+    },emphstyle=[1]{\textbf}%
+}%
+\lstset{emph=[2]{%
+    BEGIN, SHOULD_WRITE_TO_MEM, SHOULD_NOT_SET_ARITHM_FLAGS, SHOULD_NOT_TOUCH_ACC
+    },emphstyle=[2]{\underbar}%
+}%
+
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
