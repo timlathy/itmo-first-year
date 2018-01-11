@@ -2,8 +2,10 @@ package ru.ifmo.se.lab3.domain
 
 import javax.persistence.*
 import javax.validation.constraints.*
-import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.*
+import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.core.JsonGenerator
 
 @Entity
 data class Business(
@@ -14,10 +16,9 @@ data class Business(
   @JsonSerialize(using = Person.ToNameStringSerializer::class)
   val owner: Person,
 
-  @ManyToMany
-  @JoinTable(name = "business_employees")
+  @OneToMany(mappedBy = "employer")
   @JsonIgnore
-  val employees: Set<Person> = setOf(),
+  val employees: Set<Employment> = setOf(),
 
   @Id @GeneratedValue
   val id: Long = -1) {
@@ -34,4 +35,13 @@ data class Business(
     
     @NotBlank
     val ownerName: String)
+
+  /**
+   * A serializer that can be used with @JsonSerialize to
+   * convert a [Business] instance into a string with its [name] field.
+   */
+  class ToNameStringSerializer: JsonSerializer<Business>() {
+    override fun serialize(business: Business, gen: JsonGenerator, _p: SerializerProvider) =
+      gen.writeObject(business.name)
+  }
 }

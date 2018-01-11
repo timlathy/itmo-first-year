@@ -52,6 +52,12 @@
           (str "/employment/requests/" id)
           (auth/jwt-big-brother)))))
 
+(defn create-employment [person-name business-name title]
+  (-> {:employeeName person-name
+       :employerName business-name
+       :title title}
+      (http/post-json "/employment" (auth/jwt-big-brother))))
+
 (defn post-data []
   ; Main characters
   (create-person "Незнайка" 10)
@@ -78,7 +84,11 @@
   (create-conversation "Незнайка" '("Козлик")
                        "придется ... одноразовое питание ... лучше всего питаться вечером перед сном ... если проешь свои денежки днем или утром к вечеру ... проголодаешься и ночью не сможешь заснуть"
                        "2028-06-12T19:19:20")
+  ;;; Умберто's
   (create-business-and-owner "Умберто's" "Упитанный Умберто" 982)
+  (create-person "Повар Педро" 92)
+  (create-employment "Повар Педро" "Умберто's" "Кокинеро")
+  ;;; Transaction at Умберто's
   (create-business-transaction "Незнайка" "Умберто's" 45 "2028-06-12T19:27:10")
   ; Returning to a cheaper area
   (create-loc-change "Козлик" "Outskirts" "By foot" "2028-06-12T21:01:00")

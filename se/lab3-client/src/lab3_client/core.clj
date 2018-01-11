@@ -56,7 +56,7 @@
 
 (defn describe-conversation [c]
   {:description (str "A conversation has been observed between "
-                      (str/join ", " (map :name (:participants c)))
+                      (str/join ", " (:participants c))
                      " and decoded to \"" (:recognizedContent c) "\"")
    :date (-> c :date parse-date)})
 
