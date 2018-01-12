@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.GrantedAuthority
 
 import io.jsonwebtoken.Jwts
   
@@ -31,19 +32,31 @@ class JwtAuthFilter(private val authManager: AuthenticationManager): BasicAuthen
   }
 
   fun getJwtAuth(authHeader: String): UsernamePasswordAuthenticationToken {
+    abstract class Token() {
+      abstract val user: String?
+      
+      abstract val roles: Collection<GrantedAuthority>
+    }
+
     val tokenString = authHeader.replaceFirst(JWT_HEADER_PREFIX, "")
-    val token = Jwts.parser().setSigningKey(JWT_SECRET.toByteArray()).parseClaimsJws(tokenString)
-    val subject = token.getBody().getSubject()
+    val rawToken = Jwts.parser().setSigningKey(JWT_SECRET.toByteArray()).parseClaimsJws(tokenString)
+    val subject = rawToken.getBody().getSubject()
     
-    val (user, roles) = when (subject) {
-      JWT_SUB_BIG_BROTHER -> 
-        Pair(null, arrayListOf(SimpleGrantedAuthority("ROLE_BIG_BROTHER")))
-      else -> {
-        val username = subject.replaceFirst(JWT_SUB_DEVICE_PREFIX, "")
-        Pair(username, arrayListOf(SimpleGrantedAuthority("ROLE_SURV_DEVICE")))
-      }
+    val token = when (subject) {
+      JWT_SUB_BIG_BROTHER ->
+        object : Token() {
+          override val user = null
+          
+          override val roles = arrayListOf(SimpleGrantedAuthority("ROLE_BIG_BROTHER"))
+        }
+      else ->
+        object : Token() {
+          override val user = subject.replaceFirst(JWT_SUB_DEVICE_PREFIX, "")
+
+          override val roles = arrayListOf(SimpleGrantedAuthority("ROLE_SURV_DEVICE"))
+        }
     }
     
-    return UsernamePasswordAuthenticationToken(user, null, roles)
+    return UsernamePasswordAuthenticationToken(token.user, null, token.roles)
   }
 }
