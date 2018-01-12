@@ -18,34 +18,45 @@ class BankTransactionService(private val repo: BankTransactionRepository,
                              private val businessRepo: BusinessRepository) {
   @Throws(SuspiciouslyLargeTransactionException::class)
   fun transitFunds(draweeName: String, dto: BankTransaction.Dto) {
-    val draweeAcc = accountRepo.findByOwnerName(draweeName)
-    val drawerAcc = if (dto.personName != null) {
-      accountRepo.findByOwnerName(dto.personName)
-    } else if (dto.businessName != null) {
-      accountRepo.findByOwnerName(
-        businessRepo.findByName(dto.businessName).owner.name)
-    } else {
-      throw ValidationException("Drawer is not specified")
+    class DrawerWrapper {
+      val account = if (dto.personName != null) {
+          accountRepo.findByOwnerName(dto.personName)
+        }
+        else if (dto.businessName != null) {
+          accountRepo.findByOwnerName(
+            businessRepo.findByName(dto.businessName).owner.name)
+        }
+        else {
+          throw ValidationException("Drawer is not specified")
+        }
+
+      val name = if (dto.personName != null)
+          "Business (owned by ${dto.businessName})"
+        else
+          "Individual ${dto.personName}"
     }
+
+    val drawee = accountRepo.findByOwnerName(draweeName)
+    val drawer = DrawerWrapper()
 
     if (dto.amount > 1000)
       throw SuspiciouslyLargeTransactionException(
-          amount = dto.amount, drawer = drawerAcc.owner.name, drawee = draweeName)
+          amount = dto.amount, drawer = drawer.name, drawee = draweeName)
       
     /* Errors out with my current seed data, commenting out... */
     //if (draweeAcc.balance < dto.amount)
     //  throw ValidationException("Drawee has insufficient funds to perform the transaction")
 
-    draweeAcc.balance -= dto.amount
-    accountRepo.save(draweeAcc)
+    drawee.balance -= dto.amount
+    accountRepo.save(drawee)
 
-    drawerAcc.balance += dto.amount
-    accountRepo.save(drawerAcc)
+    drawer.account.balance += dto.amount
+    accountRepo.save(drawer.account)
 
     repo.save(BankTransaction(
       amount = dto.amount,
       date = dto.date,
-      draweeAccount = draweeAcc,
-      drawerAccount = drawerAcc))
+      draweeAccount = drawee,
+      drawerAccount = drawer.account))
   }
 }

@@ -20,4 +20,3 @@ class BusinessController(private val repo: BusinessRepository,
   fun createBusiness(@Valid @RequestBody business: Business.Dto)
     = businessService.createBusiness(business)
 }
-
