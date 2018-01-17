@@ -1,5 +1,8 @@
+import kotlin.math.roundToInt
+
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.KVisibility
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KClass
@@ -13,7 +16,18 @@ annotation class JsonIgnore
 @Target(AnnotationTarget.PROPERTY)
 annotation class JsonRename(val name: String)
 
+interface JsonSerializer {
+  fun serialize(obj: Any): String
+}
+
+@Target(AnnotationTarget.PROPERTY)
+annotation class JsonSerializeWith(val serializer: KClass<out JsonSerializer>)
+
 fun main(_args: Array<String>) {
+  class RoundingDoubleSerializer: JsonSerializer {
+    override fun serialize(value: Any) = (value as Double).roundToInt().toString()
+  }
+
   data class InnerObject(
     val field: String)
 
@@ -22,6 +36,7 @@ fun main(_args: Array<String>) {
     val age: Int,
     @JsonRename("happy") val satisfiedWithLife: Boolean,
     val innerObj: InnerObject = InnerObject("field value"),
+    @JsonSerializeWith(RoundingDoubleSerializer::class) val height: Double = 173.4,
     @JsonIgnore val ignored: String = "ignored",
     private val hidden: String = "hidden")
   
@@ -38,9 +53,12 @@ fun serialize(obj: Any): String =
     .map {
       val name = it.findAnnotation<JsonRename>()?.name ?: it.name
       val value = it.get(obj)
-      val serialized =
+      val type = it.returnType
+      val serialized = 
         if (value == null) "null"
-        else serializePrimitive(it, value) ?: serialize(value).toString()
+        else it.findAnnotation<JsonSerializeWith>()?.serializer?.createInstance()?.serialize(value) ?:
+             serializePrimitive(it, value) ?:
+             serialize(value).toString()
 
       encode(name, serialized)
     }
