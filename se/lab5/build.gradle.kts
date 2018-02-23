@@ -7,7 +7,6 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    //classpath(kotlin("gradle-plugin"))
     classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
   }
 }
@@ -29,7 +28,10 @@ dependencies {
   compile("org.jetbrains.kotlin:kotlin-stdlib")
   compile("org.jetbrains.kotlin:kotlin-reflect")
   compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4")
+  compile("com.fasterxml.jackson.module:jackson-module-jsonSchema:2.9.4")
   compile("org.jline:jline:3.6.0")
+  testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
+  testCompile("org.mockito:mockito-core:2.15.0")
 }
 
 tasks {
