@@ -1,22 +1,23 @@
 package ru.ifmo.se.lab5
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
-import com.fasterxml.jackson.module.kotlin.readValue
-import javax.validation.Validation
 import java.util.*
 
 import ru.ifmo.se.lab5.CommandRunner.*
-import java.util.logging.Level
-import java.util.logging.Logger
 
 typealias QueueCommand = Command<EmploymentRequest>
 typealias CommandArg = Command.ArgumentType
+typealias Deserializer = JsonArgumentDeserializer<EmploymentRequest>
 
 class EmploymentRequestCommands: CommandList<EmploymentRequest> {
-  override val list: List<QueueCommand> = listOf(
-    ClearCommand(), AddCommand())
+  override val list: List<QueueCommand> by lazy {
+    val jsonDeserializer = Deserializer(EmploymentRequest::class.java)
+    listOf(
+      ClearCommand(),
+      AddCommand(jsonDeserializer)
+    )
+  }
 
   override val elementClass = EmploymentRequest::class.java
 
@@ -28,40 +29,12 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
       queue.clear()
   }
 
-  class AddCommand: QueueCommand {
+  class AddCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add"
     override val argument = CommandArg.JSON
 
-    private val mapper = ObjectMapper().apply { findAndRegisterModules() }
-    private val validator by lazy {
-      /* Turn off logging before initializing the validator */
-      Logger.getLogger("org.hibernate").level = Level.OFF
-
-      Validation.buildDefaultValidatorFactory().validator
-    }
-
     override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      try {
-        val request: EmploymentRequest = mapper.readValue(args)
-
-        validator.validate(request)
-          .takeIf { it.isNotEmpty() }
-          ?.sortedBy { it.message }
-          ?.joinToString(", ") { it.message }
-          ?.let { violations -> throw CommandExecutionException(
-            "The employment request specified is invalid: $violations") }
-
-        queue.add(request)
-      }
-      catch (e: UnrecognizedPropertyException) {
-        throw CommandExecutionException("Unknown field \"${e.propertyName}\". " +
-          "Valid fields for employment requests are " +
-          e.knownPropertyIds.joinToString(", ") { "\"" + it + "\"" })
-      }
-      catch (e: JsonProcessingException) {
-        throw CommandExecutionException("Unable to read the employment request specified; " +
-          "please make sure the data you are entering is a valid JSON")
-      }
+      queue.add(deserializer.fromString(args))
     }
   }
 }
