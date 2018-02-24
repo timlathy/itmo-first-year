@@ -15,27 +15,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 class JsonCompleterTest {
   private val completer = JsonCompleter(TestSerializable::class.java)
 
-  data class TestSerializable (
-    @JsonProperty("stringValue")
-    val someString: String,
-
-    val someInt: Int,
-    val someEnum: TestEnum) {
-
-    enum class TestEnum(private val description: String) {
-      OPTION("Option"),
-      ANOTHER_OPTION("Another option"),
-      NOT_SPECIFIED("Not specified");
-
-      @JsonValue
-      override fun toString() = description
-    }
-  }
-
   @Test
   fun `suggests an opening brace at the start of a definition`() {
     assertCompletion("add ",
-      "{\"stringValue\":",
+      "{\"someString\":",
       "{\"someInt\":",
       "{\"someEnum\":")
   }
