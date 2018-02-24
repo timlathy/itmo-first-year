@@ -3,8 +3,9 @@ package ru.ifmo.se.lab5
 import org.jline.reader.*
 import org.jline.reader.impl.DefaultParser
 import org.jline.terminal.TerminalBuilder
+import java.util.*
 
-class Repl(private val runner: CommandRunner<*>) {
+class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQueue<E>) {
   private val terminal = TerminalBuilder.builder().build()
 
   private val reader = LineReaderBuilder.builder()
@@ -19,14 +20,28 @@ class Repl(private val runner: CommandRunner<*>) {
         reader.readLine("> ", null, null as MaskingCallback?, null)
       }
       catch (e: UserInterruptException) {
-        println("Exit with ^D")
+        println("Use :quit or Ctrl-D (EOF) to exit")
         continue
       }
       catch (e: Exception) {
         break
       }
 
-      terminal.writer().println("===>" + line)
+      if (line.isBlank()) continue
+
+      when(line) {
+        ":q", ":quit" -> return
+        ":h", ":help" -> {
+          terminal.writer().println("h")
+        }
+        else -> try {
+          runner.eval(line, queue)
+        }
+        catch (e: CommandRunner.UnknownCommandException) {
+          println("Unknown command ${e.command}. Enter :help for help")
+        }
+      }
+
       terminal.flush()
     }
   }

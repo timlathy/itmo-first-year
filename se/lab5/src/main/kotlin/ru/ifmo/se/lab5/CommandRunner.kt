@@ -9,7 +9,7 @@ class CommandRunner<E>(private val commands: CommandList<E>) {
     val name: String
     val argument: ArgumentType
 
-    fun run(queue: PriorityQueue<E>)
+    fun run(args: String, queue: PriorityQueue<E>)
 
     enum class ArgumentType {
       JSON,
@@ -21,6 +21,18 @@ class CommandRunner<E>(private val commands: CommandList<E>) {
   interface CommandList<E> {
     val list: List<Command<E>>
     val elementClass: Class<E>
+  }
+
+  class CommandExecutionException(message: String): RuntimeException(message)
+  class UnknownCommandException(val command: String): IllegalArgumentException()
+
+  fun eval(line: String, queue: PriorityQueue<E>) {
+    val parsed = line.split(" ", limit = 2)
+
+    val command = commands.list.find { cmd -> cmd.name == parsed.first() } ?:
+      throw UnknownCommandException(parsed.first())
+
+    command.run(parsed.last(), queue)
   }
 
   fun constructCompleter(): Completers.RegexCompleter {

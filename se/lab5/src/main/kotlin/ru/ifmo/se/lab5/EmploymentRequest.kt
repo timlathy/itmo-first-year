@@ -3,16 +3,19 @@ package ru.ifmo.se.lab5
 import java.time.LocalDateTime
 
 import com.fasterxml.jackson.annotation.*
-import com.fasterxml.jackson.databind.*
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.PastOrPresent
 
 data class EmploymentRequest(
-  val applicant: String,
+  @field:NotBlank(message = "applicant name cannot be blank")
+  val applicant: String = "",
 
-  val date: LocalDateTime,
+  @field:PastOrPresent(message = "request date cannot refer to the future")
+  val date: LocalDateTime = LocalDateTime.now(),
 
-  var status: EmploymentRequest.Status = Status.PROCESSING,
+  val details: String = "",
 
-  var details: String = "") {
+  val status: EmploymentRequest.Status = Status.PROCESSING) {
 
   enum class Status(private val description: String) {
     PROCESSING("Processing"),

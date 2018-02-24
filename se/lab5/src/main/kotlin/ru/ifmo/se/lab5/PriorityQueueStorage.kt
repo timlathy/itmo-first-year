@@ -28,9 +28,11 @@ class PriorityQueueStorage<E>(
 
   class ArrayStorage<E>(private val elementClass: Class<E>, private val source: File) {
     init {
+      source.createNewFile()
+
       if (!(source.canRead() && source.canWrite()))
         throw IOException(
-          "The storage source is required to be readable and writable by the application.")
+          "The specified file has to be readable and writable by the application.")
     }
 
     fun read(): Array<E> {
