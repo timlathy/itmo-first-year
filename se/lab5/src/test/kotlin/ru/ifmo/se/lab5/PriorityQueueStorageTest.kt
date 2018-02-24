@@ -3,6 +3,7 @@ package ru.ifmo.se.lab5
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.io.InputStream
 import java.util.*
 
 class PriorityQueueStorageTest {
@@ -15,14 +16,20 @@ class PriorityQueueStorageTest {
       add(TestSerializable("h", 2, TestSerializable.TestEnum.OPTION))
       add(TestSerializable("b", 1, TestSerializable.TestEnum.NOT_SPECIFIED))
     }
-    val storage = PriorityQueueStorage<TestSerializable>(
-      TestSerializable::class.java,
-      File.createTempFile("storagetest", "tmp"), comparator)
+    val file = File.createTempFile("storagetest", "tmp")
+
+    var storage = PriorityQueueStorage<TestSerializable>(
+      TestSerializable::class.java, file, comparator)
 
     assertTrue(storage.read().isEmpty())
 
     storage.write(queue)
 
+    storage = PriorityQueueStorage<TestSerializable>(
+      TestSerializable::class.java, file, comparator)
+
     assertArrayEquals(queue.toArray(), storage.read().toArray())
+
+    file.delete()
   }
 }
