@@ -34,7 +34,7 @@ class PriorityQueueStorage<E>(
     }
 
     fun read(): Array<E> {
-      var json = StringBuilder().apply {
+      val json = StringBuilder().apply {
         Scanner(source).let { scan ->
           while (scan.hasNext()) append(scan.nextLine())
           scan.close()

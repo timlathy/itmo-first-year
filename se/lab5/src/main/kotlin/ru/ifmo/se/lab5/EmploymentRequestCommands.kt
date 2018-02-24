@@ -5,13 +5,11 @@ import java.util.*
 typealias QueueCommand = CommandRunner.Command<EmploymentRequest>
 typealias CommandArg = CommandRunner.Command.ArgumentType
 
-class Commands {
-  companion object {
-    val list: List<QueueCommand> = listOf(
-      ClearCommand(), AddIfMinCommand())
+class EmploymentRequestCommands: CommandRunner.CommandList<EmploymentRequest> {
+  override val list: List<QueueCommand> = listOf(
+    ClearCommand(), AddIfMinCommand())
 
-    val elementClass = EmploymentRequest::class.java
-  }
+  override val elementClass = EmploymentRequest::class.java
 
   class ClearCommand: QueueCommand {
     override val name = "clear"

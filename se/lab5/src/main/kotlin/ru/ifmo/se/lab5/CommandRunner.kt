@@ -4,7 +4,7 @@ import org.jline.builtins.Completers
 import org.jline.reader.impl.completer.StringsCompleter
 import java.util.*
 
-class CommandRunner {
+class CommandRunner<E>(private val commands: CommandList<E>) {
   interface Command<E> {
     val name: String
     val argument: ArgumentType
@@ -18,22 +18,23 @@ class CommandRunner {
     }
   }
 
-  companion object {
-    fun<E> constructCompleter(
-      commands: List<Command<E>>, elementClass: Class<E>
-    ): Completers.RegexCompleter {
-      val completionMap = hashMapOf(
-        "JSON" to JsonCompleter(elementClass),
-        "PATH" to Completers.FileNameCompleter(),
-        *commands.mapIndexed { i, cmd -> "C$i" to StringsCompleter(cmd.name) }.toTypedArray()
-      )
-      val completionRegex = commands.mapIndexed { i, cmd -> when (cmd.argument) {
-        Command.ArgumentType.JSON -> "C$i JSON+"
-        Command.ArgumentType.FILE_PATH -> "C$i PATH"
-        else -> "C$i"
-      }}.joinToString(" | ")
+  interface CommandList<E> {
+    val list: List<Command<E>>
+    val elementClass: Class<E>
+  }
 
-      return Completers.RegexCompleter(completionRegex, { completionMap[it] })
-    }
+  fun constructCompleter(): Completers.RegexCompleter {
+    val completionMap = hashMapOf(
+      "JSON" to JsonCompleter(commands.elementClass),
+      "PATH" to Completers.FileNameCompleter(),
+      *commands.list.mapIndexed { i, cmd -> "C$i" to StringsCompleter(cmd.name) }.toTypedArray()
+    )
+    val completionRegex = commands.list.mapIndexed { i, cmd -> when (cmd.argument) {
+      Command.ArgumentType.JSON -> "C$i JSON+"
+      Command.ArgumentType.FILE_PATH -> "C$i PATH"
+      else -> "C$i"
+    }}.joinToString(" | ")
+
+    return Completers.RegexCompleter(completionRegex, { completionMap[it] })
   }
 }

@@ -3,17 +3,13 @@ package ru.ifmo.se.lab5
 import org.jline.reader.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.jsonSchema.*
-import java.util.*
 
-class JsonCompleter: Completer {
-  val props: Map<String, JsonSchema>
-
-  constructor(serializableClass: Class<*>) {
-    val mapper = ObjectMapper() 
-    val schema = JsonSchemaGenerator(mapper)
-      .generateSchema(serializableClass).asObjectSchema()
-    
-    props = schema.getProperties()
+class JsonCompleter(serializableClass: Class<*>): Completer {
+  private val props: Map<String, JsonSchema> = ObjectMapper().let { mapper ->
+    JsonSchemaGenerator(mapper)
+      .generateSchema(serializableClass)
+      .asObjectSchema()
+      .properties
   }
 
   override fun complete(r: LineReader, pl: ParsedLine, cs: MutableList<Candidate>) {
