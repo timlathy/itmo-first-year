@@ -1,6 +1,5 @@
 package ru.ifmo.se.lab5
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -32,8 +31,8 @@ class EmploymentRequestCommandsTest {
     exception = assertThrows<CommandRunner.CommandExecutionException> {
       AddCommand().run("{\"a\":", PriorityQueue())
     }
-    assertEquals("Unable to read the employment request specified. " +
-      "Please make sure the data you are entering is a valid JSON.", exception.message)
+    assertEquals("Unable to read the employment request specified; " +
+      "please make sure the data you are entering is a valid JSON", exception.message)
 
     exception = assertThrows<CommandRunner.CommandExecutionException> {
       AddCommand().run("{}", PriorityQueue())

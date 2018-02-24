@@ -40,6 +40,9 @@ class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQ
         catch (e: CommandRunner.UnknownCommandException) {
           println("Unknown command ${e.command}. Enter :help for help")
         }
+        catch (e: CommandRunner.CommandExecutionException) {
+          println(e.message)
+        }
       }
 
       terminal.flush()

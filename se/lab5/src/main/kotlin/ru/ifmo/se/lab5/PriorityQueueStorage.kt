@@ -27,6 +27,8 @@ class PriorityQueueStorage<E>(
     storage.write(queue.toArray() as Array<E>)
 
   class ArrayStorage<E>(private val elementClass: Class<E>, private val source: File) {
+    private val mapper = ObjectMapper().apply { findAndRegisterModules() }
+
     init {
       source.createNewFile()
 
@@ -44,14 +46,14 @@ class PriorityQueueStorage<E>(
         if (isEmpty()) append("[]")
       }.toString()
 
-      return with(ObjectMapper()) {
+      return with(mapper) {
         readValue(json, typeFactory.constructArrayType(elementClass))
       }
     }
 
     fun write(array: Array<E>) {
       val writer = PrintWriter(source)
-      ObjectMapper().writeValue(writer, array)
+      mapper.writeValue(writer, array)
       writer.close()
     }
   }

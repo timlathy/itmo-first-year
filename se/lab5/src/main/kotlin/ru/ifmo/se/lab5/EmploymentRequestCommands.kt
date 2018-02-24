@@ -8,6 +8,8 @@ import javax.validation.Validation
 import java.util.*
 
 import ru.ifmo.se.lab5.CommandRunner.*
+import java.util.logging.Level
+import java.util.logging.Logger
 
 typealias QueueCommand = Command<EmploymentRequest>
 typealias CommandArg = Command.ArgumentType
@@ -31,7 +33,12 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     override val argument = CommandArg.JSON
 
     private val mapper = ObjectMapper().apply { findAndRegisterModules() }
-    private val validator = Validation.buildDefaultValidatorFactory().validator
+    private val validator by lazy {
+      /* Turn off logging before initializing the validator */
+      Logger.getLogger("org.hibernate").level = Level.OFF
+
+      Validation.buildDefaultValidatorFactory().validator
+    }
 
     override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
       try {
@@ -39,6 +46,7 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
 
         validator.validate(request)
           .takeIf { it.isNotEmpty() }
+          ?.sortedBy { it.message }
           ?.joinToString(", ") { it.message }
           ?.let { violations -> throw CommandExecutionException(
             "The employment request specified is invalid: $violations") }
@@ -51,8 +59,8 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
           e.knownPropertyIds.joinToString(", ") { "\"" + it + "\"" })
       }
       catch (e: JsonProcessingException) {
-        throw CommandExecutionException("Unable to read the employment request specified. " +
-          "Please make sure the data you are entering is a valid JSON.")
+        throw CommandExecutionException("Unable to read the employment request specified; " +
+          "please make sure the data you are entering is a valid JSON")
       }
     }
   }
