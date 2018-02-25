@@ -55,6 +55,42 @@ class EmploymentRequestCommandsTest {
   }
 
   @Test
+  fun `"remove_greater" removes all higher-priority elements`() {
+    val date = LocalDateTime.now()
+
+    val queue = queue(
+      EmploymentRequest("joe", date.minusHours(1)),
+      EmploymentRequest("amy", date.plusHours(1)),
+      EmploymentRequest("jane", date)
+    )
+
+    RemoveGreaterCommand(jsonDeserializer).run(
+      "{\"applicant\": \"-\", \"date\": \"$date\"}", queue)
+
+    assertQueueContentsEqual(queue,
+      EmploymentRequest("jane", date),
+      EmploymentRequest("amy", date.plusHours(1)))
+  }
+
+  @Test
+  fun `"remove_first" removes the head element`() {
+    val date = LocalDateTime.now()
+
+    val queue = queue(
+      EmploymentRequest("mary", date.minusHours(2)),
+      EmploymentRequest("jane", date),
+      EmploymentRequest("joe", date.minusHours(1))
+    )
+
+    RemoveFirstCommand().run("", queue)
+
+    assertQueueContentsEqual(queue,
+      EmploymentRequest("joe", date.minusHours(1)),
+      EmploymentRequest("jane", date)
+    )
+  }
+
+  @Test
   fun `"remove_last" removes the tail element`() {
     val date = LocalDateTime.now()
 
@@ -95,6 +131,22 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("bob", date.plusHours(1),
         status = EmploymentRequest.Status.INTERVIEW_SCHEDULED)
     )
+  }
+
+  @Test
+  fun `"remove" removes an element`() {
+    val date = LocalDateTime.now()
+    val element = EmploymentRequest("jane", date,
+      status = EmploymentRequest.Status.REJECTED)
+    val queue = queue(element)
+
+    RemoveCommand(jsonDeserializer).run("{\"applicant\": \"jane\"," +
+      "\"date\": \"$date\"}", queue)
+    assertQueueContentsEqual(queue, element)
+
+    RemoveCommand(jsonDeserializer).run("{\"applicant\": \"jane\"," +
+      "\"date\": \"$date\", \"status\": \"Rejected\"}", queue)
+    assertTrue(queue.isEmpty())
   }
 
   private fun queue(vararg elements: EmploymentRequest) =

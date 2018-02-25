@@ -13,7 +13,11 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     listOf(
       ClearCommand(),
       AddCommand(jsonDeserializer),
-      RemoveLowerCommand(jsonDeserializer)
+      RemoveLowerCommand(jsonDeserializer),
+      RemoveGreaterCommand(jsonDeserializer),
+      RemoveFirstCommand(),
+      RemoveLastCommand(),
+      RemoveCommand(jsonDeserializer)
     )
   }
 
@@ -46,6 +50,25 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     }
   }
 
+  class RemoveGreaterCommand(private val deserializer: Deserializer): QueueCommand {
+    override val name = "remove_greater"
+    override val argument = CommandArg.JSON
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+      val element = deserializer.fromString(args)
+      queue.removeAll { it > element }
+    }
+  }
+
+  class RemoveFirstCommand: QueueCommand {
+    override val name = "remove_first"
+    override val argument = CommandArg.NONE
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+      queue.poll()
+    }
+  }
+
   class RemoveLastCommand: QueueCommand {
     override val name = "remove_last"
     override val argument = CommandArg.NONE
@@ -60,6 +83,15 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
         queue.clear()
         queue.addAll(temp)
       }
+    }
+  }
+
+  class RemoveCommand(private val deserializer: Deserializer): QueueCommand {
+    override val name = "remove"
+    override val argument = CommandArg.JSON
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+      queue.remove(deserializer.fromString(args))
     }
   }
 }
