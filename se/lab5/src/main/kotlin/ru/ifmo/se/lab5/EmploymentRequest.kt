@@ -15,14 +15,19 @@ data class EmploymentRequest(
 
   val details: String = "",
 
-  val status: EmploymentRequest.Status = Status.PROCESSING) {
+  val status: EmploymentRequest.Status = Status.PROCESSING): Comparable<EmploymentRequest> {
 
   enum class Status(private val description: String) {
-    PROCESSING("Processing"),
     INTERVIEW_SCHEDULED("Interview scheduled"),
+    PROCESSING("Processing"),
     REJECTED("Rejected");
 
     @JsonValue
     override fun toString() = description
   }
+
+  override fun compareTo(other: EmploymentRequest): Int =
+    Comparator.comparing<EmploymentRequest, Status> { it.status }
+      .thenComparing<LocalDateTime> { it.date }
+      .reversed().compare(this, other)
 }
