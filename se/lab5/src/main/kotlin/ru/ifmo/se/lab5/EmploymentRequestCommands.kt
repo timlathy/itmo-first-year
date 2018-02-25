@@ -13,6 +13,8 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     listOf(
       ClearCommand(),
       AddCommand(jsonDeserializer),
+      AddIfMaxCommand(jsonDeserializer),
+      AddIfMinCommand(jsonDeserializer),
       RemoveLowerCommand(jsonDeserializer),
       RemoveGreaterCommand(jsonDeserializer),
       RemoveFirstCommand(),
@@ -37,6 +39,36 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
 
     override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
       queue.add(deserializer.fromString(args))
+    }
+  }
+
+  class AddIfMaxCommand(private val deserializer: Deserializer): QueueCommand {
+    override val name = "add_if_max"
+    override val argument = CommandArg.JSON
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+      val element = deserializer.fromString(args)
+      if (queue.peek() < element) queue.add(element)
+    }
+  }
+
+  class AddIfMinCommand(private val deserializer: Deserializer): QueueCommand {
+    override val name = "add_if_min"
+    override val argument = CommandArg.JSON
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+      val element = deserializer.fromString(args)
+
+      /* PriorityQueue does not provide a way to peek at the tail of the queue,
+       * (#toArray does not respect queue order), so we have to fully traverse
+       * a clone of it (so as not to remove elements from the source queue). */
+      val tail = PriorityQueue(queue.comparator()).let { clone ->
+        clone.addAll(queue)
+        while (clone.size > 1) clone.poll()
+        clone.poll()
+      }
+
+      if (element < tail) queue.add(element)
     }
   }
 

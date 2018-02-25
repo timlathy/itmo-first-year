@@ -31,6 +31,40 @@ class EmploymentRequestCommandsTest {
   }
 
   @Test
+  fun `"add_if_max" inserts an element if it has the highest priority in the queue`() {
+    val date = LocalDateTime.now()
+
+    val queue = queue(
+      EmploymentRequest("joe", date.minusHours(1)),
+      EmploymentRequest("mary", date))
+
+    AddIfMaxCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+      "\"date\": \"$date\"}", queue)
+    assertEquals(2, queue.size)
+
+    AddIfMaxCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+      "\"date\": \"${date.minusHours(2)}\"}", queue)
+    assertEquals(3, queue.size)
+  }
+
+  @Test
+  fun `"add_if_min" inserts an element if it has the lowest priority in the queue`() {
+    val date = LocalDateTime.now()
+
+    val queue = queue(
+      EmploymentRequest("joe", date.minusHours(1)),
+      EmploymentRequest("mary", date.minusSeconds(1)))
+
+    AddIfMinCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+      "\"date\": \"${date.minusMinutes(1)}\"}", queue)
+    assertEquals(2, queue.size)
+
+    AddIfMinCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+      "\"date\": \"$date\"}", queue)
+    assertEquals(3, queue.size)
+  }
+
+  @Test
   fun `"remove_lower" removes all lower-priority elements`() {
     val date = LocalDateTime.now()
 
