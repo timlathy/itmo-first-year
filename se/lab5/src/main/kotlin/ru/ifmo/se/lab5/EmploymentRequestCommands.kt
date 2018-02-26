@@ -6,6 +6,7 @@ import java.util.PriorityQueue
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
 import java.io.File
+import java.time.LocalDateTime
 
 typealias QueueStorage = PriorityQueueStorage<EmploymentRequest>
 typealias QueueCommand = Command<EmploymentRequest>
@@ -45,6 +46,7 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
   }
 
   override val list: List<QueueCommand> by lazy {
+    val initDate = LocalDateTime.now()
     val jsonDeserializer = Deserializer(EmploymentRequest::class.java)
     listOf(
       ClearCommand(),
@@ -57,7 +59,7 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       RemoveLastCommand(),
       RemoveCommand(jsonDeserializer),
       RemoveAllCommand(jsonDeserializer),
-      InfoCommand(),
+      InfoCommand(initDate),
       LoadCommand(storage),
       SaveCommand(storage),
       ImportCommand()
@@ -213,7 +215,7 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
   /**
    * Returns basic information (type, elements) for the queue.
    */
-  class InfoCommand: QueueCommand {
+  class InfoCommand(private val initDate: LocalDateTime): QueueCommand {
     override val name = "info"
     override val argument = CommandArg.NONE
 
@@ -222,6 +224,8 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
         appendln("=== Queue information")
         appendln("Type:")
         appendln("  ${queue.javaClass.canonicalName}")
+        appendln("Instantiated on:")
+        appendln("  $initDate")
         appendln("Elements:")
         PriorityQueue(queue.comparator()).apply {
           if (queue.isEmpty()) appendln("  (none)")

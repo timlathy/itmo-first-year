@@ -235,12 +235,14 @@ class EmploymentRequestCommandsTest {
       "=== Queue information\n" +
       "Type:\n" +
       "  java.util.PriorityQueue\n" +
+      "Instantiated on:\n" +
+      "  $date\n" +
       "Elements:\n" +
       "  1. ${EmploymentRequest("mary", date.minusHours(2))}\n" +
       "  2. ${EmploymentRequest("joe", date.minusHours(1))}\n" +
       "  3. ${EmploymentRequest("jane", date)}\n" +
       "===") {
-      InfoCommand().run("", queue)
+      InfoCommand(date).run("", queue)
     }
     assertEquals(3, queue.size)
   }
