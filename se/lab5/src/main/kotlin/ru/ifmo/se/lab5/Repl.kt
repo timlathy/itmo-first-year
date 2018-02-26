@@ -3,7 +3,10 @@ package ru.ifmo.se.lab5
 import org.jline.reader.*
 import org.jline.reader.impl.DefaultParser
 import org.jline.terminal.TerminalBuilder
+import org.jline.utils.AttributedStringBuilder
+import org.jline.utils.AttributedStyle
 import java.util.*
+import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
 
 class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQueue<E>) {
   private val terminal = TerminalBuilder.builder().build()
@@ -20,7 +23,8 @@ class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQ
         reader.readLine("> ", null, null as MaskingCallback?, null)
       }
       catch (e: UserInterruptException) {
-        println("Use :quit or Ctrl-D (EOF) to exit")
+        terminal.writer().println("Use :quit or Ctrl-D (EOF) to exit")
+        terminal.flush()
         continue
       }
       catch (e: Exception) {
@@ -32,16 +36,22 @@ class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQ
       when(line) {
         ":q", ":quit" -> return
         ":h", ":help" -> {
-          terminal.writer().println("h")
+          terminal.writer().println("WIP")
         }
         else -> try {
-          runner.eval(line, queue)
+          val status = runner.eval(line, queue)
+
+          terminal.writer().println(when (status) {
+            is SuccessStatus -> styledString(status.message, AttributedStyle.GREEN)
+            is NeutralStatus -> status.message
+          })
         }
         catch (e: CommandRunner.UnknownCommandException) {
-          println("Unknown command ${e.command}. Enter :help for help")
+          terminal.writer().println(styledString(
+            "Unknown command ${e.command}. Enter :help for help", AttributedStyle.RED))
         }
         catch (e: CommandRunner.CommandExecutionException) {
-          println(e.message)
+          terminal.writer().println(styledString(e.message ?: "", AttributedStyle.RED))
         }
       }
 
@@ -49,13 +59,18 @@ class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQ
     }
   }
 
+  private fun styledString(message: String, color: Int) =
+    AttributedStringBuilder()
+      .style(AttributedStyle.DEFAULT.foreground(color))
+      .append(message)
+      .style(AttributedStyle.DEFAULT).toAnsi()
+
   class LineParser: DefaultParser() {
     override fun parse(line: String?, cursor: Int, context: Parser.ParseContext?): ParsedLine {
       val line = line ?: ""
       val words = line.split(" ")
 
       return if (cursor == line.length) {
-
         ArgumentList(line, words, (words.size - 1), words.last().length, cursor)
       } else {
         var position = 0

@@ -1,6 +1,8 @@
 package ru.ifmo.se.lab5
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
@@ -18,7 +20,7 @@ class PriorityQueueStorage<E>(
     val queue = if (comparator != null)
       PriorityQueue<E>(comparator)
     else
-      PriorityQueue<E>()
+      PriorityQueue()
 
     return queue.apply { addAll(storage.read()) }
   }
@@ -27,7 +29,10 @@ class PriorityQueueStorage<E>(
     storage.write(queue.toArray() as Array<E>)
 
   class ArrayStorage<E>(private val elementClass: Class<E>, private val source: File) {
-    private val mapper = ObjectMapper().apply { findAndRegisterModules() }
+    private val mapper = ObjectMapper().apply {
+      registerModule(JavaTimeModule())
+      disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    }
 
     init {
       source.createNewFile()
