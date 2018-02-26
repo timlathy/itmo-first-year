@@ -6,27 +6,35 @@ import java.time.LocalDateTime
 import java.util.*
 
 import ru.ifmo.se.lab5.EmploymentRequestCommands.*
+import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus
+import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_CLEARED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_ELEMENT_ADDED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_MANY_REMOVED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_ONE_REMOVED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_UNCHANGED
 
 class EmploymentRequestCommandsTest {
   private val jsonDeserializer = Deserializer(EmploymentRequest::class.java)
 
   @Test
   fun `"clear" removes all elements`() {
-    val queue = queue(EmploymentRequest("name", LocalDateTime.now()))
+    val queue = queue(EmploymentRequest("joe"), EmploymentRequest("amy"))
     assertTrue(queue.isNotEmpty())
 
-    ClearCommand().run("", queue)
+    assertSuccess(STATUS_CLEARED) { ClearCommand().run("", queue) }
     assertTrue(queue.isEmpty())
   }
 
   @Test
   fun `"add" inserts an element`() {
     val date = LocalDateTime.now()
-
     val queue = queue()
-    AddCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
-      "\"date\": \"$date\"}", queue)
 
+    assertSuccess("$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}") {
+      AddCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+        "\"date\": \"$date\"}", queue)
+    }
     assertEquals(EmploymentRequest("joe", date), queue.peek())
   }
 
@@ -38,12 +46,17 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date))
 
-    AddIfMaxCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
-      "\"date\": \"$date\"}", queue)
+    assertNeutral(STATUS_UNCHANGED) {
+      AddIfMaxCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+        "\"date\": \"$date\"}", queue)
+    }
     assertEquals(2, queue.size)
 
-    AddIfMaxCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
-      "\"date\": \"${date.minusHours(2)}\"}", queue)
+    assertSuccess("$STATUS_ELEMENT_ADDED: ${EmploymentRequest(
+      "joe", date.minusHours(2))}") {
+      AddIfMaxCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+        "\"date\": \"${date.minusHours(2)}\"}", queue)
+    }
     assertEquals(3, queue.size)
   }
 
@@ -55,12 +68,16 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date.minusSeconds(1)))
 
-    AddIfMinCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
-      "\"date\": \"${date.minusMinutes(1)}\"}", queue)
+    assertNeutral(STATUS_UNCHANGED) {
+      AddIfMinCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+        "\"date\": \"${date.minusMinutes(1)}\"}", queue)
+    }
     assertEquals(2, queue.size)
 
-    AddIfMinCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
-      "\"date\": \"$date\"}", queue)
+    assertSuccess("$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}") {
+      AddIfMinCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+        "\"date\": \"$date\"}", queue)
+    }
     assertEquals(3, queue.size)
   }
 
@@ -77,9 +94,10 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    RemoveLowerCommand(jsonDeserializer).run(
-      "{\"applicant\": \"-\", \"date\": \"$date\"}", queue)
-
+    assertSuccess(STATUS_ONE_REMOVED) {
+      RemoveLowerCommand(jsonDeserializer).run(
+        "{\"applicant\": \"-\", \"date\": \"$date\"}", queue)
+    }
     assertQueueContentsEqual(queue,
       EmploymentRequest("amy", date.plusHours(1),
         status = EmploymentRequest.Status.INTERVIEW_SCHEDULED),
@@ -95,12 +113,15 @@ class EmploymentRequestCommandsTest {
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("amy", date.plusHours(1)),
+      EmploymentRequest("bob", date.plusHours(1),
+        status = EmploymentRequest.Status.INTERVIEW_SCHEDULED),
       EmploymentRequest("jane", date)
     )
 
-    RemoveGreaterCommand(jsonDeserializer).run(
-      "{\"applicant\": \"-\", \"date\": \"$date\"}", queue)
-
+    assertSuccess("2 $STATUS_MANY_REMOVED") {
+      RemoveGreaterCommand(jsonDeserializer).run(
+        "{\"applicant\": \"-\", \"date\": \"$date\"}", queue)
+    }
     assertQueueContentsEqual(queue,
       EmploymentRequest("jane", date),
       EmploymentRequest("amy", date.plusHours(1)))
@@ -116,12 +137,13 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("joe", date.minusHours(1))
     )
 
-    RemoveFirstCommand().run("", queue)
-
+    assertSuccess(STATUS_ONE_REMOVED) { RemoveFirstCommand().run("", queue) }
     assertQueueContentsEqual(queue,
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("jane", date)
     )
+
+    assertNeutral(STATUS_UNCHANGED) { RemoveFirstCommand().run("", queue()) }
   }
 
   @Test
@@ -134,8 +156,7 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("joe", date.minusHours(1))
     )
 
-    RemoveLastCommand().run("", queue)
-
+    assertSuccess(STATUS_ONE_REMOVED) { RemoveLastCommand().run("", queue) }
     assertQueueContentsEqual(queue,
       EmploymentRequest("mary", date.minusHours(2)),
       EmploymentRequest("joe", date.minusHours(1))
@@ -151,16 +172,14 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    RemoveLastCommand().run("", queue)
-
+    assertSuccess(STATUS_ONE_REMOVED) { RemoveLastCommand().run("", queue) }
     assertQueueContentsEqual(queue,
       EmploymentRequest("bob", date.plusHours(1),
         status = EmploymentRequest.Status.INTERVIEW_SCHEDULED),
       EmploymentRequest("jane", date)
     )
 
-    RemoveLastCommand().run("", queue)
-
+    assertSuccess(STATUS_ONE_REMOVED) { RemoveLastCommand().run("", queue) }
     assertQueueContentsEqual(queue,
       EmploymentRequest("bob", date.plusHours(1),
         status = EmploymentRequest.Status.INTERVIEW_SCHEDULED)
@@ -174,14 +193,24 @@ class EmploymentRequestCommandsTest {
       status = EmploymentRequest.Status.REJECTED)
     val queue = queue(element)
 
-    RemoveCommand(jsonDeserializer).run("{\"applicant\": \"jane\"," +
-      "\"date\": \"$date\"}", queue)
+    assertNeutral(STATUS_UNCHANGED) {
+      RemoveCommand(jsonDeserializer).run("{\"applicant\": \"jane\"," +
+        "\"date\": \"$date\"}", queue)
+    }
     assertQueueContentsEqual(queue, element)
 
-    RemoveCommand(jsonDeserializer).run("{\"applicant\": \"jane\"," +
-      "\"date\": \"$date\", \"status\": \"Rejected\"}", queue)
+    assertSuccess(STATUS_ONE_REMOVED) {
+      RemoveCommand(jsonDeserializer).run("{\"applicant\": \"jane\"," +
+        "\"date\": \"$date\", \"status\": \"Rejected\"}", queue)
+    }
     assertTrue(queue.isEmpty())
   }
+
+  private inline fun assertSuccess(message: String, command: () -> CommandStatus) =
+    assertEquals(SuccessStatus(message), command())
+
+  private inline fun assertNeutral(message: String, command: () -> CommandStatus) =
+    assertEquals(NeutralStatus(message), command())
 
   private fun queue(vararg elements: EmploymentRequest) =
     PriorityQueue<EmploymentRequest>(QUEUE_COMPARATOR).apply { addAll(listOf(*elements)) }

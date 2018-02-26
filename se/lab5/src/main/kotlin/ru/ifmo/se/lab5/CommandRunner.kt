@@ -9,12 +9,17 @@ class CommandRunner<E>(private val commands: CommandList<E>) {
     val name: String
     val argument: ArgumentType
 
-    fun run(args: String, queue: PriorityQueue<E>)
+    fun run(args: String, queue: PriorityQueue<E>): CommandStatus
 
     enum class ArgumentType {
       JSON,
       FILE_PATH,
       NONE
+    }
+
+    sealed class CommandStatus {
+      data class SuccessStatus(val message: String) : CommandStatus()
+      data class NeutralStatus(val message: String) : CommandStatus()
     }
   }
 

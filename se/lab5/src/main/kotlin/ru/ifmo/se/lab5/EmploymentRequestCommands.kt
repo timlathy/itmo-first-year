@@ -3,11 +3,42 @@ package ru.ifmo.se.lab5
 import ru.ifmo.se.lab5.CommandRunner.*
 import java.util.PriorityQueue
 
+import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus
+import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
+
 typealias QueueCommand = Command<EmploymentRequest>
 typealias CommandArg = Command.ArgumentType
 typealias Deserializer = JsonArgumentDeserializer<EmploymentRequest>
 
 class EmploymentRequestCommands: CommandList<EmploymentRequest> {
+  companion object {
+    const val STATUS_CLEARED = "The queue has been cleared"
+    const val STATUS_ELEMENT_ADDED = "An element has been added to the queue"
+    const val STATUS_UNCHANGED = "The queue has not been changed"
+    const val STATUS_ONE_REMOVED = "One element has been removed from the queue"
+    const val STATUS_MANY_REMOVED = "elements have been removed from the queue"
+
+    private inline fun<T> addIf(element: T, pred: (T) -> Boolean, queue: PriorityQueue<T>) =
+      if (pred(element)) {
+        queue.add(element)
+        SuccessStatus("$STATUS_ELEMENT_ADDED: $element")
+      }
+      else NeutralStatus(STATUS_UNCHANGED)
+
+    private fun<T> removeAll(pred: (T) -> Boolean, queue: PriorityQueue<T>) =
+      queue.let {
+        val sizeBefore = queue.size
+        it.removeAll(pred)
+        val sizeDiff = sizeBefore - queue.size
+
+        when {
+          sizeDiff == 1 -> SuccessStatus(STATUS_ONE_REMOVED)
+          sizeDiff > 1 -> SuccessStatus("$sizeDiff $STATUS_MANY_REMOVED")
+          else -> NeutralStatus(STATUS_UNCHANGED)
+        }
+      }
+  }
+
   override val list: List<QueueCommand> by lazy {
     val jsonDeserializer = Deserializer(EmploymentRequest::class.java)
     listOf(
@@ -29,34 +60,33 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     override val name = "clear"
     override val argument = CommandArg.NONE
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>): CommandStatus {
       queue.clear()
+      return SuccessStatus(STATUS_CLEARED)
+    }
   }
 
   class AddCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add"
     override val argument = CommandArg.JSON
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      queue.add(deserializer.fromString(args))
-    }
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      addIf(deserializer.fromString(args), { true }, queue)
   }
 
   class AddIfMaxCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add_if_max"
     override val argument = CommandArg.JSON
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      val element = deserializer.fromString(args)
-      if (queue.peek() < element) queue.add(element)
-    }
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      addIf(deserializer.fromString(args), { it > queue.peek() }, queue)
   }
 
   class AddIfMinCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add_if_min"
     override val argument = CommandArg.JSON
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>): CommandStatus {
       val element = deserializer.fromString(args)
 
       /* PriorityQueue does not provide a way to peek at the tail of the queue,
@@ -68,7 +98,7 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
         clone.poll()
       }
 
-      if (element < tail) queue.add(element)
+      return addIf(element, { it < tail }, queue)
     }
   }
 
@@ -76,54 +106,50 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     override val name = "remove_lower"
     override val argument = CommandArg.JSON
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      val element = deserializer.fromString(args)
-      queue.removeAll { it < element }
-    }
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      deserializer.fromString(args).let { element -> removeAll({ it < element}, queue) }
   }
 
   class RemoveGreaterCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "remove_greater"
     override val argument = CommandArg.JSON
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      val element = deserializer.fromString(args)
-      queue.removeAll { it > element }
-    }
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      deserializer.fromString(args).let { element -> removeAll({ it > element}, queue) }
   }
 
   class RemoveFirstCommand: QueueCommand {
     override val name = "remove_first"
     override val argument = CommandArg.NONE
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      queue.poll()
-    }
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      queue.poll()?.let { SuccessStatus(STATUS_ONE_REMOVED) } ?: NeutralStatus(STATUS_UNCHANGED)
   }
 
   class RemoveLastCommand: QueueCommand {
     override val name = "remove_last"
     override val argument = CommandArg.NONE
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
       /* Since there's no easy (= without iterating the whole collection) way
        * to remove the tail of a PriorityQueue, we copy every element but the tail
        * to a temporary queue, and then fill the old one using it.
        */
-      PriorityQueue(queue.comparator()).let { temp ->
+      if (queue.size == 0) NeutralStatus(STATUS_UNCHANGED)
+      else PriorityQueue(queue.comparator()).let { temp ->
         while (queue.size > 1) temp.add(queue.poll())
         queue.clear()
         queue.addAll(temp)
+        SuccessStatus(STATUS_ONE_REMOVED)
       }
-    }
   }
 
   class RemoveCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "remove"
     override val argument = CommandArg.JSON
 
-    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) {
-      queue.remove(deserializer.fromString(args))
-    }
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      if (queue.remove(deserializer.fromString(args))) SuccessStatus(STATUS_ONE_REMOVED)
+      else NeutralStatus(STATUS_UNCHANGED)
   }
 }
