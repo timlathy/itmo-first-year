@@ -66,6 +66,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
 
   override val elementClass = EmploymentRequest::class.java
 
+  /**
+   * Clears the queue. Returns success regardless of whether
+   * there were elements in a queue or not.
+   */
   class ClearCommand: QueueCommand {
     override val name = "clear"
     override val argument = CommandArg.NONE
@@ -76,6 +80,9 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
     }
   }
 
+  /**
+   * Adds a given element to the queue.
+   */
   class AddCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add"
     override val argument = CommandArg.JSON
@@ -84,6 +91,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       addIf(deserializer.fromString(args), { true }, queue)
   }
 
+  /**
+   * Adds a given element to the queue if it has higher priority
+   * than the head of the queue.
+   */
   class AddIfMaxCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add_if_max"
     override val argument = CommandArg.JSON
@@ -92,6 +103,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       addIf(deserializer.fromString(args), { it > queue.peek() }, queue)
   }
 
+  /**
+   * Adds a given element to the queue if it has lower priority
+   * than the tail of the queue.
+   */
   class AddIfMinCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "add_if_min"
     override val argument = CommandArg.JSON
@@ -112,6 +127,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
     }
   }
 
+  /**
+   * Removes all elements with the lower priority than the given one.
+   * Returned status includes the number of elements removed.
+   */
   class RemoveLowerCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "remove_lower"
     override val argument = CommandArg.JSON
@@ -120,6 +139,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       deserializer.fromString(args).let { element -> removeAll({ it < element}, queue) }
   }
 
+  /**
+   * Removes all elements with the higher priority than the given one.
+   * Returned status includes the number of elements removed.
+   */
   class RemoveGreaterCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "remove_greater"
     override val argument = CommandArg.JSON
@@ -128,6 +151,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       deserializer.fromString(args).let { element -> removeAll({ it > element}, queue) }
   }
 
+  /**
+   * Removes the head of the queue.
+   * Returns a neutral status if there were no elements in the queue.
+   */
   class RemoveFirstCommand: QueueCommand {
     override val name = "remove_first"
     override val argument = CommandArg.NONE
@@ -136,6 +163,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       queue.poll()?.let { SuccessStatus(STATUS_ONE_REMOVED) } ?: NeutralStatus(STATUS_UNCHANGED)
   }
 
+  /**
+   * Removes the tail of the queue.
+   * Returns a neutral status if there were no elements in the queue.
+   */
   class RemoveLastCommand: QueueCommand {
     override val name = "remove_last"
     override val argument = CommandArg.NONE
@@ -154,6 +185,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       }
   }
 
+  /**
+   * Removes the first element equivalent to the given one.
+   * Returns a neutral status if no elements were removed.
+   */
   class RemoveCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "remove"
     override val argument = CommandArg.JSON
@@ -163,6 +198,10 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       else NeutralStatus(STATUS_UNCHANGED)
   }
 
+  /**
+   * Removes all elements equal to the given one.
+   * Returns the number of elements removed.
+   */
   class RemoveAllCommand(private val deserializer: Deserializer): QueueCommand {
     override val name = "remove_all"
     override val argument = CommandArg.JSON
@@ -171,6 +210,9 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       deserializer.fromString(args).let { element -> removeAll({ it == element }, queue) }
   }
 
+  /**
+   * Returns basic information (type, elements) for the queue.
+   */
   class InfoCommand: QueueCommand {
     override val name = "info"
     override val argument = CommandArg.NONE
@@ -194,6 +236,9 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       }
   }
 
+  /**
+   * Reloads the queue from the file specified on startup.
+   */
   class LoadCommand(private val storage: QueueStorage): QueueCommand {
     override val name = "load"
     override val argument = CommandArg.NONE
@@ -206,6 +251,9 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
     }
   }
 
+  /**
+   * Saves the queue to the file specified on startup.
+   */
   class SaveCommand(private val storage: QueueStorage): QueueCommand {
     override val name = "save"
     override val argument = CommandArg.NONE
@@ -214,6 +262,9 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       storage.write(queue).let { SuccessStatus(STATUS_SAVED) }
   }
 
+  /**
+   * Adds all elements from the given file to the queue.
+   */
   class ImportCommand: QueueCommand {
     override val name = "import"
     override val argument = CommandArg.FILE_PATH
