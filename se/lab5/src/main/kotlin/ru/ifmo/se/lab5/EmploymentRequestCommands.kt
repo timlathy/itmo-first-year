@@ -5,6 +5,7 @@ import java.util.PriorityQueue
 
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
+import java.io.File
 
 typealias QueueStorage = PriorityQueueStorage<EmploymentRequest>
 typealias QueueCommand = Command<EmploymentRequest>
@@ -20,6 +21,7 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
     const val STATUS_MANY_REMOVED = "elements have been removed from the queue"
     const val STATUS_LOADED = "The queue has been reloaded"
     const val STATUS_SAVED = "The queue has been saved"
+    const val STATUS_IMPORTED = "The queue has been imported"
 
     private inline fun<T> addIf(element: T, pred: (T) -> Boolean, queue: PriorityQueue<T>) =
       if (pred(element)) {
@@ -54,9 +56,11 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       RemoveFirstCommand(),
       RemoveLastCommand(),
       RemoveCommand(jsonDeserializer),
+      RemoveAllCommand(jsonDeserializer),
       InfoCommand(),
       LoadCommand(storage),
-      SaveCommand(storage)
+      SaveCommand(storage),
+      ImportCommand()
     )
   }
 
@@ -159,6 +163,14 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
       else NeutralStatus(STATUS_UNCHANGED)
   }
 
+  class RemoveAllCommand(private val deserializer: Deserializer): QueueCommand {
+    override val name = "remove_all"
+    override val argument = CommandArg.JSON
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      deserializer.fromString(args).let { element -> removeAll({ it == element }, queue) }
+  }
+
   class InfoCommand: QueueCommand {
     override val name = "info"
     override val argument = CommandArg.NONE
@@ -200,5 +212,21 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
 
     override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
       storage.write(queue).let { SuccessStatus(STATUS_SAVED) }
+  }
+
+  class ImportCommand: QueueCommand {
+    override val name = "import"
+    override val argument = CommandArg.FILE_PATH
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      PriorityQueueStorage(
+          EmploymentRequest::class.java,
+          File(args),
+          queue.comparator())
+        .read()
+        .let { loaded ->
+          queue.addAll(loaded)
+          SuccessStatus(STATUS_IMPORTED)
+        }
   }
 }

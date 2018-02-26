@@ -12,8 +12,11 @@ import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_CLEARED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_ELEMENT_ADDED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_IMPORTED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_LOADED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_MANY_REMOVED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_ONE_REMOVED
+import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_SAVED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_UNCHANGED
 import java.io.File
 
@@ -204,6 +207,22 @@ class EmploymentRequestCommandsTest {
   }
 
   @Test
+  fun `"remove_all" removes all equivalent elements`() {
+    val date = LocalDateTime.now()
+    val queue = queue(
+      EmploymentRequest("joe", date),
+      EmploymentRequest("joe", date),
+      EmploymentRequest("jane", date))
+
+    assertSuccess("2 $STATUS_MANY_REMOVED") {
+      RemoveAllCommand(jsonDeserializer).run("{\"applicant\": \"joe\"," +
+        "\"date\": \"$date\"}", queue)
+    }
+    assertQueueContentsEqual(queue,
+      EmploymentRequest("jane", date))
+  }
+
+  @Test
   fun `"info" prints basic collection info`() {
     val date = LocalDateTime.now()
     val queue = queue(
@@ -241,7 +260,7 @@ class EmploymentRequestCommandsTest {
     )
     storage.write(PriorityQueue(listOf(*stored)))
 
-    assertSuccess(Companion.STATUS_LOADED) {
+    assertSuccess(STATUS_LOADED) {
       LoadCommand(storage).run("", queue)
     }
     assertQueueContentsEqual(queue, *stored)
@@ -260,10 +279,29 @@ class EmploymentRequestCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    assertSuccess(Companion.STATUS_SAVED) {
+    assertSuccess(STATUS_SAVED) {
       SaveCommand(storage).run("", queue)
     }
     assertArrayEquals(queue.toArray(), storage.read().toArray())
+  }
+
+  @Test
+  fun `"import" appends file contents to the queue`() {
+    val date = LocalDateTime.now()
+    val queue = queue(
+      EmploymentRequest("mary", date.minusHours(2))
+    )
+    val temp = File.createTempFile("commandstest", "txt")
+    PriorityQueueStorage(
+      EmploymentRequest::class.java, temp, QUEUE_COMPARATOR).write(queue(
+      EmploymentRequest("amy", date)))
+
+    assertSuccess(STATUS_IMPORTED) {
+      ImportCommand().run(temp.absolutePath, queue)
+    }
+    assertQueueContentsEqual(queue,
+      EmploymentRequest("mary", date.minusHours(2)),
+      EmploymentRequest("amy", date))
   }
 
   private inline fun assertSuccess(message: String, command: () -> CommandStatus) =
