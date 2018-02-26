@@ -41,7 +41,6 @@ class EmploymentRequestCommandsTest {
   @Test
   fun `"add_if_max" inserts an element if it has the highest priority in the queue`() {
     val date = LocalDateTime.now()
-
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date))
@@ -63,7 +62,6 @@ class EmploymentRequestCommandsTest {
   @Test
   fun `"add_if_min" inserts an element if it has the lowest priority in the queue`() {
     val date = LocalDateTime.now()
-
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date.minusSeconds(1)))
@@ -84,7 +82,6 @@ class EmploymentRequestCommandsTest {
   @Test
   fun `"remove_lower" removes all lower-priority elements`() {
     val date = LocalDateTime.now()
-
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date.minusHours(2)),
@@ -109,7 +106,6 @@ class EmploymentRequestCommandsTest {
   @Test
   fun `"remove_greater" removes all higher-priority elements`() {
     val date = LocalDateTime.now()
-
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("amy", date.plusHours(1)),
@@ -130,7 +126,6 @@ class EmploymentRequestCommandsTest {
   @Test
   fun `"remove_first" removes the head element`() {
     val date = LocalDateTime.now()
-
     val queue = queue(
       EmploymentRequest("mary", date.minusHours(2)),
       EmploymentRequest("jane", date),
@@ -149,7 +144,6 @@ class EmploymentRequestCommandsTest {
   @Test
   fun `"remove_last" removes the tail element`() {
     val date = LocalDateTime.now()
-
     var queue = queue(
       EmploymentRequest("mary", date.minusHours(2)),
       EmploymentRequest("jane", date),
@@ -204,6 +198,29 @@ class EmploymentRequestCommandsTest {
         "\"date\": \"$date\", \"status\": \"Rejected\"}", queue)
     }
     assertTrue(queue.isEmpty())
+  }
+
+  @Test
+  fun `"info" prints basic collection info`() {
+    val date = LocalDateTime.now()
+    val queue = queue(
+      EmploymentRequest("mary", date.minusHours(2)),
+      EmploymentRequest("jane", date),
+      EmploymentRequest("joe", date.minusHours(1))
+    )
+
+    assertNeutral(
+      "=== Queue information\n" +
+      "Type:\n" +
+      "  java.util.PriorityQueue\n" +
+      "Elements:\n" +
+      "  1. ${EmploymentRequest("mary", date.minusHours(2))}\n" +
+      "  2. ${EmploymentRequest("joe", date.minusHours(1))}\n" +
+      "  3. ${EmploymentRequest("jane", date)}\n" +
+      "===") {
+      InfoCommand().run("", queue)
+    }
+    assertEquals(3, queue.size)
   }
 
   private inline fun assertSuccess(message: String, command: () -> CommandStatus) =

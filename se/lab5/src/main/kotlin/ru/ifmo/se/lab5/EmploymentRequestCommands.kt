@@ -50,7 +50,8 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
       RemoveGreaterCommand(jsonDeserializer),
       RemoveFirstCommand(),
       RemoveLastCommand(),
-      RemoveCommand(jsonDeserializer)
+      RemoveCommand(jsonDeserializer),
+      InfoCommand()
     )
   }
 
@@ -151,5 +152,28 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
     override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
       if (queue.remove(deserializer.fromString(args))) SuccessStatus(STATUS_ONE_REMOVED)
       else NeutralStatus(STATUS_UNCHANGED)
+  }
+
+  class InfoCommand: QueueCommand {
+    override val name = "info"
+    override val argument = CommandArg.NONE
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      StringBuilder().apply {
+        appendln("=== Queue information")
+        appendln("Type:")
+        appendln("  ${queue.javaClass.canonicalName}")
+        appendln("Elements:")
+        PriorityQueue(queue.comparator()).apply {
+          if (queue.isEmpty()) appendln("  (none)")
+          else {
+            addAll(queue)
+            for (i in 1..queue.size) appendln("  $i. ${poll()}")
+          }
+        }
+        append("===")
+      }.let {
+        NeutralStatus(it.toString())
+      }
   }
 }
