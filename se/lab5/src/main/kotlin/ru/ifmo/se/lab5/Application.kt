@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
 
   with(storage) {
     val queue = read()
-    Repl(CommandRunner(EmploymentRequestCommands()), queue).loop()
+    Repl(CommandRunner(EmploymentRequestCommands(storage)), queue).loop()
     write(queue)
   }
 }

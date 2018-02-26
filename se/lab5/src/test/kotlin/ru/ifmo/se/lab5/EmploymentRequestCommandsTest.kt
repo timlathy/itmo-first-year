@@ -1,5 +1,7 @@
 package ru.ifmo.se.lab5
 
+import org.jline.reader.Buffer
+import org.jline.reader.LineReader
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -13,6 +15,7 @@ import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_ELEMENT_ADDED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_MANY_REMOVED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_ONE_REMOVED
 import ru.ifmo.se.lab5.EmploymentRequestCommands.Companion.STATUS_UNCHANGED
+import java.io.File
 
 class EmploymentRequestCommandsTest {
   private val jsonDeserializer = Deserializer(EmploymentRequest::class.java)
@@ -221,6 +224,46 @@ class EmploymentRequestCommandsTest {
       InfoCommand().run("", queue)
     }
     assertEquals(3, queue.size)
+  }
+
+  @Test
+  fun `"load" reloads the collection from a file`() {
+    val date = LocalDateTime.now()
+    val storage =  PriorityQueueStorage(
+      EmploymentRequest::class.java,
+      File.createTempFile("commandstest", "txt"),
+      QUEUE_COMPARATOR)
+    val queue = queue()
+    val stored = arrayOf(
+      EmploymentRequest("mary", date.minusHours(2)),
+      EmploymentRequest("joe", date.minusHours(1)),
+      EmploymentRequest("jane", date)
+    )
+    storage.write(PriorityQueue(listOf(*stored)))
+
+    assertSuccess(Companion.STATUS_LOADED) {
+      LoadCommand(storage).run("", queue)
+    }
+    assertQueueContentsEqual(queue, *stored)
+  }
+
+  @Test
+  fun `"save" stores the collection in a file`() {
+    val date = LocalDateTime.now()
+    val storage =  PriorityQueueStorage(
+      EmploymentRequest::class.java,
+      File.createTempFile("commandstest", "txt"),
+      QUEUE_COMPARATOR)
+    val queue = queue(
+      EmploymentRequest("mary", date.minusHours(2)),
+      EmploymentRequest("joe", date.minusHours(1)),
+      EmploymentRequest("jane", date)
+    )
+
+    assertSuccess(Companion.STATUS_SAVED) {
+      SaveCommand(storage).run("", queue)
+    }
+    assertArrayEquals(queue.toArray(), storage.read().toArray())
   }
 
   private inline fun assertSuccess(message: String, command: () -> CommandStatus) =

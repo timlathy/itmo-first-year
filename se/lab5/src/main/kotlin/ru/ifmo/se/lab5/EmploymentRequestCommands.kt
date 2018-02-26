@@ -6,17 +6,20 @@ import java.util.PriorityQueue
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus
 import ru.ifmo.se.lab5.CommandRunner.Command.CommandStatus.*
 
+typealias QueueStorage = PriorityQueueStorage<EmploymentRequest>
 typealias QueueCommand = Command<EmploymentRequest>
 typealias CommandArg = Command.ArgumentType
 typealias Deserializer = JsonArgumentDeserializer<EmploymentRequest>
 
-class EmploymentRequestCommands: CommandList<EmploymentRequest> {
+class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<EmploymentRequest> {
   companion object {
     const val STATUS_CLEARED = "The queue has been cleared"
     const val STATUS_ELEMENT_ADDED = "An element has been added to the queue"
     const val STATUS_UNCHANGED = "The queue has not been changed"
     const val STATUS_ONE_REMOVED = "One element has been removed from the queue"
     const val STATUS_MANY_REMOVED = "elements have been removed from the queue"
+    const val STATUS_LOADED = "The queue has been reloaded"
+    const val STATUS_SAVED = "The queue has been saved"
 
     private inline fun<T> addIf(element: T, pred: (T) -> Boolean, queue: PriorityQueue<T>) =
       if (pred(element)) {
@@ -51,7 +54,9 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
       RemoveFirstCommand(),
       RemoveLastCommand(),
       RemoveCommand(jsonDeserializer),
-      InfoCommand()
+      InfoCommand(),
+      LoadCommand(storage),
+      SaveCommand(storage)
     )
   }
 
@@ -175,5 +180,25 @@ class EmploymentRequestCommands: CommandList<EmploymentRequest> {
       }.let {
         NeutralStatus(it.toString())
       }
+  }
+
+  class LoadCommand(private val storage: QueueStorage): QueueCommand {
+    override val name = "load"
+    override val argument = CommandArg.NONE
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      storage.read().let { loaded ->
+        queue.clear()
+        queue.addAll(loaded)
+      SuccessStatus(STATUS_LOADED)
+    }
+  }
+
+  class SaveCommand(private val storage: QueueStorage): QueueCommand {
+    override val name = "save"
+    override val argument = CommandArg.NONE
+
+    override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
+      storage.write(queue).let { SuccessStatus(STATUS_SAVED) }
   }
 }
