@@ -1,7 +1,5 @@
 package ru.ifmo.se.lab5
 
-import org.jline.reader.Buffer
-import org.jline.reader.LineReader
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

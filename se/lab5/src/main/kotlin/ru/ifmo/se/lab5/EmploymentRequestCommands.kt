@@ -276,7 +276,7 @@ class EmploymentRequestCommands(private val storage: QueueStorage): CommandList<
     override fun run(args: String, queue: PriorityQueue<EmploymentRequest>) =
       PriorityQueueStorage(
           EmploymentRequest::class.java,
-          File(args),
+          File(args.trim()),
           queue.comparator())
         .read()
         .let { loaded ->

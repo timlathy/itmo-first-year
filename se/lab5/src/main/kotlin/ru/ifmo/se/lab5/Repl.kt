@@ -53,6 +53,11 @@ class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQ
         catch (e: CommandRunner.CommandExecutionException) {
           terminal.writer().println(styledString(e.message ?: "", AttributedStyle.RED))
         }
+        catch (e: Exception) {
+          terminal.writer().println(styledString(
+            "An error has occurred while executing your command. " +
+              "Please ensure the data you're entering is correct.", AttributedStyle.RED))
+        }
       }
 
       terminal.flush()
