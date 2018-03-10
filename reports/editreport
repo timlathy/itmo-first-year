@@ -8,7 +8,7 @@ if [ ! -f ./src/${class}/${report}.hs ]; then
     exit
 fi
 
-xelatex_bin=~/.texlive/bin/x86_64-linux/xelatex
+xelatex_bin=~/texlive/bin/x86_64-linux/xelatex
 
 report_id=${class}-${report}
 report_tex_file=${report_id}.tex

@@ -1,7 +1,7 @@
-name: hatex-reports
+name: reports
 version: 0.0.0
-synopsis: Lab reports
-description: Lab reports I wrote in HaTeX
+synopsis: Lab reports and assignments
+description: Various reports on lab work and coursework, as well as homework assignments
 maintainer: thymelous
 license: OtherLicense
 github: thymelous/ifmo

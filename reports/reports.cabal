@@ -1,11 +1,13 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 05f3f9095600425a3a366938a8c60d396f670995831761a227cd78864ad631f4
 
-name:           hatex-reports
+name:           reports
 version:        0.0.0
-synopsis:       Lab reports
-description:    Lab reports I wrote in HaTeX
+synopsis:       Lab reports and assignments
+description:    Various reports on lab work and coursework, as well as homework assignments
 category:       Education
 homepage:       https://github.com/thymelous/ifmo#readme
 bug-reports:    https://github.com/thymelous/ifmo/issues
@@ -24,11 +26,11 @@ library
   default-extensions: OverloadedStrings
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 5
-    , HaTeX
+      HaTeX
+    , base >=4.7 && <5
+    , containers
     , mtl
     , split
-    , containers
     , text
   exposed-modules:
       Binary
@@ -49,4 +51,6 @@ library
       Inf.Lab4
       LaTeXHelpers
       ReportBase
+  other-modules:
+      Paths_reports
   default-language: Haskell2010
