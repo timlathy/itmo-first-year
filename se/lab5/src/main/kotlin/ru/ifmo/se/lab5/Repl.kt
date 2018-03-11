@@ -75,6 +75,9 @@ class Repl<E>(private val runner: CommandRunner<E>, private val queue: PriorityQ
       val line = line ?: ""
       val words = line.split(" ")
 
+      if (line.endsWith("\\"))
+        throw EOFError(1, line.length, "Multiline input")
+
       return if (cursor == line.length) {
         ArgumentList(line, words, (words.size - 1), words.last().length, cursor)
       } else {
