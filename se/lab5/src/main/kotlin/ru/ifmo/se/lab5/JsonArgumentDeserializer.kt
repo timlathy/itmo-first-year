@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
-import java.util.logging.Level
-import java.util.logging.Logger
+import org.apache.log4j.Level
+import org.apache.log4j.Logger
 import javax.validation.Validation
 
 import ru.ifmo.se.lab5.CommandRunner.CommandExecutionException
@@ -16,8 +16,9 @@ class JsonArgumentDeserializer<E>(private val elementClass: Class<E>) {
   }
 
   private val validator by lazy {
-    /* Turn off logging before initializing the validator */
-    Logger.getLogger("org.hibernate").level = Level.OFF
+    /* Turn off logging to prevent Hibernate from polluting the console.
+     * (TODO: Consider logging to a dedicated file instead of stdout?) */
+    Logger.getRootLogger().level = Level.OFF
 
     Validation.buildDefaultValidatorFactory().validator
   }

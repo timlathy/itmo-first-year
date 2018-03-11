@@ -1,5 +1,7 @@
 package ru.ifmo.se.lab5
 
+import org.apache.log4j.Level
+import org.apache.log4j.Logger
 import java.io.File
 import kotlin.system.exitProcess
 
