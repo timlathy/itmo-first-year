@@ -8,13 +8,13 @@ buildscript {
   }
   dependencies {
     classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
+    classpath(kotlinModule("gradle-plugin", "1.2.30"))
   }
 }
 
 plugins {
-  val kotlinv = "1.2.21"
   application
-  kotlin("jvm") version kotlinv
+  kotlin("jvm") version "1.2.30"
   id("com.github.johnrengelman.shadow") version "2.0.1"
 }
 
