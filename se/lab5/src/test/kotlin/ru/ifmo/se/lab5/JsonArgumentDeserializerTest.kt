@@ -9,12 +9,11 @@ class JsonArgumentDeserializerTest {
   private val jsonDeserializer = Deserializer(EmploymentRequest::class.java)
 
   @Test
-  fun `reports errors for unknown fields`() {
+  fun `reports errors for unknown properties`() {
     val exception = assertThrows<CommandRunner.CommandExecutionException> {
       jsonDeserializer.fromString("{\"a\": 5}")
     }
-    Assertions.assertEquals("Unknown field \"a\". " +
-      "Valid fields for employment requests are " +
+    Assertions.assertEquals("Unknown property \"a\", expecting one of " +
       "\"applicant\", \"date\", \"details\", \"status\"", exception.message)
   }
 
@@ -25,6 +24,15 @@ class JsonArgumentDeserializerTest {
     }
     Assertions.assertEquals("Unable to read the employment request specified; " +
       "please make sure the data you are entering is a valid JSON", exception.message)
+  }
+
+  @Test
+  fun `reports errors for invalid enum values`() {
+    val exception = assertThrows<CommandRunner.CommandExecutionException> {
+      jsonDeserializer.fromString("{\"status\":\"h\"}")
+    }
+    Assertions.assertEquals("Unknown value \"h\" for an enumerated property \"status\", " +
+        "expecting one of \"Interview scheduled\", \"Processing\", \"Rejected\"", exception.message)
   }
 
   @Test

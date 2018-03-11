@@ -2,6 +2,7 @@ package ru.ifmo.se.lab5
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -37,9 +38,16 @@ class JsonArgumentDeserializer<E>(private val elementClass: Class<E>) {
       request
     }
     catch (e: UnrecognizedPropertyException) {
-      throw CommandExecutionException("Unknown field \"${e.propertyName}\". " +
-        "Valid fields for employment requests are " +
-        e.knownPropertyIds.joinToString(", ") { "\"" + it + "\"" })
+      throw CommandExecutionException("Unknown property \"${e.propertyName}\", " +
+        "expecting one of " + e.knownPropertyIds.joinToString(", ") { "\"$it\"" })
+    }
+    catch (e: InvalidFormatException) {
+      if (e.targetType.isEnum) {
+        val constants = e.targetType.enumConstants.joinToString(", ") { "\"$it\"" }
+        throw CommandExecutionException("Unknown value \"${e.value}\" for " +
+          "an enumerated property \"${e.path.last().fieldName}\", expecting one of $constants")
+      }
+      else throw e
     }
     catch (e: JsonProcessingException) {
       throw CommandExecutionException("Unable to read the employment request specified; " +
