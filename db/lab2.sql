@@ -27,7 +27,7 @@ create table interactions (
   ),
   subject interaction_subject not null,
   details text,
-  date date not null
+  date timestamp not null
 );
 
 create table interaction_participants (
@@ -67,7 +67,7 @@ create table crew_relocations (
   id serial primary key,
   member_id integer references crew_members (id) not null,
   target_room_id integer references ship_rooms (id) not null,
-  date date not null
+  date timestamp not null
 );
 
 create table observation_tools (
@@ -83,7 +83,7 @@ create table scientific_observations (
   constraint distinct_base_observation check (id != base_observation_id),
   equipment_id integer references observation_tools (id) not null,
   details text,
-  observed_on date not null
+  observed_on timestamp not null
 );
 
 create type broadcast_kind as enum (
@@ -95,7 +95,7 @@ create table intercom_broadcasts (
   initiated_by_id integer references crew_members (id) not null,
   kind broadcast_kind not null,
   contents text not null,
-  initiated_on date not null,
+  initiated_on timestamp not null,
   duration interval not null
 );
 

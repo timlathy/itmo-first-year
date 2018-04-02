@@ -51,6 +51,7 @@ reportTeX (ddlSql, dataSql) = do
       , ("interaction_participants <-> crew_members", "участие в отдельном взаимодействии")
       , ("crew_relocations <-> crew_members", "перемещения членов команды")
       , ("crew_relocations <-> ship_rooms", "перемещения между отсеками") ]
+    "."
     sectionstar "Инфологическая модель"
     includegraphics [IGWidth $ Cm 16] "../src/DB/Lab2-ER.pdf" <> lnbk
     sectionstar "Даталогическая модель"
@@ -61,3 +62,7 @@ reportTeX (ddlSql, dataSql) = do
     sectionstar "Тестовые данные"
     environment "Verbatim" $ raw . fromString $ "\n" ++ dataSql ++ "\n"
     raw "\n"
+    newpage
+    sectionstar "Вывод"
+    "В ходе выполнения лабораторной работы я познакомился с основными ограничениями целостности (" <> textit "constraints" <> ") в СУБД PostgreSQL, а именно " <> textit "check" <> ", проверяющим истинность выражения, " <> textit "not null" <> ", запрещающим " <> textit "null" <> " значения, " <> textit "unique" <> ", обеспечивающим уникальность одного или пары значений, и " <> textit "foreign key" <> ", позволяющим сохранить ссылочную ценность." <> parbreak
+    "При этом я обратил внимание на то, что " <> textit "constraints" <> " распространяются только на отдельную строку, т.е. не могут проверять значения других строк или таблиц. Для моей инфологической модели было необходимо ограничение, учитывающее записи из других таблиц, и для его реализации мне пришлось использовать триггер."
