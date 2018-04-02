@@ -5,11 +5,16 @@ import Data.List (intersperse)
 import Text.LaTeX.Packages.Graphicx (IGOption (..), includegraphics)
 
 writeReport :: IO ()
-writeReport = renderFile "./renders/DB-Lab2.tex" (execLaTeXM reportTeX)
+writeReport = do
+  ddl <- readFile "../db/lab2.sql"
+  dat <- readFile "../db/lab2data.sql"
+  renderFile "./renders/DB-Lab2.tex" (execLaTeXM (reportTeX (ddl, dat)))
 
-reportTeX :: LaTeXM ()
-reportTeX = do
+reportTeX :: (String, String) -> LaTeXM ()
+reportTeX (ddlSql, dataSql) = do
   baseHeader
+  usepackage [] "fancyvrb"
+  usepackage [] "textcomp"
   document $ do
     baseTitlePage ("ЛАБОРАТОРНАЯ РАБОТА №2", "Базы данных", Just "Вариант 2886", "2018 г.")
     sectionstar "Задание"
@@ -49,5 +54,10 @@ reportTeX = do
     sectionstar "Инфологическая модель"
     includegraphics [IGWidth $ Cm 16] "../src/DB/Lab2-ER.pdf" <> lnbk
     sectionstar "Даталогическая модель"
-    
-
+    includegraphics [IGWidth $ Cm 19] "../src/DB/Lab2-DDL.png" <> lnbk
+    sectionstar "Реализация даталогической модели"
+    environment "Verbatim" $ raw . fromString $ "\n" ++ ddlSql ++ "\n"
+    raw "\n"
+    sectionstar "Тестовые данные"
+    environment "Verbatim" $ raw . fromString $ "\n" ++ dataSql ++ "\n"
+    raw "\n"
