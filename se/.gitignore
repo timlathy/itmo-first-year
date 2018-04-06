@@ -4,6 +4,7 @@ build/
 gradle/
 gradlew
 gradlew.bat
+out/
 
 # IntelliJ IDEA
 *.iml
