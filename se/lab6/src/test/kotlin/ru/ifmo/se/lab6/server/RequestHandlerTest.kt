@@ -2,11 +2,7 @@ package ru.ifmo.se.lab6.server
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.Mockito
 import org.junit.jupiter.api.Assertions.assertEquals
-import java.net.Socket
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.util.concurrent.PriorityBlockingQueue
 
 @ExtendWith(MockitoExtension::class)
@@ -44,24 +40,4 @@ class RequestHandlerTest {
       """{"name":"remove_greater","argument":"json"},{"name":"remove_first","argument":"none"},{"name":"remove_last","argument":"none"},""" +
       """{"name":"remove","argument":"json"},{"name":"remove_all","argument":"json"},{"name":"info","argument":"none"}]}""", response)
   }
-
-  /* End of tests, helper functions below. */
-
-  private fun readResponseWithQueue(request: String, queue: PriorityBlockingQueue<EmploymentRequest>): String =
-    readResponseFor(request) { socket ->
-      RequestHandler(socket, CommandRunner(EmploymentRequestCommands.commandList, queue)).run()
-    }
-
-  private fun readResponseFor(request: String, block: (Socket) -> Unit): String =
-    Mockito.mock(Socket::class.java).let { socket ->
-      val socketOutput = ByteArrayOutputStream()
-      val socketInput = ByteArrayInputStream(request.toByteArray())
-
-      Mockito.`when`(socket.getInputStream()).thenReturn(socketInput)
-      Mockito.`when`(socket.getOutputStream()).thenReturn(socketOutput)
-      Mockito.`when`(socket.isClosed).thenReturn(false)
-
-      block(socket)
-      socketOutput.toString()
-    }
 }

@@ -13,7 +13,7 @@ data class Response(val status: Int, val data: Any)
 
 class RequestHandler(private val socket: Socket,
                      private val runner: CommandRunner<EmploymentRequest>) : Runnable {
-  private val mapper = ObjectMapper()
+  private val mapper = ObjectMapper().apply { findAndRegisterModules() }
   private val deserializer = RequestDeserializer(mapper, EmploymentRequest::class.java)
 
   override fun run() =
