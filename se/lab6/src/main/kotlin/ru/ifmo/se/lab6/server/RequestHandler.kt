@@ -9,7 +9,7 @@ import java.net.Socket
 import javax.validation.Validation
 
 data class Request<T>(val action: String = "", val payload: T? = null)
-data class Response(val status: Int, val data: String)
+data class Response(val status: Int, val data: Any)
 
 class RequestHandler(private val socket: Socket,
                      private val runner: CommandRunner<EmploymentRequest>) : Runnable {
@@ -53,15 +53,12 @@ class RequestDeserializer<T>(private val mapper: ObjectMapper, elementClass: Cla
     try {
       mapper.readValue<Request<T>>(requestStream, requestType).apply {
         if (payload != null) {
-          validator.validate(validator)
+          validator.validate(payload)
             .takeIf { it.isNotEmpty() }
             ?.map { it.message }
             ?.sorted()
             ?.joinToString(", ")
-            ?.let { violations ->
-              throw DeserializationException(
-                "The employment request specified is invalid: $violations")
-            }
+            ?.let { violations -> throw DeserializationException("Request payload is invalid: $violations") }
         }
       }
     } catch (e: UnrecognizedPropertyException) {
