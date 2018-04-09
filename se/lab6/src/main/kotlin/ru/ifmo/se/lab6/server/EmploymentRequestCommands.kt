@@ -2,6 +2,7 @@ package ru.ifmo.se.lab6.server
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator
+import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.stream.Collectors
 
@@ -91,15 +92,13 @@ class EmploymentRequestCommands {
 
     override fun exec(arg: EmploymentRequest, queue: PriorityBlockingQueue<EmploymentRequest>) =
       /* PriorityBlockingQueue does not provide a way to peek at the tail of the queue,
-       * (#toArray does not respect queue order), so we have to fully traverse
-       * a clone of it (so as not to remove elements from the source queue). */
-      PriorityBlockingQueue(queue.size, queue.comparator())
-        .let { clone ->
-          clone.addAll(queue)
-          while (clone.size > 1) clone.poll()
-          clone.poll()
-        }
-        .let { tailEl -> addIf({ it < tailEl }, arg, queue) }
+       * (#toArray does not respect queue order), so getting the last element
+       * is only possible if we sort it ourselves. */
+      queue.stream()
+        .sorted(queue.comparator().reversed())
+        .findFirst().orElse(null)
+        ?.let { tail -> addIf({ it < tail }, arg, queue) }
+        ?: addIf({ true }, arg, queue)
   }
 
   /**
