@@ -25,7 +25,7 @@ class RequestHandler(private val socket: Socket,
       val request = inStream.readLine()
       val response = mapper.writeValueAsString(prepareResponse(request))
 
-      outStream.write(response)
+      outStream.write(response + '\n')
       outStream.flush()
     }
 
