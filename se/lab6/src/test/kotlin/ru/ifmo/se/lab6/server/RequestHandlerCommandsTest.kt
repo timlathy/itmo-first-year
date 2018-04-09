@@ -1,5 +1,6 @@
 package ru.ifmo.se.lab6.server
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -210,6 +211,27 @@ class RequestHandlerCommandsTest {
       readResponseWithQueue(
         """{"action":"remove_all","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertQueueContentsEqual(queue, EmploymentRequest("jane", date))
+  }
+
+  @Test
+  fun `"dump_queue" returns all elements in the queue`() {
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
+    val queue = queue(
+      EmploymentRequest("joe", date),
+      EmploymentRequest("jane", date))
+
+    val expected = ObjectMapper().apply { findAndRegisterModules() }.writeValueAsString(arrayOf(
+      EmploymentRequest("joe", date),
+      EmploymentRequest("jane", date)))
+
+    assertEquals("""{"status":200,"data":$expected}""",
+      readResponseWithQueue(
+        """{"action":"dump_queue"}""", queue))
+
+    /* Should not modify the queue */
+    assertQueueContentsEqual(queue,
+      EmploymentRequest("joe", date),
+      EmploymentRequest("jane", date))
   }
 
   @Test

@@ -26,6 +26,7 @@ class EmploymentRequestCommands {
       RemoveCommand(),
       RemoveAllCommand(),
       InfoCommand(),
+      DumpQueueCommand(mapper),
       ArgumentSchemaCommand(mapper)
     )
 
@@ -195,6 +196,16 @@ class EmploymentRequestCommands {
         }
         append("===")
       }.toString()
+  }
+
+  /**
+   * Returns all elements currently present in the queue.
+   */
+  class DumpQueueCommand(private val mapper: ObjectMapper): CommandWithoutArgument<EmploymentRequest> {
+    override val name = "dump_queue"
+
+    override fun exec(queue: PriorityBlockingQueue<EmploymentRequest>) =
+      queue.toArray().map { it as EmploymentRequest }.sortedWith(queue.comparator())
   }
 
   /**
