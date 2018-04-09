@@ -217,12 +217,16 @@ class RequestHandlerCommandsTest {
   fun `"dump_queue" returns all elements in the queue`() {
     val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
+      EmploymentRequest("bob", date.minusHours(1),
+        status = EmploymentRequest.Status.REJECTED),
       EmploymentRequest("joe", date),
       EmploymentRequest("jane", date))
 
     val expected = ObjectMapper().apply { findAndRegisterModules() }.writeValueAsString(arrayOf(
       EmploymentRequest("joe", date),
-      EmploymentRequest("jane", date)))
+      EmploymentRequest("jane", date),
+      EmploymentRequest("bob", date.minusHours(1),
+        status = EmploymentRequest.Status.REJECTED)))
 
     assertEquals("""{"status":200,"data":$expected}""" + '\n',
       readResponseWithQueue(
@@ -231,7 +235,9 @@ class RequestHandlerCommandsTest {
     /* Should not modify the queue */
     assertQueueContentsEqual(queue,
       EmploymentRequest("joe", date),
-      EmploymentRequest("jane", date))
+      EmploymentRequest("jane", date),
+      EmploymentRequest("bob", date.minusHours(1),
+        status = EmploymentRequest.Status.REJECTED))
   }
 
   @Test

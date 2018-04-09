@@ -3,6 +3,7 @@ package ru.ifmo.se.lab6.server
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator
 import java.util.concurrent.PriorityBlockingQueue
+import java.util.stream.Collectors
 
 class EmploymentRequestCommands {
   companion object {
@@ -190,11 +191,11 @@ class EmploymentRequestCommands {
         appendln("  ${queue.javaClass.canonicalName}")
         appendln("Elements:")
         if (queue.isEmpty()) appendln("  (none)")
-        else PriorityBlockingQueue(queue.size, queue.comparator()).let {
-          it.addAll(queue)
-          for (i in 1..queue.size) appendln("  $i. ${it.poll()}")
-        }
-        append("===")
+        else append(queue.stream()
+          .sorted(queue.comparator())
+          .map { it: EmploymentRequest -> "  * $it" }
+          .collect(Collectors.joining("\n")))
+        append("\n===")
       }.toString()
   }
 
@@ -205,7 +206,7 @@ class EmploymentRequestCommands {
     override val name = "dump_queue"
 
     override fun exec(queue: PriorityBlockingQueue<EmploymentRequest>) =
-      queue.toArray().map { it as EmploymentRequest }.sortedWith(queue.comparator())
+      queue.stream().sorted(queue.comparator()).collect(Collectors.toList())
   }
 
   /**
