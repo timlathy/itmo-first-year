@@ -6,14 +6,40 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.jline.builtins.Completers
 import org.jline.reader.impl.completer.StringsCompleter
 
-data class ServerCommand(val name: String, val argument: ArgumentType) {
+open class ServerCommand(val name: String, val argument: ArgumentType) {
   enum class ArgumentType { JSON, FILE_PATH, NONE }
 
-  fun exec(arg: String?, conn: ServerConnection) =
-    unescape(conn.fetchResponse(name, arg))
+  open fun exec(conn: ServerConnection, arg: String?, name: String = this.name) =
+    CommandRunner.CommandResult(
+      unescape(conn.fetchResponse(name, arg)),
+      CommandRunner.CommandStatus.SUCCESS)
 
   private fun unescape(str: String) =
     str.trim('"').replace("\\n", "\n")
+
+  /* === Generated code === */
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as ServerCommand
+
+    if (name != other.name) return false
+    if (argument != other.argument) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = name.hashCode()
+    result = 31 * result + argument.hashCode()
+    return result
+  }
+
+  override fun toString(): String {
+    return "ServerCommand(name='$name', argument=$argument)"
+  }
 }
 
 class CommandRunner(private val commands: List<ServerCommand>,
@@ -25,8 +51,8 @@ class CommandRunner(private val commands: List<ServerCommand>,
   companion object {
     private val mapper = ObjectMapper().apply { findAndRegisterModules() }
 
-    fun initRunnerWithConnection(conn: ServerConnection) =
-      CommandRunner(fetchCommands(conn), fetchSchema(conn), conn)
+    fun initRunnerWithConnection(conn: ServerConnection, customCommands: List<ServerCommand>) =
+      CommandRunner(fetchCommands(conn) + customCommands, fetchSchema(conn), conn)
 
     data class SerializedCommand(val name: String = "", val argument: String = "")
 
@@ -54,7 +80,7 @@ class CommandRunner(private val commands: List<ServerCommand>,
       val argument = if (parsed.size == 2) parsed.last() else null
       commands
         .find { cmd -> cmd.name == parsed.first() }
-        ?.let { cmd -> CommandResult(cmd.exec(argument, connection), CommandStatus.SUCCESS) }
+        ?.let { cmd -> cmd.exec(connection, argument) }
         ?: CommandResult("Unknown command \"${parsed.first()}\"", CommandStatus.ERROR)
     }
     catch (e: ServerConnection.RequestFailureException) {

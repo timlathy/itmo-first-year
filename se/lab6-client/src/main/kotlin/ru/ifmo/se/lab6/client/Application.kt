@@ -7,7 +7,7 @@ import kotlin.system.exitProcess
 fun main(args: Array<String>) {
   try {
     val conn = ServerConnection(InetSocketAddress(8080))
-    val runner = initRunnerWithConnection(conn)
+    val runner = initRunnerWithConnection(conn, CustomCommands.list())
     Repl(runner).loop()
   }
   catch (e: ServerConnection.RequestFailureException) {
