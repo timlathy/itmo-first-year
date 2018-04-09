@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.*
-import java.net.Socket
 import java.net.SocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
 
 open class ServerConnection(private val serverAddr: SocketAddress) {
   data class Request(val action: String, @JsonRawValue val payload: String?)
@@ -16,30 +17,46 @@ open class ServerConnection(private val serverAddr: SocketAddress) {
   private val mapper = ObjectMapper()
 
   open fun fetchResponse(action: String, rawPayload: String? = null): String =
-    Socket().run {
-      try {
-        connect(serverAddr)
-        val inStream = BufferedReader(InputStreamReader(getInputStream()))
-        val outStream = BufferedWriter(OutputStreamWriter(getOutputStream()))
+    try {
+      SocketChannel.open(serverAddr).use { channel ->
+        val request = mapper.writeValueAsBytes(Request(action, rawPayload)) + '\n'.toByte()
+        val buffer = ByteBuffer.allocate(request.size)
 
-        val request = mapper.writeValueAsString(Request(action, rawPayload))
+        buffer.clear()
+        buffer.put(request)
+        buffer.flip()
+        while (buffer.hasRemaining()) channel.write(buffer)
 
-        outStream.write(request + "\n")
-        outStream.flush()
+        buffer.clear()
+        StringBuilder().apply {
+          while (channel.read(buffer) > 0) {
+            buffer.rewind()
+            val bufferContents = Charsets.UTF_8.decode(buffer)
 
-        val response = inStream.readLine()
-        val (status, data) = mapper.readValue<Response>(response)
-        if (status != 200) throw RequestFailureException(data.toString())
+            if (bufferContents.contains('\n')) {
+              append(bufferContents.split('\n', limit = 2).first())
+              append('\n')
+              break
+            }
 
-        /* Handling raw values requires a custom deserialization class */
-        mapper.writeValueAsString(data)
+            append(bufferContents)
+            buffer.flip()
+          }
+          if (last() != '\n') {
+            throw RequestFailureException("Received invalid response from the server. " +
+              "Please make sure the data you are entering is correct and retry your request.")
+          }
+        }.toString().let { response ->
+          val (status, data) = mapper.readValue<Response>(response)
+          if (status != 200) throw RequestFailureException(data.toString())
+
+          /* Handling raw values requires a custom deserialization class */
+          mapper.writeValueAsString(data)
+        }
       }
-      catch (_: IOException) {
-        throw RequestFailureException("Unable to establish connection with the server. " +
-          "Please make sure the URI you have specified is correct: $serverAddr")
-      }
-      finally {
-        close()
-      }
+    }
+    catch (_: IOException) {
+      throw RequestFailureException("Unable to establish connection with the server. " +
+        "Please make sure the URI you have specified is correct: $serverAddr")
     }
 }
