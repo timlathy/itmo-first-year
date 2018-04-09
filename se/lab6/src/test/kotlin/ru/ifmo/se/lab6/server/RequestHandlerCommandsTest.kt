@@ -20,7 +20,7 @@ class RequestHandlerCommandsTest {
     val queue = queue(EmploymentRequest("joe"), EmploymentRequest("amy"))
     assertTrue(queue.isNotEmpty())
 
-    assertEquals("""{"status":200,"data":"$STATUS_CLEARED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_CLEARED"}""" + '\n',
       readResponseWithQueue("""{"action":"clear"}""", queue))
 
     assertTrue(queue.isEmpty())
@@ -31,7 +31,7 @@ class RequestHandlerCommandsTest {
     val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue()
 
-    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""" + '\n',
       readResponseWithQueue(
         """{"action":"add","payload":{"applicant":"joe","date":"$date"}}""", queue))
 
@@ -45,13 +45,13 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date))
 
-    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"add_if_max","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertEquals(2, queue.size)
 
     date = date.minusHours(2).truncatedTo(SECONDS)
-    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""" + '\n',
       readResponseWithQueue(
         """{"action":"add_if_max","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertEquals(3, queue.size)
@@ -64,13 +64,13 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date.minusSeconds(1)))
 
-    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"add_if_min","payload":{"applicant":"joe","date":""" +
           """"${date.minusMinutes(1).truncatedTo(SECONDS)}"}}""", queue))
     assertEquals(2, queue.size)
 
-    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""" + '\n',
       readResponseWithQueue(
         """{"action":"add_if_min","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertEquals(3, queue.size)
@@ -88,7 +88,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"remove_lower","payload":{"applicant":"-","date":"$date"}}""", queue))
     assertQueueContentsEqual(queue,
@@ -110,7 +110,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    assertEquals("""{"status":200,"data":"2 $STATUS_MANY_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"2 $STATUS_MANY_REMOVED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"remove_greater","payload":{"applicant":"-","date":"$date"}}""", queue))
 
@@ -128,7 +128,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("joe", date.minusHours(1))
     )
 
-    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""" + '\n',
       readResponseWithQueue("""{"action":"remove_first"}""", queue))
 
     assertQueueContentsEqual(queue,
@@ -136,7 +136,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""" + '\n',
       readResponseWithQueue("""{"action":"remove_first"}""", queue()))
   }
 
@@ -149,7 +149,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("joe", date.minusHours(1))
     )
 
-    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""" + '\n',
       readResponseWithQueue("""{"action":"remove_last"}""", queue))
     assertQueueContentsEqual(queue,
       EmploymentRequest("mary", date.minusHours(2)),
@@ -166,7 +166,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""" + '\n',
       readResponseWithQueue("""{"action":"remove_last"}""", queue))
     assertQueueContentsEqual(queue,
       EmploymentRequest("bob", date.plusHours(1),
@@ -174,7 +174,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("jane", date)
     )
 
-    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""" + '\n',
       readResponseWithQueue("""{"action":"remove_last"}""", queue))
     assertQueueContentsEqual(queue,
       EmploymentRequest("bob", date.plusHours(1),
@@ -188,12 +188,12 @@ class RequestHandlerCommandsTest {
     val element = EmploymentRequest("jane", date, status = EmploymentRequest.Status.REJECTED)
     val queue = queue(element)
 
-    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"remove","payload":{"applicant":"jane","date":"$date"}}""", queue))
     assertQueueContentsEqual(queue, element)
 
-    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"$STATUS_ONE_REMOVED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"remove","payload":{"applicant":"jane","date":"$date","status":"Rejected"}}""", queue))
     assertTrue(queue.isEmpty())
@@ -207,7 +207,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("joe", date),
       EmploymentRequest("jane", date))
 
-    assertEquals("""{"status":200,"data":"2 $STATUS_MANY_REMOVED"}""",
+    assertEquals("""{"status":200,"data":"2 $STATUS_MANY_REMOVED"}""" + '\n',
       readResponseWithQueue(
         """{"action":"remove_all","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertQueueContentsEqual(queue, EmploymentRequest("jane", date))
@@ -224,7 +224,7 @@ class RequestHandlerCommandsTest {
       EmploymentRequest("joe", date),
       EmploymentRequest("jane", date)))
 
-    assertEquals("""{"status":200,"data":$expected}""",
+    assertEquals("""{"status":200,"data":$expected}""" + '\n',
       readResponseWithQueue(
         """{"action":"dump_queue"}""", queue))
 
@@ -239,6 +239,6 @@ class RequestHandlerCommandsTest {
     val response = readResponseWithQueue("""{"action":"argument_schema"}""", queue())
     assertEquals("""{"status":200,"data":{"type":"object","id":"urn:jsonschema:ru:ifmo:se:lab6:server:EmploymentRequest",""" +
       """"properties":{"applicant":{"type":"string","required":true},"date":{"type":"string","required":true,"format":"date-time"},""" +
-      """"interviewLocation":{"type":"object","id":"urn:jsonschema:kotlin:Pair<java:lang:Double,java:lang:Double>","properties":{"first":{"type":"number","required":true},"second":{"type":"number","required":true}}},"details":{"type":"string","required":true},"status":{"type":"string","required":true,"enum":["Interview scheduled","Processing","Rejected"]}}}}""", response)
+      """"interviewLocation":{"type":"object","id":"urn:jsonschema:kotlin:Pair<java:lang:Double,java:lang:Double>","properties":{"first":{"type":"number","required":true},"second":{"type":"number","required":true}}},"details":{"type":"string","required":true},"status":{"type":"string","required":true,"enum":["Interview scheduled","Processing","Rejected"]}}}}""" + '\n', response)
   }
 }
