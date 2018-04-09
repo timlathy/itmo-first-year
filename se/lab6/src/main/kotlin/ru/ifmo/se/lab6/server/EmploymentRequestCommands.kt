@@ -2,7 +2,6 @@ package ru.ifmo.se.lab6.server
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator
-import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema
 import java.util.concurrent.PriorityBlockingQueue
 
 class EmploymentRequestCommands {

@@ -1,7 +1,5 @@
 package ru.ifmo.se.lab6.server
 
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.net.ServerSocket
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.concurrent.thread
@@ -13,12 +11,14 @@ import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
   val port = args.firstOrNull()?.toInt() ?: 8080
+  println("Attempting to start the server bound to $port")
 
   val runner = CommandRunner(EmploymentRequestCommands.commandList,
     PriorityBlockingQueue(16, QUEUE_COMPARATOR))
 
   val server = ServerSocket(port)
   server.use {
+    println("The server is now ready to accept connections.")
     while (true) {
       val client = it.accept()
       thread { RequestHandler(client, runner).run() }

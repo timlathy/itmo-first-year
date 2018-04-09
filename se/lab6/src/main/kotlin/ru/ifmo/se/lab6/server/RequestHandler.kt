@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
-import java.io.InputStream
+import java.io.*
 import java.net.Socket
 import javax.validation.Validation
 
@@ -18,13 +18,22 @@ class RequestHandler(private val socket: Socket,
   private val deserializer = RequestDeserializer(mapper, EmploymentRequest::class.java)
 
   override fun run() =
-    socket.use { mapper.writeValue(it.getOutputStream(), prepareResponse(it.getInputStream())) }
+    socket.use {
+      val inStream = BufferedReader(InputStreamReader(it.getInputStream()))
+      val outStream =  BufferedWriter(OutputStreamWriter(it.getOutputStream()))
+
+      val request = inStream.readLine()
+      val response = mapper.writeValueAsString(prepareResponse(request))
+
+      outStream.write(response)
+      outStream.flush()
+    }
 
   private fun serialize(value: Any) = mapper.writeValueAsString(value)
 
-  private fun prepareResponse(requestStream: InputStream): Response {
+  private fun prepareResponse(request: String): Response {
     val request: Request<EmploymentRequest> = try {
-      deserializer.readStream(requestStream)
+      deserializer.readRequest(request)
     }
     catch (e: RequestDeserializer.DeserializationException) {
       return Response(422, serialize(e.message))
@@ -54,9 +63,9 @@ class RequestDeserializer<T>(private val mapper: ObjectMapper, elementClass: Cla
 
   class DeserializationException(override val message: String) : Exception(message)
 
-  fun readStream(requestStream: InputStream): Request<T> =
+  fun readRequest(request: String): Request<T> =
     try {
-      mapper.readValue<Request<T>>(requestStream, requestType).apply {
+      mapper.readValue<Request<T>>(request, requestType).apply {
         if (payload != null) {
           validator.validate(payload)
             .takeIf { it.isNotEmpty() }
