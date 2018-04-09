@@ -10,10 +10,12 @@ data class EmploymentRequest(
   @field:NotBlank(message = "applicant name cannot be blank")
   val applicant: String = "",
 
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
   @field:PastOrPresent(message = "request date cannot refer to the future")
   val date: LocalDateTime = LocalDateTime.now(),
 
-  val interviewScheduledAt: Pair<Double, Double>? = null,
+  @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+  val interviewLocation: Pair<Double, Double>? = null,
 
   val details: String = "",
 

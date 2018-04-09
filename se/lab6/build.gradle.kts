@@ -34,7 +34,6 @@ dependencies {
   compile("org.hibernate.validator:hibernate-validator-annotation-processor:6.0.7.Final")
   compile("javax.validation:validation-api:2.0.1.Final")
   compile("org.glassfish:javax.el:3.0.1-b08")
-  compile("org.jline:jline:3.6.0")
   compile("log4j:log4j:1.2.17")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
   testCompile("org.mockito:mockito-core:2.15.0")
@@ -49,13 +48,13 @@ tasks {
 }
 
 application {
-  mainClassName = "ru.ifmo.se.lab6.ApplicationKt"
+  mainClassName = "ru.ifmo.se.lab6.server.ApplicationKt"
 }
 
 val shadowJar: ShadowJar by tasks
 shadowJar.apply {
   manifest.attributes.apply {
-    put("Main-Class", "ru.ifmo.se.lab6.ApplicationKt")
+    put("Main-Class", "ru.ifmo.se.lab6.server.ApplicationKt")
   }
   
   baseName = project.name + "-all"

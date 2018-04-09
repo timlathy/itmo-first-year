@@ -1,5 +1,8 @@
 package ru.ifmo.se.lab6.server
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema
 import java.util.concurrent.PriorityBlockingQueue
 
 class EmploymentRequestCommands {
@@ -9,6 +12,8 @@ class EmploymentRequestCommands {
     const val STATUS_UNCHANGED = "The queue has not been changed"
     const val STATUS_ONE_REMOVED = "One element has been removed from the queue"
     const val STATUS_MANY_REMOVED = "elements have been removed from the queue"
+
+    private val mapper = ObjectMapper().apply { findAndRegisterModules() }
 
     val commandList: List<Command<EmploymentRequest>> = listOf(
       ClearCommand(),
@@ -21,7 +26,8 @@ class EmploymentRequestCommands {
       RemoveLastCommand(),
       RemoveCommand(),
       RemoveAllCommand(),
-      InfoCommand()
+      InfoCommand(),
+      ArgumentSchemaCommand(mapper)
     )
 
     private inline fun<T> addIf(pred: (T) -> Boolean, element: T, queue: PriorityBlockingQueue<T>) =
@@ -190,5 +196,17 @@ class EmploymentRequestCommands {
         }
         append("===")
       }.toString()
+  }
+
+  /**
+   * Returns a JSON schema of the argument (EmploymentRequest).
+   */
+  class ArgumentSchemaCommand(private val mapper: ObjectMapper): CommandWithoutArgument<EmploymentRequest> {
+    override val name = "argument_schema"
+
+    override fun exec(queue: PriorityBlockingQueue<EmploymentRequest>) =
+        JsonSchemaGenerator(mapper)
+          .generateSchema(EmploymentRequest::class.java)
+          .asObjectSchema()
   }
 }

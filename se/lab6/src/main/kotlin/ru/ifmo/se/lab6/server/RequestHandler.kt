@@ -1,5 +1,6 @@
 package ru.ifmo.se.lab6.server
 
+import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
@@ -9,7 +10,7 @@ import java.net.Socket
 import javax.validation.Validation
 
 data class Request<T>(val action: String = "", val payload: T? = null)
-data class Response(val status: Int, val data: Any)
+data class Response(val status: Int, @JsonRawValue val data: String)
 
 class RequestHandler(private val socket: Socket,
                      private val runner: CommandRunner<EmploymentRequest>) : Runnable {
@@ -19,26 +20,30 @@ class RequestHandler(private val socket: Socket,
   override fun run() =
     socket.use { mapper.writeValue(it.getOutputStream(), prepareResponse(it.getInputStream())) }
 
+  private fun serialize(value: Any) = mapper.writeValueAsString(value)
+
   private fun prepareResponse(requestStream: InputStream): Response {
     val request: Request<EmploymentRequest> = try {
       deserializer.readStream(requestStream)
     }
     catch (e: RequestDeserializer.DeserializationException) {
-      return Response(422, e.message)
+      return Response(422, serialize(e.message))
     }
     catch (e: JsonProcessingException) {
-      return Response(400, "Unable to parse the request; please make sure the data you are sending is valid JSON")
+      return Response(400, serialize(
+        "Unable to parse the request; please make sure the data you are sending is valid JSON"))
     }
 
     return try {
       val responseData = runner.eval(request.action, request.payload)
-      Response(200, responseData)
+      Response(200, mapper.writeValueAsString(responseData))
     }
     catch (e: CommandRunner.MissingArgumentException) {
-      Response(422, "Command \"${request.action}\" requires an argument specified in the \"payload\" field")
+      Response(422, serialize(
+        "Command \"${request.action}\" requires an argument specified in the \"payload\" field"))
     }
     catch (e: CommandRunner.UnknownCommandException) {
-      Response(422, "Unknown command \"${request.action}\"")
+      Response(422, serialize("Unknown command \"${request.action}\""))
     }
   }
 }

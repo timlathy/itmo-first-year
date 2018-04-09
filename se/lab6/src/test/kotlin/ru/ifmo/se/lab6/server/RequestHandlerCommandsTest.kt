@@ -10,6 +10,7 @@ import ru.ifmo.se.lab6.server.EmploymentRequestCommands.Companion.STATUS_MANY_RE
 import ru.ifmo.se.lab6.server.EmploymentRequestCommands.Companion.STATUS_ONE_REMOVED
 import ru.ifmo.se.lab6.server.EmploymentRequestCommands.Companion.STATUS_UNCHANGED
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.SECONDS
 
 @ExtendWith(MockitoExtension::class)
 class RequestHandlerCommandsTest {
@@ -26,7 +27,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"add" inserts an element`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue()
 
     assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""",
@@ -38,7 +39,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"add_if_max" inserts an element if it has the highest priority in the queue`() {
-    val date = LocalDateTime.now()
+    var date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date))
@@ -48,22 +49,24 @@ class RequestHandlerCommandsTest {
         """{"action":"add_if_max","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertEquals(2, queue.size)
 
-    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date.minusHours(2))}"}""",
+    date = date.minusHours(2).truncatedTo(SECONDS)
+    assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""",
       readResponseWithQueue(
-        """{"action":"add_if_max","payload":{"applicant":"joe","date":"${date.minusHours(2)}"}}""", queue))
+        """{"action":"add_if_max","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertEquals(3, queue.size)
   }
 
   @Test
   fun `"add_if_min" inserts an element if it has the lowest priority in the queue`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date.minusSeconds(1)))
 
     assertEquals("""{"status":200,"data":"$STATUS_UNCHANGED"}""",
       readResponseWithQueue(
-        """{"action":"add_if_min","payload":{"applicant":"joe","date":"${date.minusMinutes(1)}"}}""", queue))
+        """{"action":"add_if_min","payload":{"applicant":"joe","date":""" +
+          """"${date.minusMinutes(1).truncatedTo(SECONDS)}"}}""", queue))
     assertEquals(2, queue.size)
 
     assertEquals("""{"status":200,"data":"$STATUS_ELEMENT_ADDED: ${EmploymentRequest("joe", date)}"}""",
@@ -74,7 +77,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"remove_lower" removes all lower-priority elements`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("mary", date.minusHours(2)),
@@ -97,7 +100,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"remove_greater" removes all higher-priority elements`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
       EmploymentRequest("joe", date.minusHours(1)),
       EmploymentRequest("amy", date.plusHours(1)),
@@ -117,7 +120,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"remove_first" removes the head element`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
       EmploymentRequest("mary", date.minusHours(2)),
       EmploymentRequest("jane", date),
@@ -138,7 +141,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"remove_last" removes the tail element`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     var queue = queue(
       EmploymentRequest("mary", date.minusHours(2)),
       EmploymentRequest("jane", date),
@@ -180,7 +183,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"remove" removes an element`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val element = EmploymentRequest("jane", date, status = EmploymentRequest.Status.REJECTED)
     val queue = queue(element)
 
@@ -197,7 +200,7 @@ class RequestHandlerCommandsTest {
 
   @Test
   fun `"remove_all" removes all equivalent elements`() {
-    val date = LocalDateTime.now()
+    val date = LocalDateTime.now().truncatedTo(SECONDS)
     val queue = queue(
       EmploymentRequest("joe", date),
       EmploymentRequest("joe", date),
@@ -207,5 +210,13 @@ class RequestHandlerCommandsTest {
       readResponseWithQueue(
         """{"action":"remove_all","payload":{"applicant":"joe","date":"$date"}}""", queue))
     assertQueueContentsEqual(queue, EmploymentRequest("jane", date))
+  }
+
+  @Test
+  fun `"argument_schema" returns a json schema of the accepted command argument`() {
+    val response = readResponseWithQueue("""{"action":"argument_schema"}""", queue())
+    assertEquals("""{"status":200,"data":{"type":"object","id":"urn:jsonschema:ru:ifmo:se:lab6:server:EmploymentRequest",""" +
+      """"properties":{"applicant":{"type":"string","required":true},"date":{"type":"string","required":true,"format":"date-time"},""" +
+      """"interviewLocation":{"type":"object","id":"urn:jsonschema:kotlin:Pair<java:lang:Double,java:lang:Double>","properties":{"first":{"type":"number","required":true},"second":{"type":"number","required":true}}},"details":{"type":"string","required":true},"status":{"type":"string","required":true,"enum":["Interview scheduled","Processing","Rejected"]}}}}""", response)
   }
 }

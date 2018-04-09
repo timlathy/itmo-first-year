@@ -22,7 +22,7 @@ class CommandRunner<E>(private val commands: List<Command<E>>,
   class MissingArgumentException: Exception()
   class UnknownCommandException: Exception()
 
-  fun eval(commandName: String, argument: E?): Any =
+  fun eval(commandName: String, argument: E?) =
     if (commandName == "list_commands") commands
     else commands
       .find { it.name == commandName }

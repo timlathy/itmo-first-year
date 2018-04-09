@@ -5,9 +5,11 @@ import org.mockito.Mockito
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.Socket
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.PriorityBlockingQueue
 
-inline fun readResponseWithQueue(request: String, queue: PriorityBlockingQueue<EmploymentRequest>): String =
+fun readResponseWithQueue(request: String, queue: PriorityBlockingQueue<EmploymentRequest>): String =
   readResponseFor(request) { socket ->
     RequestHandler(socket, CommandRunner(EmploymentRequestCommands.commandList, queue)).run()
   }
@@ -25,10 +27,10 @@ inline fun readResponseFor(request: String, block: (Socket) -> Unit): String =
     socketOutput.toString()
   }
 
-inline fun queue(vararg elements: EmploymentRequest): PriorityBlockingQueue<EmploymentRequest> =
+fun queue(vararg elements: EmploymentRequest): PriorityBlockingQueue<EmploymentRequest> =
   PriorityBlockingQueue(16, QUEUE_COMPARATOR).apply { addAll(listOf(*elements)) }
 
-inline fun assertQueueContentsEqual(queue: PriorityBlockingQueue<EmploymentRequest>,
+fun assertQueueContentsEqual(queue: PriorityBlockingQueue<EmploymentRequest>,
                                     vararg expected: EmploymentRequest) {
   /* PriorityQueue#toArray() returns an _unsorted_ array, hence using #poll()
    * to retrieve elements in order. */
