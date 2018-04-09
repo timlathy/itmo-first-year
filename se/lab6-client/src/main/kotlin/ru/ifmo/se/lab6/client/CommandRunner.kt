@@ -9,11 +9,15 @@ import org.jline.reader.impl.completer.StringsCompleter
 data class ServerCommand(val name: String, val argument: ArgumentType) {
   enum class ArgumentType { JSON, FILE_PATH, NONE }
 
-  fun exec(arg: String, conn: ServerConnection) =
-    conn.fetchResponse(name, arg)
+  fun exec(arg: String?, conn: ServerConnection) =
+    unescape(conn.fetchResponse(name, arg))
+
+  private fun unescape(str: String) =
+    str.trim('"').replace("\\n", "\n")
 }
 
 class CommandRunner(private val commands: List<ServerCommand>,
+                    private val argumentSchema: ObjectSchema,
                     private val connection: ServerConnection) {
   enum class CommandStatus { SUCCESS, ERROR }
   data class CommandResult(val message: String, val status: CommandStatus)
@@ -22,7 +26,7 @@ class CommandRunner(private val commands: List<ServerCommand>,
     private val mapper = ObjectMapper().apply { findAndRegisterModules() }
 
     fun initRunnerWithConnection(conn: ServerConnection) =
-      CommandRunner(fetchCommands(conn), conn)
+      CommandRunner(fetchCommands(conn), fetchSchema(conn), conn)
 
     data class SerializedCommand(val name: String = "", val argument: String = "")
 
@@ -46,10 +50,11 @@ class CommandRunner(private val commands: List<ServerCommand>,
 
   fun eval(line: String): CommandResult =
     try {
-      val parsed = line.split(" ", limit = 2)
+      val parsed = line.trim().split(" ", limit = 2)
+      val argument = if (parsed.size == 2) parsed.last() else null
       commands
         .find { cmd -> cmd.name == parsed.first() }
-        ?.let { cmd -> CommandResult(cmd.exec(parsed.last(), connection), CommandStatus.SUCCESS) }
+        ?.let { cmd -> CommandResult(cmd.exec(argument, connection), CommandStatus.SUCCESS) }
         ?: CommandResult("Unknown command \"${parsed.first()}\"", CommandStatus.ERROR)
     }
     catch (e: ServerConnection.RequestFailureException) {
@@ -57,9 +62,8 @@ class CommandRunner(private val commands: List<ServerCommand>,
     }
 
   fun constructCompleter(): Completers.RegexCompleter {
-    val elementClass = Any::class.java
     val completionMap = hashMapOf(
-      "JSON" to JsonCompleter(elementClass),
+      "JSON" to JsonCompleter(argumentSchema),
       "PATH" to Completers.FileNameCompleter(),
       *commands.mapIndexed { i, cmd -> "C$i" to StringsCompleter(cmd.name) }.toTypedArray()
     )

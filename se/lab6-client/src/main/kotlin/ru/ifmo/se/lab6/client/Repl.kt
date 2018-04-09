@@ -5,7 +5,6 @@ import org.jline.reader.impl.DefaultParser
 import org.jline.terminal.TerminalBuilder
 import org.jline.utils.AttributedStringBuilder
 import org.jline.utils.AttributedStyle
-import org.omg.PortableInterceptor.SUCCESSFUL
 
 class Repl(private val runner: CommandRunner) {
   private val terminal = TerminalBuilder.builder().build()
@@ -41,7 +40,7 @@ class Repl(private val runner: CommandRunner) {
           val result = runner.eval(line)
 
           terminal.writer().println(when (result.status) {
-            is SUCCESSFUL -> styledString(result.message, AttributedStyle.GREEN)
+            CommandRunner.CommandStatus.SUCCESS -> styledString(result.message, AttributedStyle.GREEN)
             else -> styledString(result.message, AttributedStyle.RED)
           })
         }

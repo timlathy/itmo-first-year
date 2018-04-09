@@ -1,5 +1,7 @@
 package ru.ifmo.se.lab6.client
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator
 import org.jline.reader.Buffer
 import org.jline.reader.Candidate
 import org.jline.reader.LineReader
@@ -11,7 +13,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 
 @ExtendWith(MockitoExtension::class)
 class JsonCompleterTest {
-  private val completer = JsonCompleter(TestSerializable::class.java)
+  private val schema = ObjectMapper().apply { findAndRegisterModules() }.let { mapper ->
+    JsonSchemaGenerator(mapper)
+      .generateSchema(TestSerializable::class.java)
+      .asObjectSchema()
+  }
+  private val completer = JsonCompleter(schema)
 
   @Test
   fun `suggests an opening brace at the start of a definition`() {

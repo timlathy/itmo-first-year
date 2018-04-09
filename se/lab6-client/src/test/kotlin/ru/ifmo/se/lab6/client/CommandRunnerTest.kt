@@ -9,7 +9,7 @@ import java.net.InetSocketAddress
 class CommandRunnerTest {
   class MockServerConnection(private val expectedAction: String,
                              private val expectedResponse: String): ServerConnection(InetSocketAddress(8080)) {
-    override fun fetchResponse(action: String, rawPayload: Any?): String {
+    override fun fetchResponse(action: String, rawPayload: String?): String {
       assertEquals(expectedAction, action)
       return expectedResponse
     }

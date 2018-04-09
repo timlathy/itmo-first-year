@@ -1,5 +1,6 @@
 package ru.ifmo.se.lab6.client
 
+import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.*
@@ -7,14 +8,14 @@ import java.net.Socket
 import java.net.SocketAddress
 
 open class ServerConnection(private val serverAddr: SocketAddress) {
-  data class Request(val action: String, val payload: Any?)
+  data class Request(val action: String, @JsonRawValue val payload: String?)
   data class Response(val status: Int = 0, val data: Any = "")
 
   class RequestFailureException(override val message: String): Exception(message)
 
   private val mapper = ObjectMapper()
 
-  open fun fetchResponse(action: String, rawPayload: Any? = null): String =
+  open fun fetchResponse(action: String, rawPayload: String? = null): String =
     Socket().run {
       try {
         connect(serverAddr)

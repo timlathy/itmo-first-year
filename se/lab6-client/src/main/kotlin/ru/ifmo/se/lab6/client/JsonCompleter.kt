@@ -1,16 +1,11 @@
 package ru.ifmo.se.lab6.client
 
 import org.jline.reader.*
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.jsonSchema.*
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema
 
-class JsonCompleter(serializableClass: Class<*>): Completer {
-  private val props: Map<String, JsonSchema> = ObjectMapper().let { mapper ->
-      JsonSchemaGenerator(mapper)
-      .generateSchema(serializableClass)
-      .asObjectSchema()
-      .properties
-  }
+class JsonCompleter(schema: ObjectSchema): Completer {
+  private val props: Map<String, JsonSchema> = schema.properties
 
   override fun complete(r: LineReader, pl: ParsedLine, cs: MutableList<Candidate>) {
     /* jline's autocompletion works by splitting the line into words (delimited by spaces)
@@ -42,10 +37,6 @@ class JsonCompleter(serializableClass: Class<*>): Completer {
       listOf("")
     val prefix = if (words.size == 1) "{\"" else "\""
     val typed = words.last().trimStart('"', ' ')
-//
-//    val enteredKeys = words
-//      .filter { it.contains(/\":/) }
-//      .map { it.split("\":"). }
 
     props.keys
       .filter { it.startsWith(typed) }
