@@ -63,24 +63,21 @@ create table people (
 alter table houses
   add foreign key (dean_id) references people;
 
-create table creatures
-(
+create table creatures (
+  id                 bigserial primary key,
   generic_name       text                    not null,
   discovered_on      timestamp               not null,
-  id                 bigserial primary key,
   mom_classification creature_classification not null
 );
 
-create table books
-(
+create table books (
   id                  bigserial primary key,
   title               text      not null,
   added_on            timestamp not null,
   requires_permission boolean   not null
 );
 
-create table creature_books
-(
+create table creature_books (
   creature_id bigint not null references creatures,
   book_id     bigint not null references books
 );
@@ -92,8 +89,7 @@ create table student_clubs (
   category     club_categories not null
 );
 
-create table student_profiles
-(
+create table student_profiles (
   id             bigserial primary key,
   person_id      bigint references people,
   club_id        bigint references student_clubs,
@@ -104,8 +100,7 @@ create table student_profiles
 alter table student_clubs
   add foreign key (president_id) references student_profiles;
 
-create table study_plans
-(
+create table study_plans (
   id            bigserial primary key,
   house_id      bigint  not null references houses,
   academic_year integer not null,
@@ -116,24 +111,21 @@ create table study_plans
 alter table student_profiles
   add foreign key (study_plan_id) references study_plans;
 
-create table subjects
-(
+create table subjects (
   id            bigserial primary key,
   name          text not null,
   study_plan_id bigint references study_plans,
   teacher_id    bigint references people
 );
 
-create table exam_results
-(
+create table exam_results (
   id                 bigserial primary key,
   subject_id         bigint    not null references subjects,
   student_profile_id bigint    not null references student_profiles,
   mark               exam_mark not null default 'not passed' :: exam_mark
 );
 
-create table book_lendings
-(
+create table book_lendings (
   id              bigserial primary key,
   book_id         bigint    not null references books,
   lendee_id       bigint    not null references people,
@@ -144,8 +136,7 @@ create table book_lendings
   constraint checked_out_checked_in_date_order check (checked_out_on < book_lendings.checked_in_on)
 );
 
-create table creature_domestications
-(
+create table creature_domestications (
   id                 bigserial primary key,
   creature_id        bigint    not null references creatures,
   domesticated_by_id bigint    not null references people,
@@ -192,8 +183,7 @@ create table classroom_bookings (
   (((subject_id is not null) :: integer + (student_club_id is not null) :: integer) = 1)
 );
 
-create table events
-(
+create table events (
   id         bigserial primary key,
   name       text,
   ended_on   timestamp not null,
@@ -202,8 +192,7 @@ create table events
   constraint start_end_date_order check (started_on <= ended_on)
 );
 
-create table event_participations
-(
+create table event_participations (
   id                 bigserial primary key,
   event_id           bigint    not null references events,
   student_profile_id bigint    not null references student_profiles,
@@ -256,6 +245,28 @@ create trigger validate_classroom_availability
   on classroom_bookings
   for each row execute procedure check_classroom_availability();
 
+-- check_event_participation_date_belonging_to_event_timespan
+
+create function check_event_participation_date_belonging_to_event_timespan()
+  returns trigger as $$
+declare
+  event events;
+begin
+  event := (select *
+            from events
+            where events.id = new.event_id);
+  if (new.date < event.started_on or new.date > event.ended_on)
+  then raise exception 'Event participation date is not included in the event time span';
+  end if;
+end;
+$$
+language plpgsql;
+
+create trigger validate_event_participation_date_belonging_to_event_timespan
+  before insert
+  on event_participations
+  for each row execute procedure check_event_participation_date_belonging_to_event_timespan();
+
 -- check_book_permission_before_checkout
 
 create function check_book_permission_before_checkout()
@@ -273,10 +284,31 @@ end;
 $$
 language plpgsql;
 
-create trigger validate_book_checkout_policy
+create trigger validate_book_permission_on_checkout
   before insert
   on book_lendings
   for each row execute procedure check_book_permission_before_checkout();
+
+-- check_book_availability_before_checkout
+
+create function check_book_availability_before_checkout()
+  returns trigger as $$
+declare is_unavailable boolean;
+begin
+  is_unavailable := (select exists(select
+                                   from book_lendings
+                                   where book_id = new.book_id and checked_in_on is null));
+  if is_unavailable
+  then raise exception 'The required book has already been checked out.';
+  end if;
+end;
+$$
+language plpgsql;
+
+create trigger validate_book_availability_on_checkout
+  before insert
+  on book_lendings
+  for each row execute procedure check_book_availability_before_checkout();
 
 -- check_house_student_value_alignment
 
@@ -332,6 +364,34 @@ create trigger validate_owl_availability
   on delivery_owl_flights
   for each row execute procedure check_owl_availability();
 
+-- check_owl_sender_house_match
+
+create function check_delivery_owl_sender_house_match()
+  returns trigger as $$
+declare
+  house_id     integer;
+  owl_house_id integer;
+begin
+  house_id := (select house_id
+               from study_plans
+                 inner join student_profiles
+                   on study_plans.id = student_profiles.study_plan_id
+               where student_profiles.person_id = new.sender_id);
+  owl_house_id := (select house_id
+                   from delivery_owls
+                   where delivery_owls.id = new.owl_id);
+  if house_id is not null and owl_house_id != house_id
+  then raise exception 'The required owl does not belong to the sender''s house';
+  end if;
+end;
+$$
+language plpgsql;
+
+create trigger validate_delivery_owl_sender_house_match
+  before insert
+  on delivery_owl_flights
+  for each row execute procedure check_delivery_owl_sender_house_match();
+
 -- set_permission_requirement_on_forbidden_spell_books
 
 create function set_permission_requirement_on_forbidden_spell_books()
@@ -343,7 +403,9 @@ begin
                    from spells
                    where id = new.spell_id);
   if is_forbidden
-  then update books set requires_permission = true where id = new.book_id;
+  then update books
+  set requires_permission = true
+  where id = new.book_id;
   end if;
 end;
 $$
