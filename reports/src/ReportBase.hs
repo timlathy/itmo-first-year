@@ -3,6 +3,7 @@ module ReportBase
   , module LaTeXHelpers
   , module Text.LaTeX ) where
 
+import Data.List (intersperse)
 import Text.LaTeX hiding (titlepage)
 
 import LaTeXHelpers
@@ -45,12 +46,16 @@ baseHeader = do
 
 baseTitlePage :: (LaTeXM (), LaTeXM (), Maybe (LaTeXM ()), LaTeXM ()) -> LaTeXM ()
 baseTitlePage (reportTitle, reportSubject, reportComment, reportYear) =
+  multipleAuthorsTitlePage (reportTitle, reportSubject, reportComment, [Student.name], reportYear)
+
+multipleAuthorsTitlePage :: (LaTeXM (), LaTeXM (), Maybe (LaTeXM ()), [LaTeXM ()], LaTeXM ()) -> LaTeXM ()
+multipleAuthorsTitlePage (reportTitle, reportSubject, reportComment, reportAuthors, reportYear) =
   environment "titlepage" $ do
     center $ do
       textsc (Institution.name >> lnbreak (Mm 4) >> Institution.department)
       vfill
       textbf (reportTitle >> lnbreak (Mm 2) >> reportSubject >> optionalComment) >> lnbreak (Mm 20)
-      Student.name >> lnbreak (Mm 2) >> Student.group
+      mconcat (intersperse (lnbreak (Mm 2)) reportAuthors) >> lnbreak (Mm 2) >> Student.group
       vfill
       Institution.location >> lnbreak (Mm 2) >> reportYear
   where
