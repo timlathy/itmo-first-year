@@ -1,6 +1,32 @@
 -- Task 1
 
 with romantic_relationships as (
+  select r1.relationship_id, min(r1.member_id) as partner_a_id, max(r2.member_id) as partner_b_id
+  from crew_members_relationships r1
+  inner join crew_members_relationships r2
+    on r1.relationship_id = r2.relationship_id and r1.member_id != r2.member_id
+  inner join relationships r
+    on r1.relationship_id = r.id and r.kind = 'romance'
+  group by r1.relationship_id
+),
+duo_telescope_observations as (
+  select min(o1.observer_id) as partner_a_id, max(o2.observer_id) as partner_b_id
+  from scientific_observations o1
+  inner join scientific_observations o2
+    on o1.observed_on = o2.observed_on
+       and o1.observer_id != o2.observer_id
+       and o1.equipment_id = o2.equipment_id
+  where o1.equipment_id = (select id from observation_tools where name = 'Telescope')
+  group by o1.observed_on
+)
+select r.relationship_id, r.partner_a_id, r.partner_b_id
+from romantic_relationships r
+  inner join duo_telescope_observations o
+    on o.partner_a_id = r.partner_a_id and o.partner_b_id = r.partner_b_id;
+
+-- (Generic version that works for relationships of > 2 people)
+
+with romantic_relationships as (
   select id, array_agg(member_id order by member_id) as partner_ids
   from relationships
   inner join crew_members_relationships on id = relationship_id
