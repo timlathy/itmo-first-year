@@ -15,6 +15,8 @@ begin
   if is_occupied
   then raise exception 'The requested classroom is already booked for this time.';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -29,11 +31,13 @@ create function check_event_participation_date_belonging_to_event_timespan()
 declare
   event events;
 begin
-  event := (select * from events where events.id = new.event_id);
+  select * into event from events where events.id = new.event_id;
 
-  if (new.date < event.started_on or new.date > event.ended_on)
+  if (new.date not between event.started_on and event.ended_on)
   then raise exception 'Event participation date is not included in the event time span';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -49,11 +53,13 @@ create function check_book_permission_before_checkout()
 declare
   requires_permission boolean;
 begin
-  requires_permission := (select requires_permission from books where id = new.book_id);
+  requires_permission := (select books.requires_permission from books where id = new.book_id);
 
   if requires_permission and new.permitted_by_id is null
   then raise exception 'A permission is required to check out the requested book.';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -74,6 +80,8 @@ begin
   if is_unavailable
   then raise exception 'The required book has already been checked out.';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -87,14 +95,18 @@ create function check_house_student_value_alignment()
   returns trigger as $$
 declare
   house_values personal_value [];
+  student_value personal_value;
 begin
   house_values := (select values from houses
-     inner join study_plans on houses.id = study_plans.house_id
-     inner join study_plans on study_plans.id = new.student_plan_id);
+    inner join study_plans s on s.id = new.study_plan_id and s.house_id = houses.id);
+  student_value := (select personal_value from people
+    where id = new.person_id);
 
-  if not (new.value = any (house_values))
+  if not (student_value = any (house_values))
   then raise exception 'Student''s personal value does not align with those of the house';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -111,9 +123,9 @@ declare
   is_being_repaired boolean;
 begin
   is_in_flight := (select exists(
-      select from delivery_owl_flights where owl_id = new.owl_id and returned_on is null));
+    select from delivery_owl_flights where owl_id = new.owl_id and returned_on is null));
   is_being_repaired := (select exists(
-      select from delivery_owl_repair_jobs where owl_id = new.owl_id and finished_on is null));
+    select from delivery_owl_repair_jobs where owl_id = new.owl_id and finished_on is null));
 
   if is_in_flight
   then raise exception 'The requested owl is currently in flight';
@@ -121,6 +133,8 @@ begin
   if is_being_repaired
   then raise exception 'The requested owl is currently being repaired';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -136,14 +150,17 @@ declare
   house_id     integer;
   owl_house_id integer;
 begin
-  house_id := (select house_id from study_plans
+  house_id := (select study_plans.house_id from study_plans
     inner join student_profiles on study_plans.id = student_profiles.study_plan_id
     where student_profiles.person_id = new.sender_id);
-  owl_house_id := (select house_id from delivery_owls where delivery_owls.id = new.owl_id);
+  owl_house_id := (select delivery_owls.house_id from delivery_owls
+    where delivery_owls.id = new.owl_id);
 
   if house_id is not null and owl_house_id != house_id
   then raise exception 'The required owl does not belong to the sender''s house';
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
@@ -158,11 +175,13 @@ create function set_permission_requirement_on_forbidden_spell_books()
 declare
   is_forbidden boolean;
 begin
-  is_forbidden := (select is_forbidden from spells where id = new.spell_id);
+  is_forbidden := (select spells.is_forbidden from spells where id = new.spell_id);
 
   if is_forbidden
   then update books set requires_permission = true where id = new.book_id;
   end if;
+
+  return new;
 end;
 $$
 language plpgsql;
