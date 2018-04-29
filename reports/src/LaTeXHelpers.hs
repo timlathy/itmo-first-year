@@ -28,6 +28,9 @@ parbreak = raw "\n\n"
 sectionstar :: LaTeXC l => l -> l
 sectionstar = comm1 "section*"
 
+sssectionstar :: LaTeXC l => l -> l
+sssectionstar = comm1 "subsubsection*"
+
 flalignstar :: LaTeXC l => l -> l
 flalignstar = environment "flalign*"
 

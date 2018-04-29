@@ -10,10 +10,11 @@ writeReport :: IO ()
 writeReport = do
   schema <- readFile "../db/coursework-schema.sql"
   triggers <- readFile "../db/coursework-triggers.sql"
-  renderFile "./renders/DB-Coursework.tex" (execLaTeXM $ reportTeX (schema, triggers))
+  seeds <- readFile "../db/coursework-data.sql"
+  renderFile "./renders/DB-Coursework.tex" (execLaTeXM $ reportTeX (schema, triggers, seeds))
 
-reportTeX :: (String, String) -> LaTeXM ()
-reportTeX (schemaSql, triggersSql) = do
+reportTeX :: (String, String, String) -> LaTeXM ()
+reportTeX (schemaSql, triggersSql, seedsSql) = do
   baseHeader
   usepackage [] "fancyvrb"
   usepackage [] "textcomp"
@@ -62,4 +63,7 @@ reportTeX (schemaSql, triggersSql) = do
     raw "\\end{multicols}"
     sectionstar "Реализация триггер-функций"
     environment2 "Verbatim" [OptArg $ raw "fontsize=\\scriptsize"] $ raw . fromString $ "\n" ++ triggersSql ++ "\n"
+    raw "\n"
+    sectionstar "Заполнение тестовыми значениями"
+    environment2 "Verbatim" [OptArg $ raw "fontsize=\\scriptsize"] $ raw . fromString $ "\n" ++ seedsSql ++ "\n"
     raw "\n"
