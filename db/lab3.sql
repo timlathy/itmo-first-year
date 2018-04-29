@@ -58,6 +58,7 @@ where КОНЕЦ < '2012-09-01' and ПРИЗНАК = 'отчисл'
 
 with students_by_year(id, year) as (
   select ЧЛВК_ИД, extract(year from ДАТА) from Н_ВЕДОМОСТИ
+  where СОСТОЯНИЕ = 'актуальна'
   group by 1, 2
   having min(case ОЦЕНКА
     when 'зачет' then '5'
@@ -70,3 +71,13 @@ select count(*), students_by_year.year
 from students_by_year
 group by 2
 order by 2;
+
+-- Recursive Fibonacci
+
+with recursive fib(nprev, n) as (
+  (select 1, 1)
+  union
+  (select n, nprev + n from fib)
+)
+select n from fib
+limit 20;
