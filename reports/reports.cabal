@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9b58a15cf04259430cd629cbb3ab1fe9ca93ecc579ffbb13ee05084d7ec651d7
+-- hash: bc24c872ee3ea759e185f5f9dd8b42ced23955d82c2c3460e83f36dd21a227bb
 
 name:           reports
 version:        0.0.0
@@ -41,6 +41,7 @@ library
       CS.Lab7
       DB.Coursework
       DB.Lab2
+      DB.Lab3
       DM.Coursework
       DM.CourseworkSecondTable
       DM.CourseworkTruthTable
