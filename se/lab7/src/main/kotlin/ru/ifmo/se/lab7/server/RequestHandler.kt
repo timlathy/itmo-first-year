@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException
 import java.io.*
 import java.net.Socket
-import javax.validation.Validation
 
 data class Request<T>(val action: String = "", val payload: T? = null)
 data class Response(val status: Int, @JsonRawValue val data: String)
@@ -58,7 +57,7 @@ class RequestHandler(private val socket: Socket,
 }
 
 class RequestDeserializer<T>(private val mapper: ObjectMapper, elementClass: Class<T>) {
-  private val validator = Validation.buildDefaultValidatorFactory().validator
+  private val validator = ObjectValidator<T>()
   private val requestType = mapper.typeFactory.constructParametricType(Request::class.java, elementClass)
 
   class DeserializationException(override val message: String) : Exception(message)
@@ -66,14 +65,8 @@ class RequestDeserializer<T>(private val mapper: ObjectMapper, elementClass: Cla
   fun readRequest(request: String): Request<T> =
     try {
       mapper.readValue<Request<T>>(request, requestType).apply {
-        if (payload != null) {
-          validator.validate(payload)
-            .takeIf { it.isNotEmpty() }
-            ?.map { it.message }
-            ?.sorted()
-            ?.joinToString(", ")
-            ?.let { violations -> throw DeserializationException("Request payload is invalid: $violations") }
-        }
+        payload?.let(validator::findViolationsAsString)
+          ?.let { violations -> throw DeserializationException("Request payload is invalid: $violations") }
       }
     } catch (e: UnrecognizedPropertyException) {
       throw DeserializationException("Unknown property \"${e.propertyName}\", " +
