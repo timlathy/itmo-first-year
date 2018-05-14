@@ -42,6 +42,7 @@ library
       DB.Coursework
       DB.Lab2
       DB.Lab3
+      DB.Lab4
       DM.Coursework
       DM.CourseworkSecondTable
       DM.CourseworkTruthTable
