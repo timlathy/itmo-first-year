@@ -47,6 +47,7 @@ reportTeX (queries, plans, plannerAlgo) = do
     sectionstar "Вывод EXPLAIN ANALYZE"
     environment2 "Verbatim" [OptArg $ raw "fontsize=\\scriptsize"] $ raw . fromString $ "\n" ++ plans ++ "\n"
     raw "\n"
+    newpage
     sectionstar "Планы первого запроса"
     vspace (Mm 4)
     let releq = \operator operands -> raw "{\\Large " <> mt operator <> raw "} {\\scriptsize " <> operands <> raw "}"
@@ -71,7 +72,6 @@ reportTeX (queries, plans, plannerAlgo) = do
           ]
         ]
     parbreak <> "Первый из представленных планов является наиболее оптимальным, так как сокращает число строк, участвующих в операции join, и позволяет использовать индексы для селекции."
-    newpage
     sectionstar "Планы второго запроса"
     "Как и для первого запроса, селекцию выгоднее произвести до выполнения операции join."
     center $ tree id $ Node (Just $ releq "\\pi" "Н_ЛЮДИ.ОТЧЕСТВО, Н_ОБУЧЕНИЯ.ЧЛВК_ИД, Н_УЧЕНИКИ.НАЧАЛО")
@@ -100,9 +100,13 @@ reportTeX (queries, plans, plannerAlgo) = do
             [ Leaf $ relation "Н_ОБУЧЕНИЯ" ] 
         ]
       ]
+    newpage
     sectionstar "Анализ первого запроса"
     "Из вывода EXPLAIN ANALYZE следует, что добавление индексов производительность не улучшит." <> parbreak
     "Начнем рассмотрение запроса с условия ЧЛВК_ИД < 106059: ему удовлетворяет большинство строк в таблице, что делает Sequential Scan более эффективной стратегией выборки, чем использование индекса." <> parbreak
     "Планировщик определяет это, используя статистику по таблице. Приблизительный алгоритм оценки выглядит следующим образом:"
     environment2 "Verbatim" [OptArg $ raw "fontsize=\\small"] $ raw . fromString $ "\n" ++ plannerAlgo ++ "\n"
-    raw "\n"
+    raw "\n" <> parbreak
+    "То же самое можно сказать об условии ФАМИЛИЯ < 'Петров'."
+    sectionstar "Анализ второго запроса"
+    "Единственным индексом, позволяющим существенно ускорить выполнение запроса, является btree на столбец ГРУППА, так как условию ГРУППА < '1101' удовлетворяет лишь 6% строк."
