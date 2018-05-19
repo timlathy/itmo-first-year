@@ -10,7 +10,7 @@ class ClientApp: App(AuthView::class, Styles::class) {
 
   override fun start(stage: Stage) {
     super.start(stage)
-    FX.stylesheets.add(resources["/styles.css"])
+    FX.stylesheets.add(resources["/styles/root.css"])
 
     val server = Server()
 

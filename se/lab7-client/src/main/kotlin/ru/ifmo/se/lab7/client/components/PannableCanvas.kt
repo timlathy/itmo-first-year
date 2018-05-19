@@ -7,7 +7,7 @@ import javafx.scene.control.ScrollPane
 import javafx.scene.layout.VBox
 import tornadofx.*
 
-class PanZoomPane(content: Node): Fragment() {
+class PannableCanvas(content: Node): Fragment() {
   override val root = anchorpane {
     val zoomPane = ZoomableScrollPane(content).apply {
       anchorpaneConstraints {
@@ -17,7 +17,7 @@ class PanZoomPane(content: Node): Fragment() {
 
     add(zoomPane)
     add(vbox {
-      styleClass.add("pan-zoom-pane__controls")
+      styleClass.add("pannable-canvas__controls")
 
       maxHeight = 200.0
       maxWidth = 200.0
@@ -27,11 +27,11 @@ class PanZoomPane(content: Node): Fragment() {
       }
 
       button {
-        styleClass.add("pan-zoom-pane__zoom-in")
+        styleClass.add("pannable-canvas__zoom-in")
         action { zoomPane.zoom() }
       }
       button {
-        styleClass.add("pan-zoom-pane__zoom-out")
+        styleClass.add("pannable-canvas__zoom-out")
         action { zoomPane.zoom(out = true) }
       }
     })

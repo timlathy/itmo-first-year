@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
-for svgicon in *.svg; do
+shopt -s extglob
+
+for svgicon in !(*-white).svg; do
   inkscape -z -e "${svgicon%.*}".png -w 64 "${svgicon}" 
+done
+
+for svgicon18 in *-white.svg; do
+  inkscape -z -e "${svgicon18%.*}".png -w 18 "${svgicon18}"
 done
 
 declare -A pin_colors=( ["orange"]="#ffa500" ["green"]="#59b300" ["black"]="#000")
