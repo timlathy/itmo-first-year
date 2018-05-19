@@ -1,0 +1,25 @@
+.pan-zoom-pane__controls {
+  -fx-background-color: rgba(0, 0, 0, 0.3);
+  -fx-background-radius: 6px;
+  -fx-padding: 6px;
+}
+
+.pan-zoom-pane__zoom-in,
+.pan-zoom-pane__zoom-out {
+  -fx-min-width: 36px;
+  -fx-min-height: 36px;
+  -fx-background-size: 16px;
+  -fx-background-repeat: no-repeat;
+  -fx-background-position: center;
+  -fx-background-insets: 0;
+}
+
+.pan-zoom-pane__zoom-in {
+  -fx-background-radius: 6px 6px 0 0;
+  -fx-background-image: url('faicons/plus.png');
+}
+
+.pan-zoom-pane__zoom-out {
+  -fx-background-radius: 0 0 6px 6px;
+  -fx-background-image: url('faicons/minus.png');
+}

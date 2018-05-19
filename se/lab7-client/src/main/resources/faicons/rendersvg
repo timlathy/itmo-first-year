@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+for svgicon in *.svg; do
+  inkscape -z -e "${svgicon%.*}".png -w 64 "${svgicon}" 
+done
+
+declare -A pin_colors=( ["orange"]="#ffa500" ["green"]="#59b300" ["black"]="#000")
+for color in "${!pin_colors[@]}"; do
+  sed -e "s/<path/<path fill=\"${pin_colors[${color}]}\"/" pins/map-pin.svg | inkscape -z -e pins/map-pin-"${color}".png -w 64 /dev/stdin
+done

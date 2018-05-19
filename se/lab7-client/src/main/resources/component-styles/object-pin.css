@@ -1,0 +1,14 @@
+.object-pin {
+  -fx-min-width: 28px;
+  -fx-min-height: 42px;
+
+  -fx-background-color: rgba(0, 0, 0, 0);
+  -fx-background-size: 24px;
+  -fx-background-repeat: no-repeat;
+  -fx-background-position: center;
+  -fx-background-insets: 0;
+}
+
+.object-pin--orange {
+  -fx-background-image: url('faicons/pins/map-pin-orange.png');
+}
