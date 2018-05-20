@@ -18,7 +18,13 @@ class MainFrame(private val user: String,
   }
 
   private val compControl = CollectionControlComponent(paneMain, object : CollectionControlComponent.UICommandExecutor {
-    override fun addElement(element: EmploymentRequest) { runner.eval("add", element) }
+    override fun clear() { runner.eval("clear", null) }
+
+    override fun add(element: EmploymentRequest) { runner.eval("add", element) }
+
+    override fun addIfHighestPriority(element: EmploymentRequest) { runner.eval("add_if_max", element) }
+
+    override fun addIfLowestPriority(element: EmploymentRequest) { runner.eval("add_if_min", element) }
 
     override fun removeElement(element: EmploymentRequest) { runner.eval("remove", element) }
 
@@ -30,7 +36,6 @@ class MainFrame(private val user: String,
 
     override fun removeLowestPriority() { runner.eval("remove_last", null) }
 
-    override fun clear() { runner.eval("clear", null) }
   })
 
   init {

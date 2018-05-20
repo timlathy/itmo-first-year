@@ -3,19 +3,22 @@ package ru.ifmo.se.lab7.server.ui
 import ru.ifmo.se.lab7.server.EmploymentRequest
 import ru.ifmo.se.lab7.server.ui.EmploymentRequestTree.ElementSelectionChangeEvent
 import ru.ifmo.se.lab7.server.ui.EmploymentRequestTree.ElementSelectionChangeEventListener
+import ru.ifmo.se.lab7.server.ui.EmploymentRequestEditorComponent.EditingFinishEvent.SavePolicy
 import com.alexandriasoftware.swing.JSplitButton
 import javax.swing.*
 
 class CollectionControlComponent(private val tabArea: JTabbedPane,
                                  private val executor: UICommandExecutor): JComponent(), ElementSelectionChangeEventListener {
   interface UICommandExecutor {
-    fun addElement(element: EmploymentRequest)
+    fun clear()
+    fun add(element: EmploymentRequest)
+    fun addIfHighestPriority(element: EmploymentRequest)
+    fun addIfLowestPriority(element: EmploymentRequest)
     fun removeElement(element: EmploymentRequest)
     fun removeHigherPriority(element: EmploymentRequest)
     fun removeLowerPriority(element: EmploymentRequest)
     fun removeHighestPriority()
     fun removeLowestPriority()
-    fun clear()
   }
 
   private var selectedElement: EmploymentRequest? = null
@@ -43,7 +46,11 @@ class CollectionControlComponent(private val tabArea: JTabbedPane,
     editor.addEditingFinishListener(object : EmploymentRequestEditorComponent.EditingFinishEventListener {
       override fun onEditingFinish(e: EmploymentRequestEditorComponent.EditingFinishEvent) {
         tabArea.remove(editor)
-        executor.addElement(e.newObject)
+        when (e.savePolicy) {
+          SavePolicy.UNCONDITIONAL -> executor.add(e.newObject)
+          SavePolicy.IF_MAX -> executor.addIfHighestPriority(e.newObject)
+          SavePolicy.IF_MIN -> executor.addIfLowestPriority(e.newObject)
+        }
       }
     })
   }

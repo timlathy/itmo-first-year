@@ -17,7 +17,9 @@ class EmploymentRequestEditorComponent: JComponent() {
   private val validator = ObjectValidator<EmploymentRequest>()
 
   //<editor-fold defaultstate="collapsed" desc="Events">
-  class EditingFinishEvent(source: Any, val newObject: EmploymentRequest): EventObject(source)
+  class EditingFinishEvent(source: Any, val newObject: EmploymentRequest, val savePolicy: SavePolicy): EventObject(source) {
+    enum class SavePolicy { UNCONDITIONAL, IF_MAX, IF_MIN }
+  }
 
   interface EditingFinishEventListener: EventListener {
     fun onEditingFinish(e: EditingFinishEvent)
@@ -42,6 +44,12 @@ class EmploymentRequestEditorComponent: JComponent() {
     val timeSettings = TimePickerSettings().apply { allowEmptyTimes = false }
     DateTimePicker(dateSettings, timeSettings).apply { dateTimeStrict = LocalDateTime.now() }
   }
+  private val labelSaveIf = JLabel("Save")
+  private val optionSave = JRadioButton("Unconditionally").apply { isSelected = true; isOpaque = false }
+  private val optionSaveIfMax = JRadioButton("If it has the highest priority").apply { isOpaque = false }
+  private val optionSaveIfMin = JRadioButton("If it has the lowest priority").apply { isOpaque = false }
+  init { ButtonGroup().apply { add(optionSave); add(optionSaveIfMax); add(optionSaveIfMin) } }
+
   private val buttonSave = JButton("Save").apply { addActionListener(::finishEditing) }
   private val labelViolations = JLabel()
 
@@ -56,11 +64,16 @@ class EmploymentRequestEditorComponent: JComponent() {
             .addGroup(createParallelGroup(GroupLayout.Alignment.LEADING)
               .addComponent(labelApplicant)
               .addComponent(labelStatus)
-              .addComponent(labelDate))
-            .addGroup(createParallelGroup(GroupLayout.Alignment.TRAILING)
+              .addComponent(labelDate)
+              .addComponent(labelSaveIf))
+            .addGroup(createParallelGroup(GroupLayout.Alignment.LEADING)
               .addComponent(fieldApplicant)
               .addComponent(dropdownStatus)
-              .addComponent(pickerDate))
+              .addComponent(pickerDate)
+              .addGroup(createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(optionSave)
+                .addComponent(optionSaveIfMin)
+                .addComponent(optionSaveIfMax)))
           )
           .addComponent(labelViolations)
           .addComponent(buttonSave)
@@ -76,6 +89,12 @@ class EmploymentRequestEditorComponent: JComponent() {
           .addGroup(createParallelGroup(GroupLayout.Alignment.BASELINE)
             .addComponent(labelDate)
             .addComponent(pickerDate))
+          .addGroup(createParallelGroup(GroupLayout.Alignment.BASELINE)
+            .addComponent(labelSaveIf)
+            .addGroup(createSequentialGroup()
+              .addComponent(optionSave)
+              .addComponent(optionSaveIfMin)
+              .addComponent(optionSaveIfMax)))
           .addComponent(labelViolations)
           .addComponent(buttonSave)
       )
@@ -91,6 +110,10 @@ class EmploymentRequestEditorComponent: JComponent() {
     validator.findViolations(request)
       ?.joinToString(separator = "</li><li>", prefix = "<html>$VALIDATION_FAILED<ul><li>", postfix = "</li></ul></html>")
       ?.let(labelViolations::setText)
-      ?: triggerEditingFinishEvent(EditingFinishEvent(e, request))
+      ?: triggerEditingFinishEvent(EditingFinishEvent(e, request, {
+          if (optionSaveIfMax.isSelected) EditingFinishEvent.SavePolicy.IF_MAX
+          else if (optionSaveIfMin.isSelected) EditingFinishEvent.SavePolicy.IF_MIN
+          else EditingFinishEvent.SavePolicy.UNCONDITIONAL
+        }()))
   }
 }
