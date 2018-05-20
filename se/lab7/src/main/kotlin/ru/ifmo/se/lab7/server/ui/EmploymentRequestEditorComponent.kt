@@ -2,7 +2,6 @@ package ru.ifmo.se.lab7.server.ui
 
 import com.github.lgooddatepicker.components.DatePickerSettings
 import com.github.lgooddatepicker.components.DateTimePicker
-import com.github.lgooddatepicker.components.TimePicker
 import com.github.lgooddatepicker.components.TimePickerSettings
 import ru.ifmo.se.lab7.server.EmploymentRequest
 import ru.ifmo.se.lab7.server.ObjectValidator
@@ -17,6 +16,7 @@ const val VALIDATION_FAILED = "The request could not be saved due to the followi
 class EmploymentRequestEditorComponent: JComponent() {
   private val validator = ObjectValidator<EmploymentRequest>()
 
+  //<editor-fold defaultstate="collapsed" desc="Events">
   class EditingFinishEvent(source: Any, val newObject: EmploymentRequest): EventObject(source)
 
   interface EditingFinishEventListener: EventListener {
@@ -30,6 +30,7 @@ class EmploymentRequestEditorComponent: JComponent() {
 
   private fun triggerEditingFinishEvent(e: EditingFinishEvent) =
     eventListeners.getListeners(EditingFinishEventListener::class.java).forEach { it.onEditingFinish(e) }
+  //</editor-fold>
 
   private val labelApplicant = JLabel("Applicant")
   private val fieldApplicant = JTextField(20)

@@ -1,7 +1,6 @@
 package ru.ifmo.se.lab7.server
 
 import ru.ifmo.se.lab7.server.ui.MainFrame
-import ru.ifmo.se.lab7.server.ui.StartupDialog
 import java.awt.EventQueue
 import java.net.ServerSocket
 import java.util.concurrent.PriorityBlockingQueue
@@ -20,17 +19,19 @@ fun main(args: Array<String>) {
     PriorityBlockingQueue(16, QUEUE_COMPARATOR))
 
   EventQueue.invokeLater {
-    StartupDialog().addSetupFinishListener(object : StartupDialog.SetupFinishEventListener {
-      override fun onSetupFinish(e: StartupDialog.SetupFinishEvent) {
-        launchServerThread(e.port, runner)
-        showMainWindow(e.user)
-      }
-    })
+    launchServerThread(8080, runner)
+    showMainWindow("test", runner)
+//    StartupDialog().addSetupFinishListener(object : StartupDialog.SetupFinishEventListener {
+//      override fun onSetupFinish(e: StartupDialog.SetupFinishEvent) {
+//        launchServerThread(e.port, runner)
+//        showMainWindow(e.user)
+//      }
+//    })
   }
 }
 
-fun showMainWindow(user: String) =
-  EventQueue.invokeLater { MainFrame(user) }
+fun showMainWindow(user: String, runner: CommandRunner<EmploymentRequest>) =
+  EventQueue.invokeLater { MainFrame(user, runner) }
 
 fun launchServerThread(port: Int, runner: CommandRunner<EmploymentRequest>) = thread {
   ServerSocket(port).use {

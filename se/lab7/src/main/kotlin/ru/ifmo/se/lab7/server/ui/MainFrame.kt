@@ -8,17 +8,30 @@ import java.awt.Dimension
 
 class MainFrame(private val user: String,
                 private val runner: CommandRunner<EmploymentRequest>): JFrame() {
-  private val objectTree = EmploymentRequestTree()
-  private val logTable = InteractionLogTable<EmploymentRequest>()
-  private val mainPane = JTabbedPane().apply {
-    addTab("Object View", objectTree)
-    addTab("Client Interaction Log", JScrollPane(logTable))
+  private val treeElement = EmploymentRequestTree()
+  private val tableLog = InteractionLogTable<EmploymentRequest>()
+  private val paneMain = JTabbedPane().apply {
+    addTab("Element View", treeElement)
+    addTab("Client Interaction Log", JScrollPane(tableLog))
 
-    logTable.fillsViewportHeight = true /* placed inside a scroll pane */
+    tableLog.fillsViewportHeight = true /* placed inside a scroll pane */
   }
 
-  private val buttonAdd = JButton("Add").apply { addActionListener { openEditor() } }
-  private val buttonRemove = JButton("Remove")
+  private val compControl = CollectionControlComponent(paneMain, object : CollectionControlComponent.UICommandExecutor {
+    override fun addElement(element: EmploymentRequest) { runner.eval("add", element) }
+
+    override fun removeElement(element: EmploymentRequest) { runner.eval("remove", element) }
+
+    override fun removeHigherPriority(element: EmploymentRequest) { runner.eval("remove_greater", element) }
+
+    override fun removeLowerPriority(element: EmploymentRequest) { runner.eval("remove_lower", element) }
+
+    override fun removeHighestPriority() { runner.eval("remove_first", null) }
+
+    override fun removeLowestPriority() { runner.eval("remove_last", null) }
+
+    override fun clear() { runner.eval("clear", null) }
+  })
 
   init {
     size = Dimension(600, 800)
@@ -29,43 +42,30 @@ class MainFrame(private val user: String,
     isVisible = true
     defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
+    treeElement.apply { addElementSelectionChangeListener(compControl) }
+
     contentPane.layout = GroupLayout(contentPane).apply {
       autoCreateGaps = true
       autoCreateContainerGaps = true
 
       setHorizontalGroup(
         createParallelGroup(GroupLayout.Alignment.LEADING)
-          .addGroup(createSequentialGroup()
-            .addComponent(buttonAdd)
-            .addComponent(buttonRemove))
-          .addComponent(mainPane)
+          .addComponent(compControl)
+          .addComponent(paneMain)
       )
+
       setVerticalGroup(
         createSequentialGroup()
-          .addGroup(createParallelGroup(GroupLayout.Alignment.BASELINE)
-            .addComponent(buttonAdd)
-            .addComponent(buttonRemove))
-          .addComponent(mainPane)
+          .addComponent(compControl)
+          .addComponent(paneMain)
       )
+
+      pack()
     }
 
     runner.addCommandListener { commandName, changes: List<CollectionChange<EmploymentRequest>> ->
-      objectTree.updateWithChanges(changes)
-      logTable.insertChanges("test", commandName, changes)
+      treeElement.updateWithChanges(changes)
+      tableLog.insertChanges("test", commandName, changes)
     }
-  }
-
-  fun openEditor() {
-    val editor = EmploymentRequestEditorComponent()
-    mainPane.addTab("New Request", editor)
-    mainPane.selectedIndex = mainPane.tabCount - 1
-    mainPane.setTabComponentAt(mainPane.tabCount - 1, ButtonTabComponent(mainPane))
-
-    editor.addEditingFinishListener(object : EmploymentRequestEditorComponent.EditingFinishEventListener {
-      override fun onEditingFinish(e: EmploymentRequestEditorComponent.EditingFinishEvent) {
-        mainPane.remove(editor)
-        runner.eval("add", e.newObject)
-      }
-    })
   }
 }

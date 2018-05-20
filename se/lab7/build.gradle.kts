@@ -37,6 +37,7 @@ dependencies {
   compile("log4j:log4j:1.2.17")
   compile("org.mindrot:jbcrypt:0.4")
   compile("com.github.lgooddatepicker:LGoodDatePicker:10.3.1")
+  compile("com.alexandriasoftware.swing:jsplitbutton:1.3.1")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
   testCompile("org.mockito:mockito-core:2.15.0")
 }
