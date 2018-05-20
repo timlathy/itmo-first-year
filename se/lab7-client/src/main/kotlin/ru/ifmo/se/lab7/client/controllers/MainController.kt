@@ -3,10 +3,7 @@ package ru.ifmo.se.lab7.client.controllers
 import ru.ifmo.se.lab7.client.Server
 import ru.ifmo.se.lab7.client.views.AuthView
 import ru.ifmo.se.lab7.client.views.MainView
-import ru.ifmo.se.lab7.client.views.MapView
-import ru.ifmo.se.lab7.client.views.EmploymentRequestView
-import tornadofx.Controller
-import tornadofx.rebind
+import tornadofx.*
 
 class MainController: Controller() {
   val authView: AuthView by inject()

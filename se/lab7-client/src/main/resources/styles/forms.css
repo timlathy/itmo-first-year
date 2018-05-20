@@ -1,0 +1,113 @@
+.text-field, .text-area,
+.combo-box-base, .date-picker {
+  -fx-background-insets: 0;
+  -fx-background-color: #fff;
+  -fx-border-color: #8f8f8f;
+  -fx-border-width: 1.2px;
+  -fx-border-radius: 4px;
+
+  -fx-font-size: 16px;
+  -fx-min-height: 24px;
+}
+
+.text-field:hover, .text-area:hover,
+.combo-box-base:hover, .date-picker:hover {
+  -fx-border-color: #6b6b6b;
+  -fx-effect: dropshadow(three-pass-box, #6b6b6b, 1, 0, 0, 0);
+}
+
+.text-field:hover, .text-area:hover {
+  -fx-cursor: text;
+}
+
+.combo-box-base:hover, .date-picker:hover {
+  -fx-cursor: hand;
+}
+
+.text-field:focused, .text-area:focused,
+.combo-box-base:focused {
+  -fx-border-color: #1e88e5;
+  -fx-effect: dropshadow(three-pass-box, #1e88e5, 1, 0, 0, 0);
+}
+
+.date-picker > .text-field {
+  -fx-border-width: 0;
+  -fx-effect: none;
+}
+
+.date-picker:focused > .text-field {
+  -fx-background-color: #fff;
+}
+
+.date-picker > .arrow-button {
+  -fx-background-insets: 0;
+  -fx-background-color: #f0f0f0;
+  -fx-border-width: 0;
+}
+
+.date-picker > .arrow-button:hover {
+  -fx-background-color: #e6e6e6;
+}
+
+.date-picker:focused > .arrow-button {
+  -fx-background-color: #e1effa;
+}
+
+.date-picker:focused > .arrow-button:hover {
+  -fx-background-color: #cee4f5;
+}
+
+.date-picker-popup,
+.date-picker-popup > .month-year-pane {
+  -fx-background-insets: 0;
+  -fx-background-color: #fff;
+}
+
+.date-picker-popup {
+  -fx-border-color: #8f8f8f;
+  -fx-border-width: 1.2px;
+  -fx-border-radius: 4px;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 6, 0, 0, 4 );
+}
+
+.date-picker-popup > * > .day-name-cell {
+  -fx-background-color: #f0f0f0;
+}
+
+.date-picker-popup > * > .day-cell:hover,
+.date-picker-popup > * > .selected {
+  -fx-background-color: #64b5f6;
+}
+
+.date-picker-popup > * > .previous-month,
+.date-picker-popup > * > .next-month {
+  -fx-background: #f0f0f0;
+}
+
+.text-area .content {
+  -fx-background-color: #fff;
+  -fx-background-insets: 0;
+}
+
+.form > * > .button {
+  -fx-background-insets: 0;
+  -fx-background-color: #fff;
+  -fx-border-color: #8f8f8f;
+  -fx-border-width: 1.2px;
+  -fx-border-radius: 4px;
+
+  -fx-font-size: 16px;
+  -fx-min-height: 24px;
+}
+
+.form > * > .button:hover {
+  -fx-text-fill: #1e88e5;
+  -fx-border-color: #1e88e5;
+  -fx-effect: dropshadow(three-pass-box, #1e88e5, 1, 0, 0, 0);
+}
+
+.form > * > .button:pressed {
+  -fx-text-fill: #005cb2;
+  -fx-border-color: #005cb2;
+  -fx-effect: dropshadow(three-pass-box, #005cb2, 1, 0, 0, 0);
+}

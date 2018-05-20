@@ -2,11 +2,6 @@ package ru.ifmo.se.lab7.client.views
 
 import javafx.scene.Node
 import javafx.scene.control.Button
-import javafx.scene.image.Image
-import javafx.scene.image.ImageView
-import javafx.scene.layout.Background
-import javafx.scene.layout.BackgroundFill
-import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import ru.ifmo.se.lab7.client.components.PannableCanvas
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
@@ -25,9 +20,10 @@ class MapView: View() {
   private val mapNodes: MutableMap<EmploymentRequest, WeakReference<Node>> = mutableMapOf()
 
   private val map = pane {
+    styleClass.add("map-pane")
+
     prefWidth = 2000.0
     prefHeight = 2000.0
-    background = Background(BackgroundFill(Color.WHITE, null, null))
   }
 
   override val root = vbox {

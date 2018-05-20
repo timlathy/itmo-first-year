@@ -1,3 +1,8 @@
 @import 'components/pannable-canvas.css';
 @import 'components/navigation-header.css';
 @import 'views/map-view.css';
+@import 'forms.css';
+
+.content-root {
+  -fx-background-color: #fff;
+}

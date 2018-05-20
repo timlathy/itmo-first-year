@@ -1,3 +1,7 @@
+.map-pane {
+  -fx-background-color: #fff;
+}
+
 .map-pin,
 .map-pin__tooltip-icon {
   -fx-font-family: 'Font Awesome 5 Free';

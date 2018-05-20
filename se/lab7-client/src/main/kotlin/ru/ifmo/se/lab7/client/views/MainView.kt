@@ -15,8 +15,10 @@ class MainView : View("EmploymentRequest Manager") {
   private val navigation = NavigationHeader(views["Map"]!!, views)
 
   override val root = vbox {
-    add(navigation)
+    styleClass.add("content-root")
     spacing = 6.0
+
+    add(navigation)
     add(views["Map"]!!)
   }
 

@@ -4,6 +4,7 @@ import java.time.LocalDate
 
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.util.StringConverter
 import tornadofx.*
 import java.time.format.DateTimeFormatter.ISO_DATE
 import javax.json.JsonObject
@@ -75,4 +76,14 @@ class EmploymentRequestModel(var employmentRequest: EmploymentRequest): ViewMode
   val date      = bind { employmentRequest.dateProperty }
   val details   = bind { employmentRequest.detailsProperty }
   val status    = bind { employmentRequest.statusProperty }
+}
+
+class LocationConverter: StringConverter<Location>() {
+  override fun toString(loc: Location): String =
+    "(${loc.first}, ${loc.second})"
+
+  override fun fromString(string: String): Location =
+    string.trimStart('(', ' ').trimEnd(')', ' ').split(",").let { pair ->
+      Location(pair.first().toDouble(), pair.last().toDouble())
+    }
 }
