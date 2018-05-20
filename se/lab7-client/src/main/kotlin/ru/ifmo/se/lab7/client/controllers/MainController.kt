@@ -3,7 +3,10 @@ package ru.ifmo.se.lab7.client.controllers
 import ru.ifmo.se.lab7.client.Server
 import ru.ifmo.se.lab7.client.views.AuthView
 import ru.ifmo.se.lab7.client.views.MainView
+import ru.ifmo.se.lab7.client.views.MapView
+import ru.ifmo.se.lab7.client.views.EmploymentRequestView
 import tornadofx.Controller
+import tornadofx.rebind
 
 class MainController: Controller() {
   val authView: AuthView by inject()
@@ -14,8 +17,8 @@ class MainController: Controller() {
   fun init(server: Server) {
     this.server = server;
 
-    primaryStage.width = 800.0
-    primaryStage.height = 600.0
+    primaryStage.width = 1024.0
+    primaryStage.height = 768.0
     primaryStage.centerOnScreen()
 
     //showLoginView()

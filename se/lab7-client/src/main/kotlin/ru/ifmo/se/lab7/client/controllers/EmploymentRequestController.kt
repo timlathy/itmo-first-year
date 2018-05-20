@@ -5,16 +5,13 @@ import ru.ifmo.se.lab7.client.models.Location
 import tornadofx.*
 
 class EmploymentRequestController: Controller() {
-  private var cachedObjects: List<EmploymentRequest>? = null
+  var objectList = SortedFilteredList<EmploymentRequest>(observableList())
+    private set
 
-  fun getObjects(forceRefresh: Boolean = false): List<EmploymentRequest> {
-    if (cachedObjects == null || forceRefresh) updateObjects()
-    return cachedObjects as List<EmploymentRequest>
-  }
-
-  private fun updateObjects() {
-    cachedObjects = listOf(
+  fun refreshObjectList() {
+    objectList.items.addAll(
       EmploymentRequest("Amy J", location = Location(112.0, 432.3)),
-      EmploymentRequest("John A", location = Location(240.0, 230.3), status = EmploymentRequest.Status.REJECTED))
+      EmploymentRequest("John A", location = Location(240.0, 230.3), status = EmploymentRequest.Status.REJECTED),
+      EmploymentRequest("K A", location = Location(390.0, 540.3), status = EmploymentRequest.Status.INTERVIEW_SCHEDULED))
   }
 }

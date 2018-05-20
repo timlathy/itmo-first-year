@@ -1,11 +1,11 @@
 package ru.ifmo.se.lab7.client.models
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import tornadofx.*
-import java.time.format.DateTimeFormatter.ISO_DATE_TIME
+import java.time.format.DateTimeFormatter.ISO_DATE
 import javax.json.JsonObject
 
 typealias Location = Pair<Double, Double>
@@ -13,7 +13,7 @@ typealias Location = Pair<Double, Double>
 class EmploymentRequest(
   applicant: String = "",
   location: Location = Pair(0.0, 0.0),
-  date: LocalDateTime = LocalDateTime.now(),
+  date: LocalDate = LocalDate.now(),
   details: String = "",
   status: Status = Status.PROCESSING
 ): JsonModel, Comparable<EmploymentRequest> {
@@ -23,7 +23,7 @@ class EmploymentRequest(
   val locationProperty = SimpleObjectProperty<Location>(this, "location", location)
   var location by locationProperty
 
-  val dateProperty = SimpleObjectProperty<LocalDateTime>(this, "date", date)
+  val dateProperty = SimpleObjectProperty<LocalDate>(this, "date", date)
   var date by dateProperty
 
   val detailsProperty = SimpleStringProperty(this, "details", details)
@@ -34,7 +34,7 @@ class EmploymentRequest(
 
   override fun updateModel(json: JsonObject) = with(json) {
     applicant = string("applicant")
-    date = LocalDateTime.parse(string("date"), ISO_DATE_TIME)
+    date = LocalDate.parse(string("date"), ISO_DATE)
     location = jsonArray("location").let { p -> println(p); Pair(0.0, 0.0) }
     details = string("details")
     status = Status.fromString(string("status"))
@@ -43,7 +43,7 @@ class EmploymentRequest(
   override fun toJSON(json: JsonBuilder) {
     with(json) {
       add("applicant", applicant)
-      add("date", ISO_DATE_TIME.format(date))
+      add("date", ISO_DATE.format(date))
       add("location", location.toList())
       add("details", details)
       add("status", status.toString())
@@ -65,6 +65,14 @@ class EmploymentRequest(
 
   override fun compareTo(other: EmploymentRequest): Int =
     Comparator.comparing<EmploymentRequest, Status> { it.status }
-      .thenComparing<LocalDateTime> { it.date }
+      .thenComparing<LocalDate> { it.date }
       .reversed().compare(this, other)
+}
+
+class EmploymentRequestModel(var employmentRequest: EmploymentRequest): ViewModel() {
+  val applicant = bind { employmentRequest.applicantProperty }
+  val location  = bind { employmentRequest.locationProperty }
+  val date      = bind { employmentRequest.dateProperty }
+  val details   = bind { employmentRequest.detailsProperty }
+  val status    = bind { employmentRequest.statusProperty }
 }

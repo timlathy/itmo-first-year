@@ -10,6 +10,7 @@ import tornadofx.*
 class PannableCanvas(content: Node): Fragment() {
   override val root = anchorpane {
     val zoomPane = ZoomableScrollPane(content).apply {
+      styleClass.add("pannable-canvas__pane")
       anchorpaneConstraints {
         topAnchor = 0.0; rightAnchor = 0.0; bottomAnchor = 0.0; leftAnchor = 0.0
       }
@@ -26,18 +27,20 @@ class PannableCanvas(content: Node): Fragment() {
         bottomAnchor = 10.0; rightAnchor = 10.0
       }
 
-      button {
+      button("\uf067") {
         styleClass.add("pannable-canvas__zoom-in")
         action { zoomPane.zoom() }
       }
-      button {
+      button("\uf068") {
         styleClass.add("pannable-canvas__zoom-out")
         action { zoomPane.zoom(out = true) }
       }
     })
+
+    fitToParentHeight()
   }
 
-  class ZoomableScrollPane(private val target: Node) : ScrollPane() {
+  class ZoomableScrollPane(private val target: Node): ScrollPane() {
     companion object {
       const val zoomBy = 0.2
     }

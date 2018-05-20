@@ -1,14 +1,32 @@
+.map-pin,
+.map-pin__tooltip-icon {
+  -fx-font-family: 'Font Awesome 5 Free';
+}
+
 .map-pin {
-  -fx-min-width: 28px;
-  -fx-min-height: 42px;
+  -fx-font-size: 36px;
 
   -fx-background-color: rgba(0, 0, 0, 0);
-  -fx-background-size: 24px;
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center;
   -fx-background-insets: 0;
 }
 
 .map-pin--orange {
-  -fx-background-image: url('/faicons/pins/map-pin-orange.png');
+  -fx-text-fill: #ff9345;
+}
+
+.map-pin--orange:hover {
+   -fx-text-fill: #e37537;
+ }
+
+.map-pin--orange:focused {
+  -fx-text-fill: #cd6724;
+}
+
+.map-pin__tooltip-icon {
+  -fx-font-size: 18px;
+  -fx-fill: #fff;
+}
+
+.map-pin__tooltip {
+  -fx-font-size: 14px;
 }

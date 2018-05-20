@@ -1,25 +1,30 @@
 package ru.ifmo.se.lab7.client.views
 
-import javafx.geometry.Side
+import ru.ifmo.se.lab7.client.components.NavigationHeader
 import ru.ifmo.se.lab7.client.controllers.MainController
 import tornadofx.*
-import javafx.geometry.Pos
-import javafx.scene.image.ImageView
-import javafx.scene.layout.Background
-import javafx.scene.layout.BackgroundFill
-import javafx.scene.layout.Pane
-import javafx.scene.paint.Color
-import ru.ifmo.se.lab7.client.components.PannableCanvas
+import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
 
 class MainView : View("EmploymentRequest Manager") {
   val mainController: MainController by inject()
+  val dataController: EmploymentRequestController by inject()
 
-  override val root = drawer(side = Side.TOP) {
-    item("Dashboard") {
+  val objectView: EmploymentRequestView by inject()
 
-    }
-    item("Map View", expanded = true) {
-      add(MapView().apply { displayItems() })
+  private val views = mapOf("Map" to MapView(), "Dashboard" to DashboardView())
+  private val navigation = NavigationHeader(views["Map"]!!, views)
+
+  override val root = vbox {
+    add(navigation)
+    spacing = 6.0
+    add(views["Map"]!!)
+  }
+
+  init {
+    runAsync { dataController.refreshObjectList() }
+    subscribe<MapView.PinSelectionEvent> { e ->
+      objectView.model.rebind { employmentRequest = e.element }
+      navigation.navigateTo(objectView)
     }
   }
 }

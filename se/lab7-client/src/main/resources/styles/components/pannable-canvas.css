@@ -1,3 +1,10 @@
+.pannable-canvas__pane,
+.pannable-canvas__pane:focused,
+.pannable-canvas__pane .corner {
+  -fx-background-insets: 0;
+  -fx-padding: 0;
+}
+
 .pannable-canvas__controls {
   -fx-background-color: rgba(0, 0, 0, 0.3);
   -fx-background-radius: 6px;
@@ -8,18 +15,14 @@
 .pannable-canvas__zoom-out {
   -fx-min-width: 36px;
   -fx-min-height: 36px;
-  -fx-background-size: 16px;
-  -fx-background-repeat: no-repeat;
-  -fx-background-position: center;
-  -fx-background-insets: 0;
+  -fx-font-size: 16px;
+  -fx-font-family: 'Font Awesome 5 Free';
 }
 
 .pannable-canvas__zoom-in {
   -fx-background-radius: 6px 6px 0 0;
-  -fx-background-image: url('/faicons/plus.png');
 }
 
 .pannable-canvas__zoom-out {
   -fx-background-radius: 0 0 6px 6px;
-  -fx-background-image: url('/faicons/minus.png');
 }

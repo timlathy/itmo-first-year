@@ -1,24 +1,28 @@
 package ru.ifmo.se.lab7.client.views
 
+import javafx.scene.Node
+import javafx.scene.control.Button
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.Background
 import javafx.scene.layout.BackgroundFill
 import javafx.scene.paint.Color
+import javafx.scene.text.Text
 import ru.ifmo.se.lab7.client.components.PannableCanvas
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequest.Status.*
 import tornadofx.*
+import java.lang.ref.WeakReference
 
 class MapView: View() {
   private val controller: EmploymentRequestController by inject()
 
-  private val statusIcons: Map<EmploymentRequest.Status, Image> by lazy { mapOf(
-    PROCESSING          to Image(resources["/faicons/clock-white.png"]),
-    INTERVIEW_SCHEDULED to Image(resources["/faicons/check-white.png"]),
-    REJECTED            to Image(resources["/faicons/ban-white.png"]))
-  }
+  private val statusGlyphs: Map<EmploymentRequest.Status, String> =
+    mapOf(PROCESSING to "\uf017", INTERVIEW_SCHEDULED to "\uf058", REJECTED to "\uf057")
+
+  /* A lookup structure to enable faster node removal on data changes. */
+  private val mapNodes: MutableMap<EmploymentRequest, WeakReference<Node>> = mutableMapOf()
 
   private val map = pane {
     prefWidth = 2000.0
@@ -30,26 +34,43 @@ class MapView: View() {
     add(PannableCanvas(map))
   }
 
-  fun displayItems(refresh: Boolean = false) {
-    map.children.clear()
-    controller.getObjects(refresh).forEach {
-      map.add((button {
-        styleClass.addAll("map-pin", "map-pin--orange")
+  class PinSelectionEvent(val element: EmploymentRequest): FXEvent()
 
-        layoutX = it.location.first
-        layoutY = it.location.second
-
-        tooltip {
-          text = it.applicant
-
-          graphic = ImageView(statusIcons[it.status]).apply {
-            fitHeight = 18.0
-            fitWidth = 18.0
-          }
-
-          graphicTextGap = 8.0
+  init {
+    controller.objectList.onChange { change ->
+      runLater { with(change) { while (next()) {
+        removed.forEach {
+          mapNodes[it]?.get()?.removeFromParent()
+          mapNodes.remove(it)
         }
-      }))
+        addedSubList.forEach {
+          val mapMarker: Node = MapMarker(it).apply {
+            action { this@MapView.fire(PinSelectionEvent(element)) }
+          }
+          mapNodes[it] = WeakReference(mapMarker)
+          map.add(mapMarker)
+        }
+      }}}
+    }
+  }
+
+  inner class MapMarker(val element: EmploymentRequest): Button("\uf3c5") {
+    init {
+      styleClass.addAll("map-pin", "map-pin--orange")
+
+      layoutX = element.location.first
+      layoutY = element.location.second
+
+      tooltip {
+        text = element.applicant
+
+        styleClass.add("map-pin__tooltip")
+        graphic = Text(statusGlyphs[element.status]).apply {
+          styleClass.add("map-pin__tooltip-icon")
+        }
+
+        graphicTextGap = 8.0
+      }
     }
   }
 }

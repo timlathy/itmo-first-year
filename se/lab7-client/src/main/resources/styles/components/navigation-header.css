@@ -1,0 +1,34 @@
+.navigation-header {
+  -fx-padding: 10px;
+  -fx-min-height: 58px;
+
+  -fx-background-color: #fff;
+  -fx-effect: dropshadow(three-pass-box, #333, 6, 0, 0, 0);
+}
+
+.navigation-header__item,
+.navigation-header__back {
+  -fx-background-insets: 0;
+  -fx-background-color: #fff;
+  -fx-text-fill: #7a7a7a;
+
+  -fx-font-family: 'Roboto Condensed';
+  -fx-font-size: 20px;
+}
+
+.navigation-header__item:hover,
+.navigation-header__back:hover {
+  -fx-text-fill: #434343;
+  -fx-cursor: hand;
+}
+
+.navigation-header__item:disabled,
+.navigation-header__item:disabled > * {
+  -fx-text-fill: #434343;
+  -fx-opacity: 1.0;
+}
+
+.navigation-header__back {
+  -fx-font-family: 'Font Awesome 5 Free';
+  -fx-font-size: 21px;
+}
