@@ -1,6 +1,10 @@
 package ru.ifmo.se.lab7.client.components
 
+import javafx.animation.Interpolator
+import javafx.animation.RotateTransition
 import javafx.scene.control.Button
+import javafx.scene.layout.Priority
+import javafx.util.Duration
 import tornadofx.*
 
 class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): Fragment() {
@@ -8,7 +12,7 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
 
   private val nestedNavigationPath = mutableListOf<View>()
 
-  private val topLevelButtons: List<Button> = navigableViews.map {
+  private val topLevelLinks: List<Button> = navigableViews.map {
     button(it.key.toUpperCase()) {
       styleClass.add("navigation-header__item")
 
@@ -16,7 +20,7 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
 
       action {
         if (topLevelView != it.value) {
-          resetTopLevel()
+          resetTopLevelLinks()
           isDisable = true
 
           topLevelView.replaceWith(it.value)
@@ -26,13 +30,56 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     }
   }
 
+  //<editor-fold defaultstate="collapsed" desc="Top-level controls (refresh, new item)">
+  private val refreshButton: Button = button("\uf2f1") {
+    styleClass.add("navigation-header__control")
+
+    action {
+      refreshInProgress = !refreshInProgress
+      if (refreshInProgress) {
+        refreshAnimation.play()
+        fire(RefreshRequest())
+      }
+    }
+  }
+
+  private val newItemButton: Button = button("\uf303") {
+    styleClass.add("navigation-header__control")
+
+    action { fire(NewItemRequest()) }
+  }
+
+  private val topLevelControls: List<Button> = listOf(refreshButton, newItemButton)
+
+  class NewItemRequest: FXEvent()
+
+  class RefreshRequest: FXEvent()
+
+  private val refreshAnimation = RotateTransition(Duration.millis(1000.0), refreshButton).apply {
+    byAngle = 360.0
+    interpolator = Interpolator.LINEAR
+  }
+
+  init { refreshAnimation.setOnFinished { if (refreshInProgress) refreshAnimation.play() } }
+
+  private var refreshInProgress = false
+
+  fun onRefreshCompleted() { refreshInProgress = false }
+  //</editor-fold>
+
   private val topLevelBox = hbox {
-    topLevelButtons.forEach { add(it) }
+    hgrow = Priority.ALWAYS
+
+    topLevelLinks.forEach { add(it) }
+
+    pane { hgrow = Priority.ALWAYS }
+
+    topLevelControls.forEach { add(it) }
   }
 
   private val nestedNavigationBox = hbox {
     button("\uf060") {
-      styleClass.add("navigation-header__back")
+      styleClass.add("navigation-header__control")
       action(::popSubview)
     }
   }
@@ -62,5 +109,5 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     else popped.replaceWith(nestedNavigationPath.last())
   }
 
-  private fun resetTopLevel() = topLevelButtons.forEach { it.isDisable = false }
+  private fun resetTopLevelLinks() = topLevelLinks.forEach { it.isDisable = false }
 }

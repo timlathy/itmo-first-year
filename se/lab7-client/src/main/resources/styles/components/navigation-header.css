@@ -1,23 +1,26 @@
 .navigation-header {
   -fx-padding: 10px;
-  -fx-min-height: 58px;
+  -fx-min-height: 68px;
 
   -fx-background-color: #fff;
   -fx-effect: dropshadow(three-pass-box, #333, 6, 0, 0, 0);
 }
 
 .navigation-header__item,
-.navigation-header__back {
+.navigation-header__control {
   -fx-background-insets: 0;
   -fx-background-color: #fff;
   -fx-text-fill: #7a7a7a;
+
+  -fx-min-height: 48px;
+  -fx-min-width: 48px;
 
   -fx-font-family: 'Roboto Condensed';
   -fx-font-size: 20px;
 }
 
 .navigation-header__item:hover,
-.navigation-header__back:hover {
+.navigation-header__control:hover {
   -fx-text-fill: #434343;
   -fx-cursor: hand;
 }
@@ -28,7 +31,7 @@
   -fx-opacity: 1.0;
 }
 
-.navigation-header__back {
+.navigation-header__control {
   -fx-font-family: 'Font Awesome 5 Free';
-  -fx-font-size: 21px;
+  -fx-font-size: 20px;
 }

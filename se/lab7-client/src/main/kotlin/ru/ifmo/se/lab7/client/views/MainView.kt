@@ -4,6 +4,7 @@ import ru.ifmo.se.lab7.client.components.NavigationHeader
 import ru.ifmo.se.lab7.client.controllers.MainController
 import tornadofx.*
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
+import ru.ifmo.se.lab7.client.models.EmploymentRequest
 
 class MainView : View("EmploymentRequest Manager") {
   val mainController: MainController by inject()
@@ -24,9 +25,22 @@ class MainView : View("EmploymentRequest Manager") {
 
   init {
     runAsync { dataController.refreshObjectList() }
-    subscribe<MapView.PinSelectionEvent> { e ->
-      objectView.model.rebind { employmentRequest = e.element }
-      navigation.navigateTo(objectView)
+
+    subscribe<MapView.PinSelectionEvent> { e -> openEditor(e.element) }
+
+    subscribe<NavigationHeader.NewItemRequest> { openEditor() }
+
+    subscribe<NavigationHeader.RefreshRequest> {
+      runAsync {
+        dataController.refreshObjectList()
+      } ui {
+        navigation.onRefreshCompleted()
+      }
     }
+  }
+
+  private fun openEditor(target: EmploymentRequest = EmploymentRequest()) {
+    objectView.model.rebind { employmentRequest = target }
+    navigation.navigateTo(objectView)
   }
 }
