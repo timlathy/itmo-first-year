@@ -9,7 +9,7 @@ import tornadofx.*
 class EmploymentRequestView: View() {
   val model = EmploymentRequestModel(EmploymentRequest())
 
-  override val root = vbox {
+  override val root = hbox {
     form {
       fieldset(labelPosition = Orientation.VERTICAL) {
         field("Applicant") {
@@ -31,6 +31,10 @@ class EmploymentRequestView: View() {
           enableWhen(model.dirty)
         }
       }
+    }
+    vbox {
+      styleClass.add("er-actions")
+      label("Actions")
     }
   }
 }

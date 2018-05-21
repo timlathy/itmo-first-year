@@ -1,5 +1,6 @@
 package ru.ifmo.se.lab7.client.components
 
+import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Group
 import javafx.scene.Node
@@ -18,21 +19,21 @@ class PannableCanvas(content: Node): Fragment() {
 
     add(zoomPane)
     add(vbox {
-      styleClass.add("pannable-canvas__controls")
-
       maxHeight = 200.0
       maxWidth = 200.0
+      spacing = 12.0
+      padding = Insets(6.0)
 
       anchorpaneConstraints {
         bottomAnchor = 10.0; rightAnchor = 10.0
       }
 
       button("\uf067") {
-        styleClass.add("pannable-canvas__zoom-in")
+        styleClass.add("pannable-canvas__zoom-control")
         action { zoomPane.zoom() }
       }
       button("\uf068") {
-        styleClass.add("pannable-canvas__zoom-out")
+        styleClass.add("pannable-canvas__zoom-control")
         action { zoomPane.zoom(out = true) }
       }
     })

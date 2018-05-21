@@ -1,0 +1,8 @@
+.er-actions {
+  -fx-padding: 10;
+}
+
+.er-actions .label {
+  -fx-font-size: 16px;
+  -fx-padding: 4 0 2 0;
+}

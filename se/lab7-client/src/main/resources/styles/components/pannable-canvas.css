@@ -5,24 +5,24 @@
   -fx-padding: 0;
 }
 
-.pannable-canvas__controls {
-  -fx-background-color: rgba(0, 0, 0, 0.3);
-  -fx-background-radius: 6px;
-  -fx-padding: 6px;
-}
-
-.pannable-canvas__zoom-in,
-.pannable-canvas__zoom-out {
+.pannable-canvas__zoom-control {
   -fx-min-width: 36px;
   -fx-min-height: 36px;
   -fx-font-size: 16px;
+
   -fx-font-family: 'Font Awesome 5 Free';
+
+  -fx-effect: dropshadow(three-pass-box, #6b6b6b, 6, 0, 0, 0);
+  -fx-background-color: #fff;
+  -fx-background-insets: 0;
+  -fx-border-radius: 4px;
 }
 
-.pannable-canvas__zoom-in {
-  -fx-background-radius: 6px 6px 0 0;
+.pannable-canvas__zoom-control:hover {
+  -fx-effect: dropshadow(three-pass-box, #6b6b6b, 8, 0, 0, 0);
+  -fx-background-color: #fafafa;
 }
 
-.pannable-canvas__zoom-out {
-  -fx-background-radius: 0 0 6px 6px;
+.pannable-canvas__zoom-control:pressed {
+  -fx-background-color: #f5f5f5;
 }

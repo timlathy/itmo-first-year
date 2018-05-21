@@ -1,3 +1,8 @@
+.form .label {
+  -fx-font-size: 16px;
+  -fx-padding: 4 0 2 0;
+}
+
 .text-field, .text-area,
 .combo-box-base, .date-picker {
   -fx-background-insets: 0;
