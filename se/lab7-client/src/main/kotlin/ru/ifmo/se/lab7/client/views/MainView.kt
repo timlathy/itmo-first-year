@@ -10,7 +10,8 @@ class MainView : View("EmploymentRequest Manager") {
   val mainController: MainController by inject()
   val dataController: EmploymentRequestController by inject()
 
-  val objectView: EmploymentRequestView by inject()
+  private val objectView: EmploymentRequestView by inject()
+  private val filterView: FilterView by inject()
 
   private val views = mapOf("Map" to MapView(), "Dashboard" to DashboardView())
   private val navigation = NavigationHeader(views["Map"]!!, views)
@@ -27,6 +28,12 @@ class MainView : View("EmploymentRequest Manager") {
     runAsync { dataController.refreshObjectList() }
 
     subscribe<MapView.PinSelectionEvent> { e -> openEditor(e.element) }
+
+    subscribe<NavigationHeader.FilterRequest> { navigation.navigateTo(filterView) }
+
+    subscribe<NavigationHeader.FilterPredicateApplied> { e ->
+      dataController.setObjectListPredicate(e.predicate)
+    }
 
     subscribe<NavigationHeader.NewItemRequest> { openEditor() }
 

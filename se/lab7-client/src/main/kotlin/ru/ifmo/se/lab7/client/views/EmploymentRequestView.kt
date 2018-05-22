@@ -9,7 +9,15 @@ import tornadofx.*
 class EmploymentRequestView: View() {
   val model = EmploymentRequestModel(EmploymentRequest())
 
+  private fun setViewTitle(applicant: String?) {
+    title = (if (applicant == null || applicant.isBlank()) "New employment request"
+             else "${applicant}'s employment request").toUpperCase()
+  }
+
   override val root = hbox {
+    setViewTitle(model.applicant.getValue())
+    model.applicant.onChange(::setViewTitle)
+
     form {
       fieldset(labelPosition = Orientation.VERTICAL) {
         field("Applicant") {

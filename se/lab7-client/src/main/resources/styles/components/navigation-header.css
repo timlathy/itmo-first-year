@@ -3,7 +3,17 @@
   -fx-min-height: 68px;
 
   -fx-background-color: #fff;
-  -fx-effect: dropshadow(three-pass-box, #333, 6, 0, 0, 0);
+  -fx-effect: dropshadow(three-pass-box, #616161, 6, 0, 0, 0);
+}
+
+.navigation-header__item,
+.navigation-header__control,
+.navigation-header__title {
+  -fx-min-height: 48px;
+  -fx-min-width: 48px;
+
+  -fx-font-family: 'Roboto Condensed';
+  -fx-font-size: 20px;
 }
 
 .navigation-header__item,
@@ -11,12 +21,6 @@
   -fx-background-insets: 0;
   -fx-background-color: #fff;
   -fx-text-fill: #7a7a7a;
-
-  -fx-min-height: 48px;
-  -fx-min-width: 48px;
-
-  -fx-font-family: 'Roboto Condensed';
-  -fx-font-size: 20px;
 }
 
 .navigation-header__item:hover,
@@ -34,4 +38,12 @@
 .navigation-header__control {
   -fx-font-family: 'Font Awesome 5 Free';
   -fx-font-size: 20px;
+}
+
+.navigation-header__control--active {
+  -fx-text-fill: #1e88e5;
+}
+
+.navigation-header__control--active:hover {
+  -fx-text-fill: #155c99;
 }

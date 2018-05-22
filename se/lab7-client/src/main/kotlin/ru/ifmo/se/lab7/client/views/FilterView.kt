@@ -1,0 +1,138 @@
+package ru.ifmo.se.lab7.client.views
+
+import javafx.beans.property.ReadOnlyListProperty
+import javafx.collections.ListChangeListener
+import javafx.geometry.Orientation
+import javafx.geometry.Pos
+import javafx.util.StringConverter
+import ru.ifmo.se.lab7.client.models.EmploymentRequest
+import ru.ifmo.se.lab7.client.models.EmploymentRequestFilter
+import ru.ifmo.se.lab7.client.models.EmploymentRequestFilterModel
+import ru.ifmo.se.lab7.client.models.Validators.Companion.textContainingDoubleBetween
+import ru.ifmo.se.lab7.client.models.Converters.Companion.SafeNumberStringConverter
+
+import tornadofx.*
+import tornadofx.controlsfx.*
+import java.util.function.Predicate
+
+class FilterView: View() {
+  private val model = EmploymentRequestFilterModel(EmploymentRequestFilter())
+
+  init {
+    title = "Filters".toUpperCase()
+  }
+
+  fun hasFiltersApplied() = model.isDirty && model.isValid
+
+  fun compileFilterPredicate(): ((EmploymentRequest) -> Boolean) {
+    var pred = Predicate<EmploymentRequest> { true }
+
+    if (model.minApplicantLetter.isDirty) pred = pred.and {
+      it.applicant[0].toInt() >= (model.minApplicantLetter.get().toInt() + 65)
+    }
+    if (model.maxApplicantLetter.isDirty) pred = pred.and {
+      it.applicant[0].toInt() <= (model.maxApplicantLetter.get().toInt() + 65)
+    }
+
+    if (model.minLatitude.isDirty) pred = pred.and {
+      it.location.first >= model.minLatitude.get()
+    }
+    if (model.maxLatitude.isDirty) pred = pred.and {
+      it.location.first <= model.maxLatitude.get()
+    }
+
+    if (model.minLongitude.isDirty) pred = pred.and {
+      it.location.second >= model.minLongitude.get()
+    }
+    if (model.maxLongitude.isDirty) pred = pred.and {
+      it.location.second <= model.maxLongitude.get()
+    }
+
+    if (model.minDate.isDirty) pred = pred.and {
+      it.date >= model.minDate.get()
+    }
+    if (model.maxDate.isDirty) pred = pred.and {
+      it.date <= model.maxDate.get()
+    }
+
+    if (model.includedStatuses.isDirty) pred = pred.and {
+      it.status in model.includedStatuses.entries.filter { it.value }.map { it.key }
+    }
+
+    return (pred::test)
+  }
+
+  override val root = form {
+    fieldset(labelPosition = Orientation.VERTICAL) {
+      field("Applicants by name (starting with letter)") {
+        rangeslider(model.minApplicantLetter, model.maxApplicantLetter, 1.0, 26.0) {
+          blockIncrement = 1.0
+          majorTickUnit = 1.0
+          minorTickCount = 0
+
+          isShowTickLabels = true
+          isShowTickMarks = true
+          isSnapToTicks = true
+
+          labelFormatter = object : StringConverter<Number>() {
+            override fun toString(tick: Number?): String = tick?.let { (it.toInt() + 64).toChar().toString() } ?: ""
+            override fun fromString(string: String?): Number = string?.toInt() ?: 1.0
+          }
+        }
+      }
+      field("Location", orientation = Orientation.VERTICAL) {
+        hbox {
+          alignment = Pos.BASELINE_LEFT
+          spacing = 12.0
+
+          textfield(model.minLatitude, SafeNumberStringConverter()) {
+            required()
+            textContainingDoubleBetween(0.0, 90.0)
+          }
+          label("to")
+          textfield(model.maxLatitude, SafeNumberStringConverter()) {
+            required()
+            textContainingDoubleBetween(0.0, 90.0)
+          }
+          label("(latitude)")
+        }
+        hbox {
+          alignment = Pos.BASELINE_LEFT
+          spacing = 12.0
+
+          textfield(model.minLongitude, SafeNumberStringConverter()) {
+            required()
+            textContainingDoubleBetween(0.0, 180.0)
+          }
+          label("to")
+          textfield(model.maxLongitude, SafeNumberStringConverter()) {
+            required()
+            textContainingDoubleBetween(0.0, 180.0)
+          }
+          label("(longitude)")
+        }
+      }
+      field("Date") {
+        datepicker(model.minDate); label("to"); datepicker(model.maxDate)
+      }
+      field("Status") {
+        val list = observableList(*model.includedStatuses.keys.toTypedArray())
+        checklistview(list).apply {
+          /* https://stackoverflow.com/a/17456527/1726690 */
+          prefHeight = list.size * 26 + 2.0
+
+          model.includedStatuses.forEach { k, v ->
+            if (v) checkModel.check(k)
+            else checkModel.clearCheck(k)
+          }
+
+          checkModel.checkedItems.addListener { c: ListChangeListener.Change<out EmploymentRequest.Status> ->
+            c.next()
+            c.addedSubList.forEach { model.includedStatuses[it] = true }
+            c.removed.forEach { model.includedStatuses[it] = false }
+          }
+        }
+      }
+    }
+  }
+}

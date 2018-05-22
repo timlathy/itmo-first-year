@@ -5,6 +5,8 @@ import javafx.animation.RotateTransition
 import javafx.scene.control.Button
 import javafx.scene.layout.Priority
 import javafx.util.Duration
+import ru.ifmo.se.lab7.client.models.EmploymentRequest
+import ru.ifmo.se.lab7.client.views.FilterView
 import tornadofx.*
 
 class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): Fragment() {
@@ -30,7 +32,13 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     }
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Top-level controls (refresh, new item)">
+  //<editor-fold defaultstate="collapsed" desc="Top-level controls (filter, refresh, new item)">
+  private val filterButton: Button = button("\uf0b0") {
+    styleClass.add("navigation-header__control")
+
+    action { fire(FilterRequest()) }
+  }
+
   private val refreshButton: Button = button("\uf2f1") {
     styleClass.add("navigation-header__control")
 
@@ -49,7 +57,11 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     action { fire(NewItemRequest()) }
   }
 
-  private val topLevelControls: List<Button> = listOf(refreshButton, newItemButton)
+  private val topLevelControls: List<Button> = listOf(filterButton, refreshButton, newItemButton)
+
+  class FilterRequest: FXEvent()
+
+  class FilterPredicateApplied(val predicate: (EmploymentRequest) -> Boolean): FXEvent()
 
   class NewItemRequest: FXEvent()
 
@@ -77,11 +89,17 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     topLevelControls.forEach { add(it) }
   }
 
+  private val nestedNavigationTitle = label {
+    styleClass.add("navigation-header__title")
+  }
+
   private val nestedNavigationBox = hbox {
+    spacing = 12.0
     button("\uf060") {
       styleClass.add("navigation-header__control")
       action(::popSubview)
     }
+    add(nestedNavigationTitle)
   }
 
   override val root = hbox {
@@ -96,6 +114,7 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     }
     nestedNavigationPath.add(subview)
     topLevelView.replaceWith(subview)
+    nestedNavigationTitle.textProperty().bind(subview.titleProperty)
   }
 
   private fun popSubview() {
@@ -105,9 +124,29 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
       nestedNavigationBox.removeFromParent()
       root.add(topLevelBox)
       popped.replaceWith(topLevelView)
+      nestedNavigationTitle.textProperty().unbind()
+      performSpecialNavigationBehavior(popped)
     }
-    else popped.replaceWith(nestedNavigationPath.last())
+    else {
+      val newSubview = nestedNavigationPath.last()
+      popped.replaceWith(newSubview)
+      nestedNavigationTitle.textProperty().bind(newSubview.titleProperty)
+    }
   }
 
   private fun resetTopLevelLinks() = topLevelLinks.forEach { it.isDisable = false }
+
+  /* aka #uglyHackToMakeFiltersWork() */
+  private fun performSpecialNavigationBehavior(popped: View) {
+    if (!(popped is FilterView)) return;
+
+    if (popped.hasFiltersApplied()) {
+      filterButton.styleClass.add("navigation-header__control--active")
+      fire(FilterPredicateApplied(popped.compileFilterPredicate()))
+    }
+    else {
+      filterButton.styleClass.remove("navigation-header__control--active")
+      fire(FilterPredicateApplied(popped.compileFilterPredicate()))
+    }
+  }
 }

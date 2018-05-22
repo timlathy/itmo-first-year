@@ -8,6 +8,10 @@ class EmploymentRequestController: Controller() {
   var objectList = SortedFilteredList<EmploymentRequest>(observableList())
     private set
 
+  fun setObjectListPredicate(pred: (EmploymentRequest) -> Boolean) {
+    objectList.predicate = pred
+  }
+
   fun refreshObjectList() {
     objectList.items.addAll(
       EmploymentRequest("Amy J", location = Location(112.0, 432.3)),

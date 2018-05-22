@@ -12,14 +12,14 @@
 
   -fx-font-family: 'Font Awesome 5 Free';
 
-  -fx-effect: dropshadow(three-pass-box, #6b6b6b, 6, 0, 0, 0);
+  -fx-effect: dropshadow(three-pass-box, #616161, 6, 0, 0, 0);
   -fx-background-color: #fff;
   -fx-background-insets: 0;
   -fx-border-radius: 4px;
 }
 
 .pannable-canvas__zoom-control:hover {
-  -fx-effect: dropshadow(three-pass-box, #6b6b6b, 8, 0, 0, 0);
+  -fx-effect: dropshadow(three-pass-box, #616161, 8, 0, 0, 0);
   -fx-background-color: #fafafa;
 }
 
