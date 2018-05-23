@@ -55,7 +55,7 @@ class FilterView: View() {
       it.date <= model.maxDate.get()
     }
 
-    if (model.includedStatuses.isDirty) pred = pred.and {
+    if (model.includedStatuses.values.any { !it }) pred = pred.and {
       it.status in model.includedStatuses.entries.filter { it.value }.map { it.key }
     }
 
@@ -128,8 +128,13 @@ class FilterView: View() {
 
           checkModel.checkedItems.addListener { c: ListChangeListener.Change<out EmploymentRequest.Status> ->
             c.next()
-            c.addedSubList.forEach { model.includedStatuses[it] = true }
-            c.removed.forEach { model.includedStatuses[it] = false }
+            c.addedSubList.forEach {
+              model.includedStatuses[it] = true
+            }
+            c.removed.forEach {
+              model.includedStatuses[it] = false
+              model.includedStatuses.markDirty()
+            }
           }
         }
       }
