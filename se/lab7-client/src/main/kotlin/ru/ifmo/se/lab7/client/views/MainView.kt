@@ -48,9 +48,10 @@ class MainView : View("EmploymentRequest Manager") {
     subscribe<EmploymentRequestView.ObjectActionRequest> { e ->
       navigation.navigateBack()
       runAsync {
-        dataController.executeAction(e.element, e.action)
+        dataController.executeAction(e.action, e.element, e.auxElement)
       } ui {
         println(it)
+        navigation.forceRefreshAction()
       }
     }
   }

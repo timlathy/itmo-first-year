@@ -134,6 +134,8 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     }
   }
 
+  fun forceRefreshAction() = refreshButton.fire()
+
   private fun resetTopLevelLinks() = topLevelLinks.forEach { it.isDisable = false }
 
   /* aka #uglyHackToMakeFiltersWork() */

@@ -6,6 +6,8 @@ import ru.ifmo.se.lab7.client.views.MainView
 import tornadofx.*
 
 class MainController: Controller() {
+  val dataController: EmploymentRequestController by inject()
+
   val authView: AuthView by inject()
   val mainView: MainView by inject()
 

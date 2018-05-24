@@ -1,13 +1,18 @@
 package ru.ifmo.se.lab7.client.models
 
+import javafx.beans.property.SimpleListProperty
 import java.time.LocalDate
 
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import javafx.collections.FXCollections
 import javafx.util.StringConverter
 import tornadofx.*
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter.ISO_DATE
-import javax.json.JsonObject
+import java.time.format.DateTimeFormatter.ISO_DATE_TIME
+import javax.json.*
 
 typealias Location = Pair<Double, Double>
 
@@ -33,10 +38,18 @@ class EmploymentRequest(
   val statusProperty = SimpleObjectProperty<Status>(this, "status", status)
   var status by statusProperty
 
+  val LOCATION_API_COMPAT = "interviewLocation"
+
   override fun updateModel(json: JsonObject) = with(json) {
     applicant = string("applicant")
-    date = LocalDate.parse(string("date"), ISO_DATE)
-    location = jsonArray("location").let { p -> println(p); Pair(0.0, 0.0) }
+    date = LocalDate.parse(string("date"), ISO_DATE_TIME)
+    location = jsonArray(LOCATION_API_COMPAT).let { p: JsonArray? ->
+      p?.takeIf { it.size == 2 }?.let {
+        val latitude = (it[0] as? JsonNumber)?.doubleValue()
+        val longitude = (it[1] as? JsonNumber)?.doubleValue()
+        if (latitude != null && longitude != null) Pair(latitude, longitude)
+        else Pair(0.0, 0.0) } ?: Pair(0.0, 0.0)
+    }
     details = string("details")
     status = Status.fromString(string("status"))
   }
@@ -44,8 +57,10 @@ class EmploymentRequest(
   override fun toJSON(json: JsonBuilder) {
     with(json) {
       add("applicant", applicant)
-      add("date", ISO_DATE.format(date))
-      add("location", location.toList())
+      add("date", ISO_DATE_TIME.format(LocalDateTime.of(date, LocalTime.MIDNIGHT)))
+      add(LOCATION_API_COMPAT, location.let {
+        Json.createArrayBuilder(mutableListOf(it.first, it.second))
+      })
       add("details", details)
       add("status", status.toString())
     }
