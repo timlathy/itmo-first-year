@@ -46,19 +46,26 @@ class EmploymentRequestView: View() {
         field("Details") {
           textarea(model.details)
         }
-        button("Save changes") {
-          enableWhen(model.dirty)
-          visibleWhen(isNewModel.not())
-          setOnAction {
-            val oldRequest = model.employmentRequest
-            model.validate()
-            if (model.commit()) fire(ObjectActionRequest(Actions.CHANGE_EXISTING, model.employmentRequest, oldRequest))
+        hbox {
+          spacing = 8.0
+
+          button("Save changes") {
+            styleClass.add("form__button")
+            enableWhen(model.dirty)
+            visibleWhen(isNewModel.not())
+            setOnAction {
+              val oldRequest = model.employmentRequest
+              model.validate()
+              if (model.commit()) fire(ObjectActionRequest(Actions.CHANGE_EXISTING, model.employmentRequest, oldRequest))
+            }
           }
-        }
-        button("Remove element") {
-          visibleWhen(isNewModel.not())
-          setOnAction {
-            if (model.commit()) fire(ObjectActionRequest(Actions.REMOVE, model.employmentRequest))
+
+          button("Remove element") {
+            styleClass.add("form__button")
+            visibleWhen(isNewModel.not())
+            setOnAction {
+              if (model.commit()) fire(ObjectActionRequest(Actions.REMOVE, model.employmentRequest))
+            }
           }
         }
       }

@@ -1,5 +1,6 @@
 package ru.ifmo.se.lab7.client.views
 
+import javafx.stage.FileChooser
 import ru.ifmo.se.lab7.client.components.NavigationHeader
 import ru.ifmo.se.lab7.client.controllers.MainController
 import tornadofx.*
@@ -45,6 +46,17 @@ class MainView : View("EmploymentRequest Manager") {
     }
 
     subscribe<NavigationHeader.PartyTimeRequest> { e -> mapView.setPartyTime(e.enable) }
+
+    subscribe<NavigationHeader.ImportRequest> {
+      FileChooser().showOpenDialog(currentStage)?.readText()?.let {
+        dataController.addAllSerialized(it)
+        navigation.forceRefreshAction()
+      }
+    }
+
+    subscribe<NavigationHeader.ExportRequest> {
+      FileChooser().showSaveDialog(currentStage)?.writeText(dataController.objectList.items.toJSON().toString())
+    }
 
     subscribe<MapView.PartyTimeOverEvent> { navigation.onPartyTimeOver() }
 

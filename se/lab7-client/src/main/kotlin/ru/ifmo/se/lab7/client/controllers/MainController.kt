@@ -16,8 +16,8 @@ class MainController: Controller() {
   fun init(server: Server) {
     this.server = server;
 
-    primaryStage.width = 1024.0
-    primaryStage.height = 768.0
+    primaryStage.width = 1000.0
+    primaryStage.height = 800.0
     primaryStage.centerOnScreen()
 
     //showLoginView()

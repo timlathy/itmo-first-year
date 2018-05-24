@@ -45,22 +45,27 @@ class EmploymentRequestController: Controller() {
     }
   }
 
+  fun addAllSerialized(items: String) {
+    readSerializedList(items).forEach { executeAction(Actions.ADD, it, null) }
+  }
+
   fun setObjectListPredicate(pred: (EmploymentRequest) -> Boolean) {
     objectList.predicate = pred
   }
 
   fun refreshObjectList() {
     try {
-      connection
-        .fetchResponse("dump_queue")
-        .let { Json.createReader(StringReader(it)) }
-        .readArray()
-        .toModel<EmploymentRequest>()
-        .let { objectList.items.setAll(it) }
+      connection.fetchResponse("dump_queue").let(::setObjectListFromSerialized)
     }
     catch (e: ServerConnection.RequestFailureException) {
       /* Silently ignoring it for now...*/
       /* TODO: show an error in the UI */
     }
   }
+
+  private fun readSerializedList(json: String): List<EmploymentRequest> =
+    json.let { Json.createReader(StringReader(it)) }.readArray().toModel()
+
+  private fun setObjectListFromSerialized(json: String) =
+    readSerializedList(json).let { objectList.items.setAll(it) }
 }

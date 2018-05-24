@@ -51,6 +51,20 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     }
   }
 
+  private val importButton: Button = button("\uf093") {
+    styleClass.add("navigation-header__control")
+    tooltip { text = "Import from a file..." }
+
+    action { fire(ImportRequest()) }
+  }
+
+  private val exportRequest: Button = button("\uf0c7") {
+    styleClass.add("navigation-header__control")
+    tooltip { text = "Export to a file..." }
+
+    action { fire(ExportRequest()) }
+  }
+
   private val filterButton: Button = button("\uf0b0") {
     styleClass.add("navigation-header__control")
     tooltip { text = "Filters" }
@@ -77,7 +91,8 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     action { fire(NewItemRequest()) }
   }
 
-  private val topLevelControls: List<Button> = listOf(partyTimeButton, filterButton, refreshButton, newItemButton)
+  private val topLevelControls: List<Button> = listOf(partyTimeButton, importButton, exportRequest,
+    filterButton, refreshButton, newItemButton)
 
   class FilterRequest: FXEvent()
 
@@ -88,6 +103,10 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
   class RefreshRequest: FXEvent()
 
   class PartyTimeRequest(val enable: Boolean): FXEvent()
+
+  class ImportRequest: FXEvent()
+
+  class ExportRequest: FXEvent()
 
   private val refreshAnimation = RotateTransition(Duration.millis(1000.0), refreshButton).apply {
     byAngle = 360.0
