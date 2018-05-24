@@ -28,8 +28,8 @@ class MainFrame(private val user: String,
           if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             val result = runner.saveQueue(fileChooser.selectedFile)
             if (!result) {
-              JOptionPane.showMessageDialog(this@MainFrame, null,
-                "An error has occurred while saving the queue", JOptionPane.ERROR_MESSAGE)
+              JOptionPane.showMessageDialog(this@MainFrame,
+                "An error has occurred while saving the queue", "Oops!", JOptionPane.ERROR_MESSAGE)
             }
           }
         }
@@ -37,12 +37,11 @@ class MainFrame(private val user: String,
       add(JMenuItem("Import queue from a file...").apply {
         accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK)
         this.addActionListener {
-
           if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             val result = runner.openQueue<EmploymentRequest>(fileChooser.selectedFile)
             if (!result) {
-              JOptionPane.showMessageDialog(this@MainFrame, null,
-                "An error has occurred while loading the file", JOptionPane.ERROR_MESSAGE)
+              JOptionPane.showMessageDialog(this@MainFrame,
+                "An error has occurred while loading the file", "Oops!", JOptionPane.ERROR_MESSAGE)
             }
           }
         }
@@ -68,7 +67,6 @@ class MainFrame(private val user: String,
     override fun removeHighestPriority() { runner.eval("remove_first", null) }
 
     override fun removeLowestPriority() { runner.eval("remove_last", null) }
-
   }
 
   private val compControl = CollectionControlComponent(paneMain, commandExecutor)
