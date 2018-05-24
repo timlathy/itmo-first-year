@@ -9,6 +9,7 @@ import ru.ifmo.se.lab7.client.components.PannableCanvas
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequest.Status.*
+import ru.ifmo.se.lab7.client.models.EmploymentRequest.ColorCode.*
 import tornadofx.*
 import java.lang.ref.WeakReference
 
@@ -98,7 +99,11 @@ class MapView: View() {
 
   inner class MapMarker(val element: EmploymentRequest): Button("\uf3c5") {
     init {
-      styleClass.addAll("map-pin", "map-pin--orange")
+      styleClass.addAll("map-pin", when (element.colorCode) {
+        BLUE  -> "map-pin--blue"
+        GREEN -> "map-pin--green"
+        else  -> "map-pin--orange"
+      })
 
       layoutX = element.location.second * MAP_AXIS_SCALE
       layoutY = element.location.first * MAP_AXIS_SCALE

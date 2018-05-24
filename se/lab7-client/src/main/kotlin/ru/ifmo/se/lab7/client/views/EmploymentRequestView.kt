@@ -40,6 +40,9 @@ class EmploymentRequestView: View() {
         field("Status") {
           combobox(model.status, EmploymentRequest.Status.values().toList())
         }
+        field("Color code") {
+          combobox(model.colorCode, EmploymentRequest.ColorCode.values().toList())
+        }
         field("Details") {
           textarea(model.details)
         }

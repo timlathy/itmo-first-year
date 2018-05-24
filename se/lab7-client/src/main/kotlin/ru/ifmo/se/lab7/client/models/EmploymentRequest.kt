@@ -18,7 +18,8 @@ class EmploymentRequest(
   location: Location = Pair(0.0, 0.0),
   date: LocalDate = LocalDate.now(),
   details: String = "",
-  status: Status = Status.PROCESSING
+  status: Status = Status.PROCESSING,
+  colorCode: ColorCode = ColorCode.ORANGE
 ): JsonModel, Comparable<EmploymentRequest> {
   val applicantProperty = SimpleStringProperty(this, "applicant", applicant)
   var applicant by applicantProperty
@@ -35,6 +36,9 @@ class EmploymentRequest(
   val statusProperty = SimpleObjectProperty<Status>(this, "status", status)
   var status by statusProperty
 
+  val colorCodeProperty = SimpleObjectProperty<ColorCode>(this, "colorCode", colorCode)
+  var colorCode by colorCodeProperty
+
   val LOCATION_API_COMPAT = "interviewLocation"
 
   override fun updateModel(json: JsonObject) = with(json) {
@@ -49,6 +53,7 @@ class EmploymentRequest(
     }
     details = string("details")
     status = Status.fromString(string("status"))
+    colorCode = ColorCode.fromString(string("colorCode"))
   }
 
   override fun toJSON(json: JsonBuilder) {
@@ -60,6 +65,7 @@ class EmploymentRequest(
       })
       add("details", details)
       add("status", status.toString())
+      add("colorCode", colorCode.toString())
     }
   }
 
@@ -71,6 +77,17 @@ class EmploymentRequest(
     companion object {
       fun fromString(description: String?) =
         Status.values().find { it.toString() == description } ?: PROCESSING
+    }
+
+    override fun toString() = description
+  }
+
+  enum class ColorCode(private val description: String) {
+    ORANGE("orange"), BLUE("blue"), GREEN("green");
+
+    companion object {
+      fun fromString(description: String?) =
+        ColorCode.values().find { it.toString() == description } ?: ColorCode.ORANGE
     }
 
     override fun toString() = description
@@ -88,6 +105,7 @@ class EmploymentRequestModel(var employmentRequest: EmploymentRequest): ViewMode
   val date      = bind { employmentRequest.dateProperty }
   val details   = bind { employmentRequest.detailsProperty }
   val status    = bind { employmentRequest.statusProperty }
+  val colorCode = bind { employmentRequest.colorCodeProperty }
 }
 
 class LocationConverter: StringConverter<Location>() {

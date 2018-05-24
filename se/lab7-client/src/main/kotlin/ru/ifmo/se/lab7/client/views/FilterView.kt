@@ -58,6 +58,10 @@ class FilterView: View() {
       it.status in model.includedStatuses.entries.filter { it.value }.map { it.key }
     }
 
+    if (model.includedColorCodes.values.any { !it }) pred = pred.and {
+      it.colorCode in model.includedColorCodes.entries.filter { it.value }.map { it.key }
+    }
+
     return (pred::test)
   }
 
@@ -133,6 +137,29 @@ class FilterView: View() {
             c.removed.forEach {
               model.includedStatuses[it] = false
               model.includedStatuses.markDirty()
+            }
+          }
+        }
+      }
+      field("Color codes") {
+        val list = observableList(*model.includedColorCodes.keys.toTypedArray())
+        checklistview(list).apply {
+          /* https://stackoverflow.com/a/17456527/1726690 */
+          prefHeight = list.size * 26 + 2.0
+
+          model.includedColorCodes.forEach { k, v ->
+            if (v) checkModel.check(k)
+            else checkModel.clearCheck(k)
+          }
+
+          checkModel.checkedItems.addListener { c: ListChangeListener.Change<out EmploymentRequest.ColorCode> ->
+            c.next()
+            c.addedSubList.forEach {
+              model.includedColorCodes[it] = true
+            }
+            c.removed.forEach {
+              model.includedColorCodes[it] = false
+              model.includedColorCodes.markDirty()
             }
           }
         }

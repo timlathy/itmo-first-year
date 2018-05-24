@@ -19,12 +19,21 @@ data class EmploymentRequest(
 
   val details: String = "",
 
-  val status: EmploymentRequest.Status = Status.PROCESSING): Comparable<EmploymentRequest> {
+  val status: EmploymentRequest.Status = Status.PROCESSING,
+
+  val colorCode: EmploymentRequest.ColorCode = ColorCode.ORANGE): Comparable<EmploymentRequest> {
 
   enum class Status(private val description: String) {
     INTERVIEW_SCHEDULED("Interview scheduled"),
     PROCESSING("Processing"),
     REJECTED("Rejected");
+
+    @JsonValue
+    override fun toString() = description
+  }
+
+  enum class ColorCode(private val description: String) {
+    ORANGE("orange"), BLUE("blue"), GREEN("green");
 
     @JsonValue
     override fun toString() = description

@@ -4,6 +4,7 @@ import javafx.beans.property.*
 import javafx.collections.FXCollections
 import javafx.collections.ObservableMap
 import ru.ifmo.se.lab7.client.models.EmploymentRequest.Status
+import ru.ifmo.se.lab7.client.models.EmploymentRequest.ColorCode
 import java.time.LocalDate
 import tornadofx.*
 
@@ -24,7 +25,13 @@ class EmploymentRequestFilter(
     FXCollections.observableMap(mutableMapOf(
       Status.INTERVIEW_SCHEDULED to true,
       Status.PROCESSING          to true,
-      Status.REJECTED            to true))
+      Status.REJECTED            to true)),
+
+  includedColorCodes: ObservableMap<ColorCode, Boolean> =
+    FXCollections.observableMap(mutableMapOf(
+      ColorCode.ORANGE to true,
+      ColorCode.BLUE   to true,
+      ColorCode.GREEN  to true))
 ) {
   val minApplicantLetterProperty = SimpleDoubleProperty(minApplicantLetter)
   val minApplicantLetter by minApplicantLetterProperty
@@ -52,6 +59,9 @@ class EmploymentRequestFilter(
 
   val includedStatusesProperty = SimpleMapProperty<Status, Boolean>(includedStatuses)
   val includedStatuses by includedStatusesProperty
+
+  val includedColorCodesProperty = SimpleMapProperty<ColorCode, Boolean>(includedColorCodes)
+  val includedColorCodes by includedColorCodesProperty
 }
 
 class EmploymentRequestFilterModel(var filter: EmploymentRequestFilter): ViewModel() {
@@ -68,4 +78,5 @@ class EmploymentRequestFilterModel(var filter: EmploymentRequestFilter): ViewMod
   val maxDate: SimpleObjectProperty<LocalDate> = bind { filter.maxDateProperty }
 
   val includedStatuses: SimpleMapProperty<Status, Boolean> = bind { filter.includedStatusesProperty }
+  val includedColorCodes: SimpleMapProperty<ColorCode, Boolean> = bind { filter.includedColorCodesProperty }
 }
