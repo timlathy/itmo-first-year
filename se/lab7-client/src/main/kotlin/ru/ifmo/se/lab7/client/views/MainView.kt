@@ -27,8 +27,6 @@ class MainView : View("EmploymentRequest Manager") {
   init {
     runAsync { dataController.refreshObjectList() }
 
-    subscribe<MapView.PinSelectionEvent> { e -> openEditor(e.element) }
-
     subscribe<NavigationHeader.FilterRequest> { navigation.navigateTo(filterView) }
 
     subscribe<NavigationHeader.FilterPredicateApplied> { e ->
@@ -44,10 +42,22 @@ class MainView : View("EmploymentRequest Manager") {
         navigation.onRefreshCompleted()
       }
     }
+
+    subscribe<MapView.PinSelectionEvent> { e -> openEditor(e.element) }
+
+    subscribe<EmploymentRequestView.ObjectActionRequest> { e ->
+      navigation.navigateBack()
+      runAsync {
+        dataController.executeAction(e.element, e.action)
+      } ui {
+        println(it)
+      }
+    }
   }
 
-  private fun openEditor(target: EmploymentRequest = EmploymentRequest()) {
-    objectView.model.rebind { employmentRequest = target }
+  private fun openEditor(target: EmploymentRequest? = null) {
+    objectView.model.rebind { employmentRequest = target ?: EmploymentRequest() }
+    objectView.isNewModel.set(target == null)
     navigation.navigateTo(objectView)
   }
 }

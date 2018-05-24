@@ -1,6 +1,5 @@
 package ru.ifmo.se.lab7.client.views
 
-import javafx.beans.property.ReadOnlyListProperty
 import javafx.collections.ListChangeListener
 import javafx.geometry.Orientation
 import javafx.geometry.Pos

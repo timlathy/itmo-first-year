@@ -2,7 +2,43 @@
   -fx-padding: 10;
 }
 
-.er-actions .label {
-  -fx-font-size: 16px;
+.er-actions__header {
   -fx-padding: 4 0 2 0;
+}
+
+.er-actions__info {
+  -fx-padding: 0 0 6 0;
+}
+
+.er-actions__header {
+  -fx-font-size: 16px;
+}
+
+.er-actions__info {
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+}
+
+.er-actions__button {
+  -fx-background-insets: 0;
+  -fx-background-color: #fff;
+  -fx-border-color: #8f8f8f;
+  -fx-border-width: 1.2px;
+  -fx-border-radius: 4px;
+
+  -fx-font-size: 16px;
+  -fx-min-height: 24px;
+}
+
+.er-actions__button:hover {
+  -fx-text-fill: #1e88e5;
+  -fx-border-color: #1e88e5;
+  -fx-effect: dropshadow(three-pass-box, #1e88e5, 1, 0, 0, 0);
+  -fx-cursor: hand;
+}
+
+.er-actions__button:pressed {
+  -fx-text-fill: #005cb2;
+  -fx-border-color: #005cb2;
+  -fx-effect: dropshadow(three-pass-box, #005cb2, 1, 0, 0, 0);
 }

@@ -97,7 +97,7 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     spacing = 12.0
     button("\uf060") {
       styleClass.add("navigation-header__control")
-      action(::popSubview)
+      action(::navigateBack)
     }
     add(nestedNavigationTitle)
   }
@@ -117,7 +117,7 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     nestedNavigationTitle.textProperty().bind(subview.titleProperty)
   }
 
-  private fun popSubview() {
+  fun navigateBack() {
     val popped = nestedNavigationPath.last()
     nestedNavigationPath.removeAt(nestedNavigationPath.lastIndex)
     if (nestedNavigationPath.isEmpty()) {

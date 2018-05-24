@@ -109,6 +109,7 @@
   -fx-text-fill: #1e88e5;
   -fx-border-color: #1e88e5;
   -fx-effect: dropshadow(three-pass-box, #1e88e5, 1, 0, 0, 0);
+  -fx-cursor: hand;
 }
 
 .form > * > .button:pressed {
