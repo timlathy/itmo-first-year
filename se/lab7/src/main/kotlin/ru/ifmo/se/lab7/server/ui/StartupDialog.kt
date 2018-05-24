@@ -91,7 +91,7 @@ class StartupDialog: JDialog() {
     pack()
     setLocationRelativeTo(null)
 
-    title = "Server Startup"
+    title = "Server Startup [login=test, pass=test]"
     isVisible = true
     defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
   }

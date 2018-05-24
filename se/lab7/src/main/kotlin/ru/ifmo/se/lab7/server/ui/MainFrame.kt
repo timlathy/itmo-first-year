@@ -5,6 +5,8 @@ import ru.ifmo.se.lab7.server.CommandRunner
 import ru.ifmo.se.lab7.server.EmploymentRequest
 import javax.swing.*
 import java.awt.Dimension
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 
 class MainFrame(private val user: String,
                 private val runner: CommandRunner<EmploymentRequest>): JFrame() {
@@ -16,8 +18,39 @@ class MainFrame(private val user: String,
 
     tableLog.fillsViewportHeight = true /* placed inside a scroll pane */
   }
+  private val fileChooser = JFileChooser()
+  private val menu: JMenuBar = JMenuBar().apply {
+    add(JMenu("File").apply {
+      mnemonic = KeyEvent.VK_F
+      add(JMenuItem("Save queue to file...").apply {
+        accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)
+        addActionListener {
+          if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            val result = runner.saveQueue(fileChooser.selectedFile)
+            if (!result) {
+              JOptionPane.showMessageDialog(this@MainFrame, null,
+                "An error has occurred while saving the queue", JOptionPane.ERROR_MESSAGE)
+            }
+          }
+        }
+      })
+      add(JMenuItem("Import queue from a file...").apply {
+        accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK)
+        this.addActionListener {
 
-  private val compControl = CollectionControlComponent(paneMain, object : CollectionControlComponent.UICommandExecutor {
+          if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            val result = runner.openQueue<EmploymentRequest>(fileChooser.selectedFile)
+            if (!result) {
+              JOptionPane.showMessageDialog(this@MainFrame, null,
+                "An error has occurred while loading the file", JOptionPane.ERROR_MESSAGE)
+            }
+          }
+        }
+      })
+    })
+  }
+
+  private val commandExecutor = object : CollectionControlComponent.UICommandExecutor {
     override fun clear() { runner.eval("clear", null) }
 
     override fun add(element: EmploymentRequest) { runner.eval("add", element) }
@@ -36,7 +69,9 @@ class MainFrame(private val user: String,
 
     override fun removeLowestPriority() { runner.eval("remove_last", null) }
 
-  })
+  }
+
+  private val compControl = CollectionControlComponent(paneMain, commandExecutor)
 
   init {
     size = Dimension(600, 800)
@@ -46,6 +81,7 @@ class MainFrame(private val user: String,
     title = "Employment Request Server [logged in as $user]"
     isVisible = true
     defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    jMenuBar = menu
 
     treeElement.apply { addElementSelectionChangeListener(compControl) }
 

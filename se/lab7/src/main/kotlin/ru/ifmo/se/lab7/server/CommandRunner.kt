@@ -1,5 +1,7 @@
 package ru.ifmo.se.lab7.server
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import java.io.File
 import java.util.concurrent.PriorityBlockingQueue
 
 typealias CollectionChanges<E> = List<CollectionChange<E>>
@@ -27,6 +29,8 @@ interface CommandWithoutArgument<E> : Command<E> {
 
 class CommandRunner<E>(private val commands: List<Command<E>>,
                        private val queue: PriorityBlockingQueue<E>) {
+  val mapper = ObjectMapper().apply { findAndRegisterModules() }
+
   class MissingArgumentException: Exception()
   class UnknownCommandException: Exception()
 
@@ -49,4 +53,26 @@ class CommandRunner<E>(private val commands: List<Command<E>>,
         result
       }
       ?: throw UnknownCommandException()
+
+  fun saveQueue(target: File): Boolean =
+    commands.find { it.name == "dump_queue" }?.let { cmd ->
+      try {
+        val (result, _) = (cmd as CommandWithoutArgument).exec(queue)
+        target.writeText(mapper.writeValueAsString(result))
+        true
+      }
+      catch (e: Exception) { false }
+    } ?: false
+
+  inline fun<reified T: E> openQueue(target: File): Boolean =
+    try {
+      val json = target.readText(Charsets.UTF_8)
+
+      val newItems: Array<T> = with(mapper) {
+        readValue(json, typeFactory.constructArrayType(T::class.java))
+      }
+      newItems.forEach { eval("add", it) }
+      true
+    }
+    catch (e: Exception) { false }
 }

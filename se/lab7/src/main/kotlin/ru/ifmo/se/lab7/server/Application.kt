@@ -1,6 +1,7 @@
 package ru.ifmo.se.lab7.server
 
 import ru.ifmo.se.lab7.server.ui.MainFrame
+import ru.ifmo.se.lab7.server.ui.StartupDialog
 import java.awt.EventQueue
 import java.net.ServerSocket
 import java.util.concurrent.PriorityBlockingQueue
@@ -18,16 +19,14 @@ fun main(args: Array<String>) {
   val runner = CommandRunner(EmploymentRequestCommands.commandList,
     PriorityBlockingQueue(16, QUEUE_COMPARATOR))
 
-  EventQueue.invokeLater {
-    launchServerThread(8080, runner)
-    showMainWindow("test", runner)
-//    StartupDialog().addSetupFinishListener(object : StartupDialog.SetupFinishEventListener {
-//      override fun onSetupFinish(e: StartupDialog.SetupFinishEvent) {
-//        launchServerThread(e.port, runner)
-//        showMainWindow(e.user)
-//      }
-//    })
-  }
+    StartupDialog().addSetupFinishListener(object : StartupDialog.SetupFinishEventListener {
+      override fun onSetupFinish(e: StartupDialog.SetupFinishEvent) {
+        EventQueue.invokeLater {
+          launchServerThread(e.port, runner)
+          showMainWindow(e.user, runner)
+        }
+      }
+    })
 }
 
 fun showMainWindow(user: String, runner: CommandRunner<EmploymentRequest>) =
