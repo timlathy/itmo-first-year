@@ -1,16 +1,13 @@
 package ru.ifmo.se.lab7.client.models
 
-import javafx.beans.property.SimpleListProperty
 import java.time.LocalDate
 
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
-import javafx.collections.FXCollections
 import javafx.util.StringConverter
 import tornadofx.*
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter.ISO_DATE
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
 import javax.json.*
 

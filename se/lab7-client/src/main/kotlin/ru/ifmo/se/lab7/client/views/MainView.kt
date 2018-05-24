@@ -12,9 +12,10 @@ class MainView : View("EmploymentRequest Manager") {
 
   private val objectView: EmploymentRequestView by inject()
   private val filterView: FilterView by inject()
+  private val mapView: MapView by inject()
 
-  private val views = mapOf("Map" to MapView(), "Dashboard" to DashboardView())
-  private val navigation = NavigationHeader(views["Map"]!!, views)
+  private val views = mapOf("Map" to mapView, "Dashboard" to DashboardView())
+  private val navigation = NavigationHeader(mapView, views)
 
   override val root = vbox {
     styleClass.add("content-root")
@@ -42,6 +43,10 @@ class MainView : View("EmploymentRequest Manager") {
         navigation.onRefreshCompleted()
       }
     }
+
+    subscribe<NavigationHeader.PartyTimeRequest> { e -> mapView.setPartyTime(e.enable) }
+
+    subscribe<MapView.PartyTimeOverEvent> { navigation.onPartyTimeOver() }
 
     subscribe<MapView.PinSelectionEvent> { e -> openEditor(e.element) }
 

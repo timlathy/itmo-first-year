@@ -2,6 +2,8 @@ package ru.ifmo.se.lab7.client.components
 
 import javafx.animation.Interpolator
 import javafx.animation.RotateTransition
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.property.SimpleStringProperty
 import javafx.scene.control.Button
 import javafx.scene.layout.Priority
 import javafx.util.Duration
@@ -33,14 +35,32 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
   }
 
   //<editor-fold defaultstate="collapsed" desc="Top-level controls (filter, refresh, new item)">
+  private val partyTimeButton: Button = button("\uf1fd") {
+    styleClass.add("navigation-header__control")
+    tooltip { text = "Party time!" }
+
+    action {
+      if (styleClass.contains("navigation-header__control--active")) {
+        fire(PartyTimeRequest(enable = false))
+        styleClass.remove("navigation-header__control--active")
+      }
+      else {
+        fire(PartyTimeRequest(enable = true))
+        styleClass.add("navigation-header__control--active")
+      }
+    }
+  }
+
   private val filterButton: Button = button("\uf0b0") {
     styleClass.add("navigation-header__control")
+    tooltip { text = "Filters" }
 
     action { fire(FilterRequest()) }
   }
 
   private val refreshButton: Button = button("\uf2f1") {
     styleClass.add("navigation-header__control")
+    tooltip { text = "Refresh objects" }
 
     action {
       refreshInProgress = !refreshInProgress
@@ -57,7 +77,7 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
     action { fire(NewItemRequest()) }
   }
 
-  private val topLevelControls: List<Button> = listOf(filterButton, refreshButton, newItemButton)
+  private val topLevelControls: List<Button> = listOf(partyTimeButton, filterButton, refreshButton, newItemButton)
 
   class FilterRequest: FXEvent()
 
@@ -66,6 +86,8 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
   class NewItemRequest: FXEvent()
 
   class RefreshRequest: FXEvent()
+
+  class PartyTimeRequest(val enable: Boolean): FXEvent()
 
   private val refreshAnimation = RotateTransition(Duration.millis(1000.0), refreshButton).apply {
     byAngle = 360.0
@@ -77,6 +99,8 @@ class NavigationHeader(expandedView: View, navigableViews: Map<String, View>): F
   private var refreshInProgress = false
 
   fun onRefreshCompleted() { refreshInProgress = false }
+
+  fun onPartyTimeOver() { partyTimeButton.styleClass.remove("navigation-header__control--active") }
   //</editor-fold>
 
   private val topLevelBox = hbox {

@@ -37,8 +37,6 @@ class PannableCanvas(content: Node): Fragment() {
         action { zoomPane.zoom(out = true) }
       }
     })
-
-    fitToParentHeight()
   }
 
   class ZoomableScrollPane(private val target: Node): ScrollPane() {

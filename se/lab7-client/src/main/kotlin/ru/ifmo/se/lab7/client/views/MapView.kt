@@ -1,8 +1,10 @@
 package ru.ifmo.se.lab7.client.views
 
+import javafx.animation.*
 import javafx.scene.Node
 import javafx.scene.control.Button
 import javafx.scene.text.Text
+import javafx.util.Duration
 import ru.ifmo.se.lab7.client.components.PannableCanvas
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
@@ -11,6 +13,16 @@ import tornadofx.*
 import java.lang.ref.WeakReference
 
 class MapView: View() {
+  companion object {
+    const val PARTY_TIME_OFFSET = 100
+    const val PARTY_TIME_FORWARD_TIME = 5_000.0
+    const val PARTY_TIME_BACKWARD_TIME = 2_000.0
+
+    const val MAX_LATITUDE = 90.0
+    const val MAX_LONGITUDE = 180.0
+    const val MAP_AXIS_SCALE = 10.0
+  }
+
   private val controller: EmploymentRequestController by inject()
 
   private val statusGlyphs: Map<EmploymentRequest.Status, String> =
@@ -22,13 +34,47 @@ class MapView: View() {
   private val map = pane {
     styleClass.add("map-pane")
 
-    prefWidth = 2000.0
-    prefHeight = 2000.0
+    prefWidth = MAX_LONGITUDE * MAP_AXIS_SCALE
+    prefHeight = MAX_LATITUDE * MAP_AXIS_SCALE + /* dirty fix for height shrinking */ 2_000
   }
 
   override val root = vbox {
     add(PannableCanvas(map))
   }
+
+  private var partyTimeline: Timeline? = null
+
+  fun createAndStartPartyTimeline() {
+    partyTimeline = Timeline().apply {
+      setOnFinished {
+        fire(PartyTimeOverEvent())
+      }
+
+      mapNodes.values
+        .mapNotNull(WeakReference<Node>::get)
+        .forEach {
+          val xMovement = Math.min(it.layoutX + PARTY_TIME_OFFSET, map.width)
+          val forwardTransition = KeyValue(it.layoutXProperty(), xMovement, Interpolator.EASE_BOTH)
+          val backwardTransition = KeyValue(it.layoutXProperty(), it.layoutX, Interpolator.EASE_BOTH)
+
+          keyFrames.add(KeyFrame(Duration(PARTY_TIME_FORWARD_TIME), forwardTransition))
+          keyFrames.add(KeyFrame(Duration(PARTY_TIME_FORWARD_TIME + PARTY_TIME_BACKWARD_TIME), backwardTransition))
+        }
+    }
+  }
+
+  fun setPartyTime(enable: Boolean = true) {
+    if (enable) {
+      createAndStartPartyTimeline()
+      partyTimeline?.play()
+    }
+    else if (partyTimeline?.status == Animation.Status.RUNNING) {
+      partyTimeline?.jumpTo(Duration(PARTY_TIME_FORWARD_TIME + PARTY_TIME_BACKWARD_TIME))
+      partyTimeline?.stop()
+    }
+  }
+
+  class PartyTimeOverEvent: FXEvent()
 
   class PinSelectionEvent(val element: EmploymentRequest): FXEvent()
 
@@ -54,8 +100,8 @@ class MapView: View() {
     init {
       styleClass.addAll("map-pin", "map-pin--orange")
 
-      layoutX = element.location.first
-      layoutY = element.location.second
+      layoutX = element.location.second * MAP_AXIS_SCALE
+      layoutY = element.location.first * MAP_AXIS_SCALE
 
       tooltip {
         text = element.applicant
