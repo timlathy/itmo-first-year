@@ -42,7 +42,7 @@ open class ServerConnection(private val serverAddr: SocketAddress) {
             append(bufferContents)
             buffer.flip()
           }
-          if (last() != '\n') {
+          if (isEmpty() || last() != '\n') {
             throw RequestFailureException("Received invalid response from the server. " +
               "Please make sure the data you are entering is correct and retry your request.")
           }
