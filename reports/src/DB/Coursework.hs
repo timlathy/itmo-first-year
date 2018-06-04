@@ -11,16 +11,17 @@ writeReport = do
   schema <- readFile "../db/coursework-schema.sql"
   triggers <- readFile "../db/coursework-triggers.sql"
   seeds <- readFile "../db/coursework-data.sql"
-  renderFile "./renders/DB-Coursework.tex" (execLaTeXM $ reportTeX (schema, triggers, seeds))
+  indexes <- readFile "../db/coursework-indexes.sql"
+  renderFile "./renders/DB-Coursework.tex" (execLaTeXM $ reportTeX (schema, triggers, seeds, indexes))
 
-reportTeX :: (String, String, String) -> LaTeXM ()
-reportTeX (schemaSql, triggersSql, seedsSql) = do
+reportTeX :: (String, String, String, String) -> LaTeXM ()
+reportTeX (schemaSql, triggersSql, seedsSql, indexesSql) = do
   baseHeader
   usepackage [] "fancyvrb"
   usepackage [] "textcomp"
   usepackage [] "multicol"
   document $ do
-    multipleAuthorsTitlePage ("КУРСОВАЯ РАБОТА. Часть III", "Базы данных", Nothing, [Student.dbCourseworkGroupmate, Student.name], "2018 г.")
+    multipleAuthorsTitlePage ("КУРСОВАЯ РАБОТА. Часть IV", "Базы данных", Nothing, [Student.dbCourseworkGroupmate, Student.name], "2018 г.")
     includegraphics [IGWidth $ Cm 16.4] "../src/DB/Coursework-DDL.png" <> lnbk
     sectionstar "Описание сущностей"
     let b = textit
@@ -64,6 +65,6 @@ reportTeX (schemaSql, triggersSql, seedsSql) = do
     sectionstar "Реализация триггер-функций"
     environment2 "Verbatim" [OptArg $ raw "fontsize=\\scriptsize"] $ raw . fromString $ "\n" ++ triggersSql ++ "\n"
     raw "\n"
-    sectionstar "Заполнение тестовыми значениями"
-    environment2 "Verbatim" [OptArg $ raw "fontsize=\\scriptsize"] $ raw . fromString $ "\n" ++ seedsSql ++ "\n"
+    sectionstar "Реализация индексов"
+    environment2 "Verbatim" [OptArg $ raw "fontsize=\\scriptsize"] $ raw . fromString $ "\n" ++ indexesSql ++ "\n"
     raw "\n"
