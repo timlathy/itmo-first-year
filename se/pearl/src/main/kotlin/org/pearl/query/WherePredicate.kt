@@ -14,6 +14,8 @@ sealed class WherePredicate {
     infix fun `in`(value: Any) = WherePredicate.BinaryMatch(IN, table, column, value)
   }
 
+  abstract val bindings: List<Any>
+
   infix fun or(right: WherePredicate) = Binary(OR, this, right)
   infix fun and(right: WherePredicate) = Binary(AND, this, right)
 
@@ -23,6 +25,8 @@ sealed class WherePredicate {
 
       override fun toString() = sql
     }
+
+    override val bindings = operand.bindings
 
     override fun toString() = "$op $operand"
   }
@@ -34,6 +38,8 @@ sealed class WherePredicate {
       override fun toString() = sql
     }
 
+    override val bindings = left.bindings + right.bindings
+
     override fun toString() = "($left $op $right)"
   }
 
@@ -43,6 +49,8 @@ sealed class WherePredicate {
 
       override fun toString() = sql
     }
+
+    override val bindings = emptyList<Any>()
 
     override fun toString() = "\"$table\".\"$column\" $op}"
   }
@@ -54,6 +62,12 @@ sealed class WherePredicate {
       override fun toString() = sql
     }
 
-    override fun toString() = "\"$table\".\"$column\" $op ${ValueTransformer.escape(value)}"
+    override val bindings = when (value) {
+      is Query<*> -> value.toParameterizedSql().second
+      else -> listOf(value)
+    }
+
+    override fun toString() = "\"$table\".\"$column\" $op " +
+      (if (value is Query<*>) "(" + value.toParameterizedSql().first + ")" else "?")
   }
 }

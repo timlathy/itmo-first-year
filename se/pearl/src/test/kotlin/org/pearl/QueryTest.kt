@@ -6,25 +6,39 @@ import kotlin.test.assertEquals
 import TestModel
 import org.pearl.query.from
 import org.pearl.query.not
+import java.time.LocalDateTime
 
 class QueryTest {
   class Product(val id: Int = 0, val testId: Int = 0): Model()
 
   @Test
-  fun `should convert predicates to SQL code`() {
-    assertEquals(
-      """SELECT * FROM "TestModel" WHERE (("TestModel"."id" < 10 AND "TestModel"."name" = '\'quotes"') OR "TestModel"."id" != 10)""",
-      from<TestModel>().where { ((it["id"] lt 10) and (it["name"] eq "'quotes\"")) or (it["id"] notEq 10) }.toSql())
+  fun `should convert predicates to SQL, keeping bound variables`() {
+    val date = LocalDateTime.now()
+    val (sql, bindings) = from<TestModel>()
+      .where { ((it["id"] lt 10) and (it["name"] eq "'quotes\"")) or (it["date"] notEq date) }.toParameterizedSql()
 
-    assertEquals(
-      """SELECT * FROM "TestModel" WHERE NOT (("TestModel"."id" < 10 AND "TestModel"."name" = '\'quotes"') OR NOT "TestModel"."id" != 10)""",
-      from<TestModel>().where { not((it["id"] lt 10) and (it["name"] eq "'quotes\"") or not(it["id"] notEq 10)) }.toSql())
+    assertEquals("""SELECT * FROM "TestModel" WHERE (("TestModel"."id" < ? AND "TestModel"."name" = ?) OR "TestModel"."date" != ?)""", sql)
+    assertEquals(listOf(10, "'quotes\"", date), bindings)
+  }
+
+  @Test
+  fun `should produce correct SQL for negated predicates`() {
+    val (sql, bindings) = from<TestModel>()
+      .where { not((it["id"] lt 10) and (it["name"] eq "fff") or not(it["id"] notEq 10)) }.toParameterizedSql()
+
+    assertEquals("""SELECT * FROM "TestModel" WHERE NOT (("TestModel"."id" < ? AND "TestModel"."name" = ?) OR NOT "TestModel"."id" != ?)""", sql)
+    assertEquals(listOf(10, "fff", 10), bindings)
   }
 
   @Test
   fun `should transform nested queries to valid SQL code`() {
+    val date = LocalDateTime.now()
+    val (sql, bindings) = from<TestModel>()
+      .where { (it["date"] notEq date) and (it["id"] `in` from<Product>().where { it["id"] gt 7 }.select("testId")) and (it["name"] eq "f") }.toParameterizedSql()
+
     assertEquals(
-      """SELECT * FROM "TestModel" WHERE "TestModel"."id" IN (SELECT "Product"."testId" FROM "Product")""",
-      from<TestModel>().where { it["id"] `in` from<Product>().select("testId") }.toSql())
+      """SELECT * FROM "TestModel" WHERE (("TestModel"."date" != ? AND "TestModel"."id" IN (SELECT "Product"."testId" FROM "Product" WHERE "Product"."id" > ?)) AND "TestModel"."name" = ?)""",
+      sql)
+    assertEquals(listOf(date, 7, "f"), bindings)
   }
 }
