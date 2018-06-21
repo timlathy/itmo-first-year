@@ -8,7 +8,7 @@ import org.pearl.query.from
 import org.pearl.query.not
 import java.time.LocalDateTime
 
-class QueryTest {
+class SelectQueryTest {
   class Product(val id: Int = 0, val testId: Int = 0): Model()
 
   @Test

@@ -1,7 +1,7 @@
 package org.pearl.repo
 
 import org.pearl.Model
-import org.pearl.query.Query
+import org.pearl.query.SelectQuery
 import java.sql.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
@@ -22,7 +22,7 @@ object Repo {
     connection = DriverManager.getConnection("jdbc:postgresql://$host:$port/$dbname", username, password)
   }
 
-  inline fun <R> withPrepared(sqlWithParams: Pair<String, List<Any>>, block: (PreparedStatement) -> R): R =
+  inline fun <R> withPrepared(sqlWithParams: Pair<String, List<Any?>>, block: (PreparedStatement) -> R): R =
     connection!!
       .prepareStatement(sqlWithParams.first)
       .apply { sqlWithParams.second.forEachIndexed { i, param -> setObject(i + 1, param) } }
@@ -33,16 +33,24 @@ object Repo {
       .createStatement()
       .use(block)
 
-  inline fun <reified T : Model> fetchMany(query: Query<T>): List<T> =
+  fun updateWithResult(sqlWithParams: Pair<String, List<Any?>>) =
+    withPrepared(sqlWithParams) { it.executeQuery() }
+
+  inline fun <reified T : Model> fetchMany(query: SelectQuery<T>): List<T> =
     withPrepared(query.toParameterizedSql()) { statement ->
       val result = mutableListOf<T>()
       with(statement.executeQuery()) {
         while(next()) {
-          T::class.primaryConstructor?.call(*constructorParams(this, T::class))?.let(result::add)
+          T::class.primaryConstructor
+            ?.call(*constructorParams(this, T::class))
+            ?.let(result::add)
         }
       }
       result
     }
+
+  fun rawSqlUpdate(sql: String) =
+    withStatement { it.executeUpdate(sql) }
 
   inline fun <reified T : Model> createTable() =
     DDLWriter(T::class).tableDefinition().let { ddl -> withStatement { it.executeUpdate(ddl) } }

@@ -63,11 +63,11 @@ sealed class WherePredicate {
     }
 
     override val bindings = when (value) {
-      is Query<*> -> value.toParameterizedSql().second
+      is SelectQuery<*> -> value.toParameterizedSql().second
       else -> listOf(value)
     }
 
     override fun toString() = "\"$table\".\"$column\" $op " +
-      (if (value is Query<*>) "(" + value.toParameterizedSql().first + ")" else "?")
+      (if (value is SelectQuery<*>) "(" + value.toParameterizedSql().first + ")" else "?")
   }
 }
