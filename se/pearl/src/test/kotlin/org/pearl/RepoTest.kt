@@ -27,10 +27,11 @@ class RepoTest {
   @Test
   fun `should insert new records`() {
     try { Repo.createTable<TestModel>() } catch (e: Exception) { }
-    insert(TestModel(name = "aaa", date = LocalDateTime.of(2017, 2, 3, 10, 0, 0), size = 80))
-    insert(TestModel(name = "bbb", size = 20))
+    insert(TestModel(name = "aaa", date = LocalDateTime.of(2017, 2, 3, 10, 0, 0), size = 80, enum = TestModel.TestEnum.T2))
+    insert(TestModel(name = "bbb", size = 20, enum = TestModel.TestEnum.T3))
 
     assertEquals(listOf(1, 2), Repo.fetchMany(from<TestModel>().where { it["size"] lt 200 }).map { it.id })
     assertEquals(listOf(1), Repo.fetchMany(from<TestModel>().where { it["name"] eq "aaa" }).map { it.id })
+    assertEquals(listOf(2), Repo.fetchMany(from<TestModel>().where { it["enum"] eq TestModel.TestEnum.T3 }).map { it.id })
   }
 }

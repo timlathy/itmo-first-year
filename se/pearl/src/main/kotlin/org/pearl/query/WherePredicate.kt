@@ -2,6 +2,7 @@ package org.pearl.query
 
 import org.pearl.query.WherePredicate.Binary.BinaryOp.*
 import org.pearl.query.WherePredicate.BinaryMatch.MatchOp.*
+import org.pearl.query.WherePredicate.UnaryMatch.UnaryMatchOp.*
 
 fun not(operand: WherePredicate) = WherePredicate.Unary(WherePredicate.Unary.UnaryOp.NOT, operand)
 
@@ -12,6 +13,9 @@ sealed class WherePredicate {
     infix fun lt(value: Any) = WherePredicate.BinaryMatch(LT, table, column, value)
     infix fun gt(value: Any) = WherePredicate.BinaryMatch(GT, table, column, value)
     infix fun `in`(value: Any) = WherePredicate.BinaryMatch(IN, table, column, value)
+
+    fun isNull() = WherePredicate.UnaryMatch(IS_NULL, table, column)
+    fun isNotNull() = WherePredicate.UnaryMatch(IS_NOT_NULL, table, column)
   }
 
   abstract val bindings: List<Any>
@@ -52,7 +56,7 @@ sealed class WherePredicate {
 
     override val bindings = emptyList<Any>()
 
-    override fun toString() = "\"$table\".\"$column\" $op}"
+    override fun toString() = "\"$table\".\"$column\" $op"
   }
 
   data class BinaryMatch(val op: MatchOp, val table: String, val column: String, val value: Any): WherePredicate() {

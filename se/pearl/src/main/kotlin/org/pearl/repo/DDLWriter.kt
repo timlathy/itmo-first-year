@@ -2,6 +2,7 @@ package org.pearl.repo
 
 import org.pearl.IdColumn
 import org.pearl.Model
+import org.pearl.reflection.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.createInstance
@@ -26,20 +27,23 @@ class DDLWriter<T : Model>(val tableClass: KClass<T>) {
     else -> ""
   }
 
-  private fun sqlType(prop: KProperty1<T, *>) =
-    prop.returnType.javaType.typeName.let { typeName ->
-      prop.findAnnotation<IdColumn>()?.run { when (typeName) {
+  private fun sqlType(prop: KProperty1<T, *>) = when {
+      prop.hasAnnotation<IdColumn>() -> when (prop.returnType.javaName()) {
         "int", "java.lang.Integer" -> "serial"
         "long", "java.lang.Long" -> "bigserial"
-        else -> throw IllegalArgumentException("Unsupported type $typeName for a primary key in ${tableClass.simpleName}")
-      } } ?: when (typeName) {
+        else -> throw IllegalArgumentException(
+          "Unsupported type ${prop.returnType.javaName()} for a primary key in ${tableClass.simpleName}")
+      }
+      prop.returnType.java().isEnum -> "text"
+      else -> when (prop.returnType.javaName()) {
         "int", "java.lang.Integer" -> "integer"
         "long", "java.lang.Long" -> "bigint"
         "double", "java.lang.Double" -> "double precision"
         "java.lang.String" -> "text"
         "java.time.LocalDateTime" -> "timestamp"
         "java.time.ZonedDateTime" -> "timestampz"
-        else -> throw IllegalArgumentException("Unsupported type $typeName for a column in ${tableClass.simpleName}")
+        else -> throw IllegalArgumentException(
+          "Unsupported type ${prop.returnType.javaName()} for a column in ${tableClass.simpleName}")
       }
     }
 }
