@@ -5,9 +5,10 @@ import ru.ifmo.se.lab7.client.components.NavigationHeader
 import ru.ifmo.se.lab7.client.controllers.MainController
 import tornadofx.*
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController
+import ru.ifmo.se.lab7.client.i18n
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 
-class MainView : View("EmploymentRequest Manager") {
+class MainView : View() {
   val mainController: MainController by inject()
   val dataController: EmploymentRequestController by inject()
 
@@ -15,7 +16,8 @@ class MainView : View("EmploymentRequest Manager") {
   private val filterView: FilterView by inject()
   private val mapView: MapView by inject()
 
-  private val views = mapOf("Map" to mapView, "Dashboard" to DashboardView())
+  private val views = mapOf("main.map_view" to mapView)
+    //messages["main.dashboard_view"] to DashboardView())
   private val navigation = NavigationHeader(mapView, views)
 
   override val root = vbox {
@@ -23,10 +25,12 @@ class MainView : View("EmploymentRequest Manager") {
     spacing = 6.0
 
     add(navigation)
-    add(views["Map"]!!)
+    add(views.values.first())
   }
 
   init {
+    titleProperty.i18n("main.title")
+
     runAsync { dataController.refreshObjectList() }
 
     subscribe<NavigationHeader.FilterRequest> { navigation.navigateTo(filterView) }

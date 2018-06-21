@@ -8,13 +8,18 @@ import ru.ifmo.se.lab7.client.Styles.Companion.loginButton
 import ru.ifmo.se.lab7.client.Styles.Companion.loginFieldset
 import ru.ifmo.se.lab7.client.Styles.Companion.loginView
 import ru.ifmo.se.lab7.client.controllers.MainController
+import ru.ifmo.se.lab7.client.i18n
 
-class AuthView : View("Authentication") {
+class AuthView : View() {
   val mainController: MainController by inject()
 
   private val model = object : ViewModel() {
     val username = bind { SimpleStringProperty() }
     val password = bind { SimpleStringProperty() }
+  }
+
+  init {
+    titleProperty.i18n("auth.title")
   }
 
   override val root = form {
@@ -23,15 +28,18 @@ class AuthView : View("Authentication") {
     fieldset(labelPosition = Orientation.VERTICAL) {
       addClass(loginFieldset)
 
-      field("Username") {
+      field {
+        labelProperty.i18n("auth.username")
         textfield(model.username) { whenDocked { requestFocus() } }.required()
       }
-      field("Password") {
+      field {
+        labelProperty.i18n("auth.password")
         passwordfield(model.password).required()
       }
     }
 
-    button("Login") {
+    button {
+      textProperty().i18n("auth.login")
       addClass(loginButton)
 
       isDefaultButton = true

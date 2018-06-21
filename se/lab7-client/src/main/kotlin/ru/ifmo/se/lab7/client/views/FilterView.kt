@@ -4,6 +4,7 @@ import javafx.collections.ListChangeListener
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.util.StringConverter
+import ru.ifmo.se.lab7.client.i18n
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequestFilter
 import ru.ifmo.se.lab7.client.models.EmploymentRequestFilterModel
@@ -18,7 +19,7 @@ class FilterView: View() {
   private val model = EmploymentRequestFilterModel(EmploymentRequestFilter())
 
   init {
-    title = "Filters".toUpperCase()
+    titleProperty.i18n("filters.title")
   }
 
   fun hasFiltersApplied() = model.isDirty && model.isValid
@@ -67,7 +68,8 @@ class FilterView: View() {
 
   override val root = form {
     fieldset(labelPosition = Orientation.VERTICAL) {
-      field("Applicants by name (starting with letter)") {
+      field {
+        labelProperty.i18n("filters.name")
         rangeslider(model.minApplicantLetter, model.maxApplicantLetter, 1.0, 26.0) {
           blockIncrement = 1.0
           majorTickUnit = 1.0
@@ -83,7 +85,8 @@ class FilterView: View() {
           }
         }
       }
-      field("Location", orientation = Orientation.VERTICAL) {
+      field(orientation = Orientation.VERTICAL) {
+        labelProperty.i18n("filters.location")
         hbox {
           alignment = Pos.BASELINE_LEFT
           spacing = 12.0
@@ -92,12 +95,16 @@ class FilterView: View() {
             required()
             textContainingDoubleBetween(0.0, 90.0)
           }
-          label("to")
+          label {
+            textProperty().i18n("filters.upto")
+          }
           textfield(model.maxLatitude, SafeNumberStringConverter()) {
             required()
             textContainingDoubleBetween(0.0, 90.0)
           }
-          label("(latitude)")
+          label {
+            textProperty().i18n("filters.latitude")
+          }
         }
         hbox {
           alignment = Pos.BASELINE_LEFT
@@ -107,18 +114,24 @@ class FilterView: View() {
             required()
             textContainingDoubleBetween(0.0, 180.0)
           }
-          label("to")
+          label {
+            textProperty().i18n("filters.upto")
+          }
           textfield(model.maxLongitude, SafeNumberStringConverter()) {
             required()
             textContainingDoubleBetween(0.0, 180.0)
           }
-          label("(longitude)")
+          label {
+            textProperty().i18n("filters.longitude")
+          }
         }
       }
-      field("Date") {
-        datepicker(model.minDate); label("to"); datepicker(model.maxDate)
+      field {
+        labelProperty.i18n("filters.date")
+        datepicker(model.minDate); label { textProperty().i18n("filters.upto") }; datepicker(model.maxDate)
       }
-      field("Status") {
+      field {
+        labelProperty.i18n("filters.status")
         val list = observableList(*model.includedStatuses.keys.toTypedArray())
         checklistview(list).apply {
           /* https://stackoverflow.com/a/17456527/1726690 */
@@ -141,7 +154,8 @@ class FilterView: View() {
           }
         }
       }
-      field("Color codes") {
+      field {
+        labelProperty.i18n("filters.color_codes")
         val list = observableList(*model.includedColorCodes.keys.toTypedArray())
         checklistview(list).apply {
           /* https://stackoverflow.com/a/17456527/1726690 */

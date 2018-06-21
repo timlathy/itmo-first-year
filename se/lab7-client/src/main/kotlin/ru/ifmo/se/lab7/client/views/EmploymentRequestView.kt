@@ -7,6 +7,7 @@ import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequestModel
 import ru.ifmo.se.lab7.client.models.LocationConverter
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController.Actions
+import ru.ifmo.se.lab7.client.i18n
 import tornadofx.*
 
 class EmploymentRequestView: View() {
@@ -17,8 +18,8 @@ class EmploymentRequestView: View() {
   class ObjectActionRequest(val action: Actions, val element: EmploymentRequest, val auxElement: EmploymentRequest? = null): FXEvent()
 
   private fun setViewTitle(applicant: String?) {
-    title = (if (applicant == null || applicant.isBlank()) "New employment request"
-             else "${applicant}'s employment request").toUpperCase()
+    title = (if (applicant == null || applicant.isBlank()) messages["erview.new"]
+             else messages["erview.editing"].replace("{}", applicant)).toUpperCase()
   }
 
   override val root = hbox {
@@ -28,28 +29,35 @@ class EmploymentRequestView: View() {
 
     form {
       fieldset(labelPosition = Orientation.VERTICAL) {
-        field("Applicant") {
+        field {
+          labelProperty.i18n("erview.applicant")
           textfield(model.applicant).required(ValidationTrigger.None)
         }
-        field("Date") {
+        field {
+          labelProperty.i18n("erview.date")
           datepicker(model.date)
         }
-        field("Location") {
+        field {
+          labelProperty.i18n("erview.location")
           textfield { bind(model.location, converter = LocationConverter()) }
         }
-        field("Status") {
+        field {
+          labelProperty.i18n("erview.status")
           combobox(model.status, EmploymentRequest.Status.values().toList())
         }
-        field("Color code") {
+        field {
+          labelProperty.i18n("erview.color_code")
           combobox(model.colorCode, EmploymentRequest.ColorCode.values().toList())
         }
-        field("Details") {
+        field {
+          labelProperty.i18n("erview.details")
           textarea(model.details)
         }
         hbox {
           spacing = 8.0
 
-          button("Save changes") {
+          button {
+            textProperty().i18n("erview.save")
             styleClass.add("form__button")
             enableWhen(model.dirty)
             visibleWhen(isNewModel.not())
@@ -60,7 +68,8 @@ class EmploymentRequestView: View() {
             }
           }
 
-          button("Remove element") {
+          button {
+            textProperty().i18n("erview.remove")
             styleClass.add("form__button")
             visibleWhen(isNewModel.not())
             setOnAction {
@@ -73,48 +82,57 @@ class EmploymentRequestView: View() {
     vbox {
       spacing = 8.0
       styleClass.add("er-actions")
-      label("Actions").apply {
+      label {
+        textProperty().i18n("erview.actions")
         styleClass.add("er-actions__header")
       }
-      label("Use this employment request\nas a template to:").apply {
+      label {
+        textProperty().i18n("erview.actions_info")
         styleClass.add("er-actions__info")
         isWrapText = true
       }
-      button("Remove all with higher priority").apply {
+      button {
+        textProperty().i18n("erview.remove_higher")
         styleClass.add("er-actions__button")
         setOnAction {
           fire(ObjectActionRequest(Actions.REMOVE_ALL_HIGHER_PRIORITY, model.employmentRequest))
         }
       }
-      button("Remove all with lower priority").apply {
+      button {
+        textProperty().i18n("erview.remove_lower")
         styleClass.add("er-actions__button")
         setOnAction {
           fire(ObjectActionRequest(Actions.REMOVE_ALL_LOWER_PRIORITY, model.employmentRequest))
         }
       }
-      button("Remove all equivalent").apply {
+      button {
+        textProperty().i18n("erview.remove_all")
         styleClass.add("er-actions__button")
         setOnAction {
           fire(ObjectActionRequest(Actions.REMOVE_ALL, model.employmentRequest))
         }
       }
-      label("Add this employment request\nto the queue:").apply {
+      label {
+        textProperty().i18n("erview.add")
         styleClass.add("er-actions__info")
         isWrapText = true
       }
-      button("Only if it has the highest priority").apply {
+      button {
+        textProperty().i18n("erview.add_if_max")
         styleClass.add("er-actions__button")
         setOnAction {
           if (model.commit()) fire(ObjectActionRequest(Actions.ADD_IF_HIGHEST_PRIORITY, model.employmentRequest))
         }
       }
-      button("Only if it has the lowest priority").apply {
+      button {
+        textProperty().i18n("erview.add_if_min")
         styleClass.add("er-actions__button")
         setOnAction {
           if (model.commit()) fire(ObjectActionRequest(Actions.ADD_IF_LOWEST_PRIORITY, model.employmentRequest))
         }
       }
-      button("Add unconditionally").apply {
+      button {
+        textProperty().i18n("erview.add_uncond")
         styleClass.add("er-actions__button")
         setOnAction {
           if (model.commit()) fire(ObjectActionRequest(Actions.ADD, model.employmentRequest))
