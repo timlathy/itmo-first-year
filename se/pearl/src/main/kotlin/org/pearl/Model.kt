@@ -3,10 +3,12 @@ package org.pearl
 import org.pearl.query.WherePredicate
 
 @Target(AnnotationTarget.PROPERTY)
-annotation class IdColumn
+annotation class Id
 
 abstract class Model {
-  operator fun get(column: String) = WherePredicate.Column(tableName, column)
-
   open val tableName: String = javaClass.simpleName
+
+  val schema: Map<String, Column> = Column.ofModel(javaClass.kotlin)
+
+  operator fun get(column: String) = WherePredicate.Column(tableName, column)
 }

@@ -1,15 +1,14 @@
 package org.pearl
 
-import org.pearl.repo.DDLWriter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-class DDLWriterTest {
+class SqlTest {
   class DDLTestModel(
-    @IdColumn val id: Int = 0,
+    @Id val id: Int = 0,
     val name: String = "",
     val double: Double = 1.1,
     val date: LocalDateTime = LocalDateTime.now(),
@@ -28,6 +27,6 @@ class DDLWriterTest {
       | "id" serial PRIMARY KEY,
       | "name" text NOT NULL,
       | "zonedDate" timestampz NOT NULL)""".trimMargin().replace("\n", ""),
-      DDLWriter(DDLTestModel::class).tableDefinition())
+      Sql.tableDefinition(DDLTestModel()))
   }
 }

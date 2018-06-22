@@ -1,6 +1,7 @@
 package org.pearl.repo
 
 import org.pearl.Model
+import org.pearl.Sql
 import org.pearl.query.SelectQuery
 import org.pearl.reflection.enumByValue
 import org.pearl.reflection.java
@@ -61,7 +62,7 @@ object Repo {
     withStatement { it.executeUpdate(sql) }
 
   inline fun <reified T : Model> createTable() =
-    DDLWriter(T::class).tableDefinition().let { ddl -> withStatement { it.executeUpdate(ddl) } }
+    Sql.tableDefinition(T::class.java.newInstance()).let { ddl -> withStatement { it.executeUpdate(ddl) } }
 
   fun <T : Model> constructorParams(results: ResultSet, modelClass: KClass<T>) =
     constructorFields(modelClass).map { (name, type) ->

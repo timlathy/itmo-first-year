@@ -1,6 +1,6 @@
 package org.pearl.query
 
-import org.pearl.IdColumn
+import org.pearl.Id
 import org.pearl.Model
 import org.pearl.repo.Repo
 import kotlin.reflect.full.declaredMemberProperties
@@ -12,10 +12,10 @@ sealed class UpdateQuery<T : Model> {
   data class InsertQuery<T : Model>(val record: T) : UpdateQuery<T>() {
     override fun toParameterizedSql() =
       record.javaClass.kotlin.declaredMemberProperties
-        .filter { prop -> prop.annotations.none { it is IdColumn } }
+        .filter { prop -> prop.annotations.none { it is Id } }
         .map { Pair(it.name, it.get(record)) }
         .let {
-          val idCol = record.javaClass.kotlin.declaredMemberProperties.find { it.findAnnotation<IdColumn>() != null }?.name
+          val idCol = record.javaClass.kotlin.declaredMemberProperties.find { it.findAnnotation<Id>() != null }?.name
             ?: throw IllegalArgumentException("No ID column specified for ${record.tableName}")
 
           val cols = it.joinToString(", ") { "\"" + it.first + "\"" }

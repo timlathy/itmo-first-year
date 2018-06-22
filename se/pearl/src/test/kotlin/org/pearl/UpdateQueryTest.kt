@@ -14,9 +14,10 @@ class UpdateQueryTest {
   @Test
   fun `should build correct SQL for insertion`() {
     val date = LocalDateTime.of(2017, 2, 3, 17, 56, 20)
-    val (sql, bindings) = UpdateQuery.InsertQuery(TestModel(name = "h", size = 30, date = date)).toParameterizedSql()
+    val (sql, bindings) = UpdateQuery.InsertQuery(TestModel(
+      name = "h", size = 30, date = date, enum = TestModel.TestEnum.T3)).toParameterizedSql()
 
-    assertEquals("""INSERT INTO "TestModel" ("date", "name", "size") VALUES (?, ?, ?) RETURNING "id"""", sql)
-    assertEquals(listOf(date, "h", 30), bindings)
+    assertEquals("""INSERT INTO "TestModel" ("date", "enum", "name", "size") VALUES (?, ?, ?, ?) RETURNING "id"""", sql)
+    assertEquals(listOf(date, TestModel.TestEnum.T3, "h", 30), bindings)
   }
 }
