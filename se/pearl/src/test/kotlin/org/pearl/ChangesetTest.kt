@@ -22,7 +22,7 @@ class ChangesetTest {
   }
 
   @Test
-  fun `it should create changesets for new records`() {
+  fun `should create changesets for new records`() {
     val expected = Changeset(ChangesetTestModel(),
       changes = mapOf(
         "name" to "h",
@@ -47,7 +47,16 @@ class ChangesetTest {
   }
 
   @Test
-  fun `it should report casting errors`() {
+  fun `should create changesets for record updates`() {
+    val existingRecord = ChangesetTestModel(id = 1, name = "", double = 1.34)
+    val changeset = Changeset.update(existingRecord, mapOf("name" to "hbc", "double" to "35"), listOf("name"))
+
+    assertEquals(mapOf("name" to "hbc"), changeset.changes)
+    assertEquals(emptyList(), changeset.errors)
+  }
+
+  @Test
+  fun `should report casting errors`() {
     assertEquals(listOf("Incorrect value provided for \"enum\""),
       Changeset.newRecord<ChangesetTestModel>(params = mapOf(
         "enum" to "UNKNOWN_VAL"
@@ -60,7 +69,7 @@ class ChangesetTest {
   }
 
   @Test
-  fun `it should support validation`() {
+  fun `should support validation`() {
     val changeset = Changeset.newRecord<ChangesetTestModel>(emptyMap(), emptyList())
     assertTrue { changeset.errors.isEmpty() }
 

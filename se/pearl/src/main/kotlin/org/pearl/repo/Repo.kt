@@ -38,7 +38,10 @@ object Repo {
     }
 
   inline fun <reified T : Model> insert(changeset: Changeset<T>): T =
-    withPrepared(Sql.insertion(changeset)) { instantiateMany<T>(it.executeQuery()).first() }
+    withPrepared(Sql.insert(changeset)) { instantiateMany<T>(it.executeQuery()).first() }
+
+  inline fun <reified T : Model> update(changeset: Changeset<T>): T =
+    withPrepared(Sql.update(changeset)) { instantiateMany<T>(it.executeQuery()).first() }
 
   fun updateWithResult(sqlWithParams: Pair<String, List<Any?>>) =
     withPrepared(sqlWithParams) { it.executeQuery() }

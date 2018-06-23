@@ -12,9 +12,9 @@ fun enumByValue(enumClass: String, value: String) =
     .getMethod("valueOf", String::class.java)
     .invoke(null, value)
 
-inline fun <reified T : Any, R> T.propertyValue(name: String): R? =
+inline fun <reified T : Any> T.propertyValue(name: String): Any? =
   T::class.declaredMemberProperties.find { it.name == name }?.let {
-    (it as? KProperty1<T, R>)?.get(this)
+    (it as KProperty1<T, Any?>).get(this)
   }
 
 fun KType.javaName() = this.javaType.typeName

@@ -9,10 +9,17 @@ import org.pearl.reflection.propertyValue
 data class Changeset<T : Model>(val record: T, val changes: Map<String, Any?>, val errors: List<String>) {
   companion object {
     inline fun <reified T : Model> newRecord(params: Map<String, String>, allowedParams: List<String>): Changeset<T> =
-      T::class.createInstance().let { defaultRecord ->
-        val (changes, errors) = cast(defaultRecord.schema, { defaultRecord.propertyValue(it) }, params.filterKeys(allowedParams::contains))
-        Changeset(defaultRecord, changes, errors)
+      assign(T::class.createInstance(), params, allowedParams)
+
+    inline fun <reified T : Model> update(record: T, params: Map<String, String>, allowedParams: List<String>): Changeset<T> =
+      assign(record, params, allowedParams).let { (record, changes, errors) ->
+        Changeset(record, changes.filter { it.value != record.propertyValue(it.key) }, errors)
       }
+
+    inline fun <reified T : Model> assign(record: T, params: Map<String, String>, allowedParams: List<String>): Changeset<T> {
+      val (changes, errors) = cast(record.schema, record::propertyValue, params.filterKeys(allowedParams::contains))
+      return Changeset(record, changes, errors)
+    }
 
     fun cast(schema: Schema, defaultLookup: (String) -> Any?, params: Map<String, String>): Pair<Map<String, Any?>, List<String>> =
       schema.entries.fold(Pair(mutableMapOf(), mutableListOf())) { (changes, errors), (name, column) ->
