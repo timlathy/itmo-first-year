@@ -20,7 +20,7 @@ class SelectQuery<T : Model>(
 
   fun toParameterizedSql(): Pair<String, List<Any>> {
     val table = model.tableName
-    val projection = selectList?.map { "\"$table\".\"$it\"" }?.joinToString(", ") ?: "*"
+    val projection = selectList?.joinToString(", ") { "\"$table\".\"$it\"" } ?: "*"
     val selection = predicate?.let { " WHERE $it" } ?: ""
     val limit = limit?.let { " LIMIT $it" } ?: ""
     val bindings = predicate?.bindings ?: emptyList()

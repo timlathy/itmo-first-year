@@ -21,7 +21,7 @@ object Connector {
       .prepareStatement(sqlWithParams.first)
       .apply { sqlWithParams.second.forEachIndexed { i, param ->
         /* Enums are stored as strings in the database */
-        if (param?.javaClass?.isEnum ?: false) setString(i + 1, param.toString())
+        if (param?.javaClass?.isEnum == true) setString(i + 1, param.toString())
         else setObject(i + 1, param)
       } }
       .use(block)

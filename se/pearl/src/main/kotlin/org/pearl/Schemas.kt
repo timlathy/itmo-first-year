@@ -40,7 +40,7 @@ object Schemas {
   private val schemas = mutableMapOf<Class<out Model>, Schema>()
 
   fun <T : Model> ofModel(modelClass: Class<T>): Schema =
-    schemas.getOrPut(modelClass, { buildSchema(modelClass) })
+    schemas.getOrPut(modelClass) { buildSchema(modelClass) }
 
   private fun <T : Model> buildSchema(modelClass: Class<T>) =
     modelClass.kotlin.declaredMemberProperties

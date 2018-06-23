@@ -9,7 +9,7 @@ import org.pearl.query.not
 import java.time.LocalDateTime
 
 class SelectQueryTest {
-  class Product(val id: Int = 0, val testId: Int = 0) : Model()
+  data class Product(val id: Int = 0, val testId: Int = 0) : Model()
 
   @Test
   fun `should convert predicates to SQL, keeping bound variables`() {
