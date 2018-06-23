@@ -4,9 +4,7 @@ import kotlin.test.Test
 
 import TestModel
 import org.pearl.query.from
-import org.pearl.query.insert
 import org.pearl.repo.Repo
-import java.time.LocalDateTime
 import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 
@@ -27,8 +25,10 @@ class RepoTest {
   @Test
   fun `should insert new records`() {
     try { Repo.createTable<TestModel>() } catch (e: Exception) { }
-    insert(TestModel(name = "aaa", date = LocalDateTime.of(2017, 2, 3, 10, 0, 0), size = 80, enum = TestModel.TestEnum.T2))
-    insert(TestModel(name = "bbb", size = 20, enum = TestModel.TestEnum.T3))
+    assertEquals(1, Repo.insert(Changeset.newRecord<TestModel>(
+      mapOf("name" to "aaa", "size" to "100", "enum" to "T2"), listOf("name", "size", "enum"))).id)
+    assertEquals(2, Repo.insert(Changeset.newRecord<TestModel>(
+      mapOf("name" to "bbb", "size" to "120", "enum" to "T3"), listOf("name", "size", "enum"))).id)
 
     assertEquals(listOf(1, 2), Repo.fetchMany(from<TestModel>().where { it["size"] lt 200 }).map { it.id })
     assertEquals(listOf(1), Repo.fetchMany(from<TestModel>().where { it["name"] eq "aaa" }).map { it.id })

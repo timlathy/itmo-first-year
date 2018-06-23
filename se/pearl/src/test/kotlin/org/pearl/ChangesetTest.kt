@@ -1,20 +1,16 @@
 package org.pearl
 
+import Consts.defaultDate
+import Consts.defaultZonedDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.assertTrue
 
 class ChangesetTest {
-  companion object {
-    val defaultDate = LocalDateTime.of(1970, 1, 1, 12, 0, 0)
-    val defaultZonedDate = ZonedDateTime.of(defaultDate, ZoneId.systemDefault())
-  }
-
-  class ChangesetTestModel (
+  data class ChangesetTestModel (
     @Id val id: Int = 0,
     val name: String = "",
     val double: Double = 1.1,
@@ -27,7 +23,7 @@ class ChangesetTest {
 
   @Test
   fun `it should create changesets for new records`() {
-    val expected = Changeset<ChangesetTestModel>(null,
+    val expected = Changeset(ChangesetTestModel(),
       changes = mapOf(
         "name" to "h",
         "double" to -1.8,

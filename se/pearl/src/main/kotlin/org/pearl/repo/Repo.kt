@@ -1,62 +1,47 @@
 package org.pearl.repo
 
+import org.pearl.Changeset
 import org.pearl.Model
 import org.pearl.Sql
 import org.pearl.query.SelectQuery
 import org.pearl.reflection.enumByValue
 import org.pearl.reflection.java
 import org.pearl.reflection.javaName
+import org.pearl.repo.Connector.withPrepared
+import org.pearl.repo.Connector.withStatement
 import java.sql.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
 typealias QualifiedClassName = String
-typealias NameType = Pair<String, String>
+typealias NameTypeMap = Map<String, String>
+typealias ParameterizedSql = Pair<String, List<Any?>>
 
 const val ENUM_TAG = "-ENUM-"
 
 object Repo {
-  var connection: Connection? = null
-  private val memoizedConstructorFields: MutableMap<QualifiedClassName, List<NameType>> = mutableMapOf()
+  private val memoizedConstructorFields: MutableMap<QualifiedClassName, NameTypeMap> = mutableMapOf()
 
-  init {
-    Class.forName("org.postgresql.Driver")
-  }
+  fun connectToUrl(host: String, port: Int, dbname: String, username: String, password: String) =
+    Connector.connectToUrl(host, port, dbname, username, password)
 
-  fun connectToUrl(host: String, port: Int, dbname: String, username: String, password: String) {
-    connection = DriverManager.getConnection("jdbc:postgresql://$host:$port/$dbname", username, password)
-  }
+  inline fun <reified T : Model> fetchMany(query: SelectQuery<T>): List<T> =
+    withPrepared(query.toParameterizedSql()) { instantiateMany(it.executeQuery()) }
 
-  inline fun <R> withPrepared(sqlWithParams: Pair<String, List<Any?>>, block: (PreparedStatement) -> R): R =
-    connection!!
-      .prepareStatement(sqlWithParams.first)
-      .apply { sqlWithParams.second.forEachIndexed { i, param ->
-        /* Enums are stored as strings in the database */
-        if (param?.javaClass?.isEnum ?: false) setString(i + 1, param.toString())
-        else setObject(i + 1, param)
-      } }
-      .use(block)
+  inline fun <reified T : Model> instantiateMany(results: ResultSet): List<T> =
+    mutableListOf<T>().apply {
+      while(results.next()) {
+        T::class.primaryConstructor
+          ?.call(*constructorParams(results, T::class))
+          ?.let(::add)
+      }
+    }
 
-  inline fun <R> withStatement(block: (Statement) -> R): R =
-    connection!!
-      .createStatement()
-      .use(block)
+  inline fun <reified T : Model> insert(changeset: Changeset<T>): T =
+    withPrepared(Sql.insertion(changeset)) { instantiateMany<T>(it.executeQuery()).first() }
 
   fun updateWithResult(sqlWithParams: Pair<String, List<Any?>>) =
     withPrepared(sqlWithParams) { it.executeQuery() }
-
-  inline fun <reified T : Model> fetchMany(query: SelectQuery<T>): List<T> =
-    withPrepared(query.toParameterizedSql()) { statement ->
-      val result = mutableListOf<T>()
-      with(statement.executeQuery()) {
-        while(next()) {
-          T::class.primaryConstructor
-            ?.call(*constructorParams(this, T::class))
-            ?.let(result::add)
-        }
-      }
-      result
-    }
 
   fun rawSqlUpdate(sql: String) =
     withStatement { it.executeUpdate(sql) }
@@ -90,6 +75,7 @@ object Repo {
           val type = if (it.type.java().isEnum) "$ENUM_TAG${it.type.javaName()}" else it.type.javaName()
           Pair(it.name!!, type)
         }
+        ?.toMap()
         ?: throw IllegalArgumentException("${modelClass.simpleName} does not have a primary constructor.")
     }
 }

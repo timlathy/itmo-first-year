@@ -6,12 +6,12 @@ import org.pearl.Schemas.Column.SqlType.Primitive.PrimitiveMapping.*
 import org.pearl.Schemas.Column.SqlType.EnumStringified
 import org.pearl.reflection.propertyValue
 
-data class Changeset<T : Model>(val record: T?, val changes: Map<String, Any?>, val errors: List<String>) {
+data class Changeset<T : Model>(val record: T, val changes: Map<String, Any?>, val errors: List<String>) {
   companion object {
     inline fun <reified T : Model> newRecord(params: Map<String, String>, allowedParams: List<String>): Changeset<T> =
       T::class.createInstance().let { defaultRecord ->
         val (changes, errors) = cast(defaultRecord.schema, { defaultRecord.propertyValue(it) }, params.filterKeys(allowedParams::contains))
-        Changeset(null, changes, errors)
+        Changeset(defaultRecord, changes, errors)
       }
 
     fun cast(schema: Schema, defaultLookup: (String) -> Any?, params: Map<String, String>): Pair<Map<String, Any?>, List<String>> =

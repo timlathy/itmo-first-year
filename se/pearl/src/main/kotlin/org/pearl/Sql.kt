@@ -1,20 +1,29 @@
 package org.pearl
 
-class Sql {
-  companion object {
-    fun escapeIdentifier(unescapedName: String) = unescapedName.replace("\"", "\\\"")
+import org.pearl.repo.ParameterizedSql
 
-    fun tableDefinition(model: Model) =
-      """CREATE TABLE "${model.tableName}" (${tableColumns(model)})"""
+object Sql {
+  @JvmStatic
+  fun tableDefinition(model: Model) =
+    """CREATE TABLE "${model.tableName}" (${tableColumns(model)})"""
 
-    private fun tableColumns(model: Model) =
-      model.schema.entries.joinToString(", ") {
-        '"' + escapeIdentifier(it.key) + '"' + ' ' + it.value.sqlType +
-          when {
-            it.value.isPrimaryKey -> " PRIMARY KEY"
-            !it.value.isNullable -> " NOT NULL"
-            else -> ""
-          }
-      }
-  }
+  @JvmStatic
+  fun insertion(changeset: Changeset<*>): ParameterizedSql =
+    Pair("""INSERT INTO "${changeset.record.tableName}" (${changeset.changes.keys.joinToString(", ", transform = ::identifier)}) """ +
+      "VALUES (${Array(changeset.changes.size, { "?" }).joinToString(", ")}) RETURNING *", changeset.changes.values.toList())
+
+  @JvmStatic
+  private fun tableColumns(model: Model) =
+    model.schema.entries.joinToString(", ") {
+      identifier(it.key) + ' ' + it.value.sqlType +
+        when {
+          it.value.isPrimaryKey -> " PRIMARY KEY"
+          !it.value.isNullable -> " NOT NULL"
+          else -> ""
+        }
+    }
+
+  @JvmStatic
+  private fun identifier(unescapedName: String) = '"' + unescapedName.replace("\"", "\\\"") + '"'
+
 }

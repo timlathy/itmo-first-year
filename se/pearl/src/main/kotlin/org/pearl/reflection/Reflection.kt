@@ -1,7 +1,6 @@
 package org.pearl.reflection
 
 import kotlin.reflect.KAnnotatedElement
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
 import kotlin.reflect.full.declaredMemberProperties
