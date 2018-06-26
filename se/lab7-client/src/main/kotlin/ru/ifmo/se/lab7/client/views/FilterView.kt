@@ -93,14 +93,14 @@ class FilterView: View() {
 
           textfield(model.minLatitude, SafeNumberStringConverter()) {
             required()
-            textContainingDoubleBetween(0.0, 90.0)
+            textContainingDoubleBetween(-90.0, 90.0)
           }
           label {
             textProperty().i18n("filters.upto")
           }
           textfield(model.maxLatitude, SafeNumberStringConverter()) {
             required()
-            textContainingDoubleBetween(0.0, 90.0)
+            textContainingDoubleBetween(-90.0, 90.0)
           }
           label {
             textProperty().i18n("filters.latitude")
@@ -112,14 +112,14 @@ class FilterView: View() {
 
           textfield(model.minLongitude, SafeNumberStringConverter()) {
             required()
-            textContainingDoubleBetween(0.0, 180.0)
+            textContainingDoubleBetween(-180.0, 180.0)
           }
           label {
             textProperty().i18n("filters.upto")
           }
           textfield(model.maxLongitude, SafeNumberStringConverter()) {
             required()
-            textContainingDoubleBetween(0.0, 180.0)
+            textContainingDoubleBetween(-180.0, 180.0)
           }
           label {
             textProperty().i18n("filters.longitude")

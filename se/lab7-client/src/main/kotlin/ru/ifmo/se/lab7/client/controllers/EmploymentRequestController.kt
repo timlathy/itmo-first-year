@@ -1,71 +1,64 @@
 package ru.ifmo.se.lab7.client.controllers
 
-import ru.ifmo.se.lab7.client.ServerConnection
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import tornadofx.*
 import java.io.StringReader
-import java.net.InetSocketAddress
 import javax.json.Json
 
 class EmploymentRequestController: Controller() {
+  val api: Rest by inject()
+
+  init {
+    Rest.useApacheHttpClient()
+    api.baseURI = "http://localhost:8080"
+  }
+
   var objectList = SortedFilteredList<EmploymentRequest>(observableList())
     private set
 
-  var connection = ServerConnection(InetSocketAddress(8080))
-
-  enum class Actions(private val description: String) {
-    ADD("add"),
-    REMOVE("remove"),
-    ADD_IF_HIGHEST_PRIORITY("add_if_max"),
-    ADD_IF_LOWEST_PRIORITY("add_if_min"),
-    REMOVE_ALL_HIGHER_PRIORITY("remove_greater"),
-    REMOVE_ALL_LOWER_PRIORITY("remove_lower"),
-    REMOVE_ALL("remove_all"),
-    CHANGE_EXISTING("");
-
-    override fun toString() = description
+  enum class Actions {
+    ADD, ADD_IF_HIGHEST_PRIORITY, ADD_IF_LOWEST_PRIORITY,
+    REMOVE, REMOVE_ALL, REMOVE_ALL_HIGHER_PRIORITY, REMOVE_ALL_LOWER_PRIORITY,
+    EDIT
   }
 
-  fun executeAction(action: Actions, element: EmploymentRequest, auxElement: EmploymentRequest?): String {
-    val jsonElement = element.toJSON().toString()
-    val jsonAuxElement = auxElement?.toJSON()?.toString()
+  fun handleError(resp: Rest.Response): String? = when (resp.statusCode) {
+    200, 201 -> null
+    422 -> "api.validation_error"
+    else -> "api.error"
+  }
+
+  fun executeAction(action: Actions, element: EmploymentRequest, auxElement: EmploymentRequest?) =
     try {
-      return when (action) {
-        Actions.CHANGE_EXISTING -> {
-          connection.fetchResponse("remove", jsonAuxElement!!)
-          connection.fetchResponse("add", jsonElement)
-        }
-        else -> {
-          connection.fetchResponse(action.toString(), jsonElement)
-        }
-      }
+      when (action) {
+        Actions.ADD -> api.post("/queue", element)
+        Actions.ADD_IF_HIGHEST_PRIORITY -> api.post("/queue?mode=if_max", element)
+        Actions.ADD_IF_LOWEST_PRIORITY -> api.post("/queue?mode=if_min", element)
+        Actions.REMOVE -> api.delete("/queue/${element.id}")
+        Actions.REMOVE_ALL -> api.delete("/queue")
+        Actions.REMOVE_ALL_HIGHER_PRIORITY -> api.delete("/queue?mode=greater", element)
+        Actions.REMOVE_ALL_LOWER_PRIORITY -> api.delete("/queue?mode=lesser", element)
+        Actions.EDIT -> api.patch("/queue/${element.id}", auxElement!!)
+      }.let(::handleError)
     }
-    catch (e: ServerConnection.RequestFailureException) {
-      return e.message
-    }
-  }
+    catch (e: Exception) { "api.error" }
 
-  fun addAllSerialized(items: String) {
-    readSerializedList(items).forEach { executeAction(Actions.ADD, it, null) }
+  fun addAllSerialized(jsonItems: String) {
+    jsonItems
+      .let { Json.createReader(StringReader(it)) }
+      .readArray()
+      .toModel<EmploymentRequest>()
+      .forEach { executeAction(Actions.ADD, it, null) }
   }
 
   fun setObjectListPredicate(pred: (EmploymentRequest) -> Boolean) {
     objectList.predicate = pred
   }
 
-  fun refreshObjectList() {
+  fun refreshObjectList() =
     try {
-      connection.fetchResponse("dump_queue").let(::setObjectListFromSerialized)
+      api.get("/queue").list().toModel<EmploymentRequest>().let { objectList.items.setAll(it) }
+      null
     }
-    catch (e: ServerConnection.RequestFailureException) {
-      /* Silently ignoring it for now...*/
-      /* TODO: show an error in the UI */
-    }
-  }
-
-  private fun readSerializedList(json: String): List<EmploymentRequest> =
-    json.let { Json.createReader(StringReader(it)) }.readArray().toModel()
-
-  private fun setObjectListFromSerialized(json: String) =
-    readSerializedList(json).let { objectList.items.setAll(it) }
+    catch (e: Exception) { "api.error" }
 }

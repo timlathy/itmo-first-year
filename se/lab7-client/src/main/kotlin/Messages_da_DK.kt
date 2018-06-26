@@ -39,5 +39,8 @@ class Messages_da_DK : MapResourceBundle<String, String>(mapOf(
   "nav.export" to "Exporteren naar een bestand...",
   "nav.filters" to "Filters",
   "nav.refresh" to "Objecten vernieuwen",
-  "nav.new_item" to "Nieuwe"
+  "nav.new_item" to "Nieuwe",
+  "api.error" to "Er is een fout opgetreden. Probeer het later opnieuw",
+  "api.validation_error" to "Zorg ervoor dat de gegevens die u hebt ingevoerd correct zijn",
+  "validation.range" to "De opgegeven waarde moet in het bereik van {from} tot {to} liggen"
 ))

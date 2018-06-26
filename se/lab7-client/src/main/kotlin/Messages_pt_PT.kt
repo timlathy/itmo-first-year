@@ -39,5 +39,8 @@ class Messages_pt_PT : MapResourceBundle<String, String>(mapOf(
   "nav.export" to "Exportar para um arquivo...",
   "nav.filters" to "Filtros",
   "nav.refresh" to "Atualizar objetos",
-  "nav.new_item" to "Novo"
+  "nav.new_item" to "Novo",
+  "api.error" to "Ocorreu um erro. Por favor, tente novamente mais tarde",
+  "api.validation_error" to "Por favor, verifique se os dados que você digitou estão corretos",
+  "validation.range" to "O valor especificado deve estar no intervalo de {from} a {to}"
 ))

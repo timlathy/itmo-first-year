@@ -18,6 +18,8 @@ object LocaleControl {
 
   fun getResources() = resourcesProperty().get()
 
+  fun string(key: String) = getResources().getString(key)
+
   fun binding(key: String) = (object : StringBinding() {
     init { bind(resourcesProperty()) }
 

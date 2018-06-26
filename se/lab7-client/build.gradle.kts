@@ -8,13 +8,13 @@ buildscript {
   }
   dependencies {
     classpath("com.github.jengelman.gradle.plugins:shadow:2.0.1")
-    classpath(kotlinModule("gradle-plugin", "1.2.41"))
+    classpath(kotlinModule("gradle-plugin", "1.2.50"))
   }
 }
 
 plugins {
   application
-  kotlin("jvm") version "1.2.41"
+  kotlin("jvm") version "1.2.50"
   id("com.github.johnrengelman.shadow") version "2.0.1"
 }
 
@@ -32,6 +32,7 @@ dependencies {
   compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.4")
   compile("no.tornado:tornadofx:1.7.16")
   compile("no.tornado:tornadofx-controlsfx:0.1")
+  compile("org.apache.httpcomponents:httpclient:4.5.5")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
   testCompile("org.mockito:mockito-core:2.15.0")
 }

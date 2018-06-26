@@ -70,19 +70,9 @@ class EmploymentRequest(
     }
   }
 
-  enum class Status(private val description: String) {
-    INTERVIEW_SCHEDULED("Interview scheduled"),
-    PROCESSING("Processing"),
-    REJECTED("Rejected");
+  enum class Status { INTERVIEW_SCHEDULED, PROCESSING, REJECTED }
 
-    override fun toString() = description
-  }
-
-  enum class ColorCode(private val description: String) {
-    ORANGE("orange"), BLUE("blue"), GREEN("green");
-
-    override fun toString() = description
-  }
+  enum class ColorCode { ORANGE, BLUE, GREEN }
 
   override fun compareTo(other: EmploymentRequest): Int =
     Comparator.comparing<EmploymentRequest, Status> { it.status }

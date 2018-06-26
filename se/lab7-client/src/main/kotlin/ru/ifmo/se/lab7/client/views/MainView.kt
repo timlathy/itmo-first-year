@@ -1,5 +1,6 @@
 package ru.ifmo.se.lab7.client.views
 
+import javafx.event.EventHandler
 import javafx.stage.FileChooser
 import ru.ifmo.se.lab7.client.components.NavigationHeader
 import ru.ifmo.se.lab7.client.controllers.MainController
@@ -20,12 +21,23 @@ class MainView : View() {
     //messages["main.dashboard_view"] to DashboardView())
   private val navigation = NavigationHeader(mapView, views)
 
+  private val errorNotice = label {
+    styleClass.add("error-notice")
+    text = "An error has occurred"
+    tooltip("Click to dismiss")
+    hide()
+
+    onMouseClicked = EventHandler { hide() }
+  }
+
   override val root = vbox {
     styleClass.add("content-root")
     spacing = 6.0
 
     add(navigation)
     add(views.values.first())
+    add(errorNotice)
+    errorNotice.prefWidthProperty().bind(this.widthProperty())
   }
 
   init {
@@ -44,8 +56,10 @@ class MainView : View() {
     subscribe<NavigationHeader.RefreshRequest> {
       runAsync {
         dataController.refreshObjectList()
-      } ui {
-        navigation.onRefreshCompleted()
+      } ui { e ->
+        if (!error(e)) {
+          navigation.onRefreshCompleted()
+        }
       }
     }
 
@@ -67,14 +81,23 @@ class MainView : View() {
     subscribe<MapView.PinSelectionEvent> { e -> openEditor(e.element) }
 
     subscribe<EmploymentRequestView.ObjectActionRequest> { e ->
-      navigation.navigateBack()
       runAsync {
         dataController.executeAction(e.action, e.element, e.auxElement)
-      } ui {
-        println(it)
-        navigation.forceRefreshAction()
+      } ui { e ->
+        if (!error(e)) {
+          navigation.navigateBack()
+          navigation.forceRefreshAction()
+        }
       }
     }
+  }
+
+  private fun error(errorKey: String?): Boolean {
+    if (errorKey != null) {
+      errorNotice.textProperty().i18n(errorKey)
+      errorNotice.show()
+    }
+    return errorKey != null
   }
 
   private fun openEditor(target: EmploymentRequest? = null) {

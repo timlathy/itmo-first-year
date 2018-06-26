@@ -7,9 +7,14 @@ import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequestModel
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController.Actions
 import ru.ifmo.se.lab7.client.i18n
+import ru.ifmo.se.lab7.client.models.Validators.Companion.textContainingDoubleBetween
 import tornadofx.*
 
 class EmploymentRequestView: View() {
+  companion object {
+    val DOUBLE_REGEX = """\d+([,.]\d+)?""".toRegex()
+  }
+
   val model = EmploymentRequestModel(EmploymentRequest())
 
   var isNewModel: SimpleBooleanProperty = SimpleBooleanProperty(false)
@@ -38,8 +43,14 @@ class EmploymentRequestView: View() {
         }
         field {
           labelProperty.i18n("erview.location")
-          textfield { bind(model.locLatitude) }
-          textfield { bind(model.locLongitude) }
+          textfield {
+            bind(model.locLatitude)
+            textContainingDoubleBetween(-90.0, 90.0)
+          }
+          textfield {
+            bind(model.locLongitude)
+            textContainingDoubleBetween(-180.0, 180.0)
+          }
         }
         field {
           labelProperty.i18n("erview.status")
@@ -64,7 +75,7 @@ class EmploymentRequestView: View() {
             setOnAction {
               val oldRequest = model.employmentRequest
               model.validate()
-              if (model.commit()) fire(ObjectActionRequest(Actions.CHANGE_EXISTING, model.employmentRequest, oldRequest))
+              if (model.commit()) fire(ObjectActionRequest(Actions.EDIT, model.employmentRequest, oldRequest))
             }
           }
 

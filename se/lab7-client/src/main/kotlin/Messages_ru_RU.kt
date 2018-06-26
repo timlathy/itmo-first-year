@@ -39,5 +39,8 @@ class Messages_ru_RU : MapResourceBundle<String, String>(mapOf(
   "nav.export" to "Сохранить в файл...",
   "nav.filters" to "Фильтры",
   "nav.refresh" to "Обновить состояние коллекции",
-  "nav.new_item" to "Новый запрос"
+  "nav.new_item" to "Новый запрос",
+  "api.error" to "Произошла ошибка. Пожалуйста, повторите запрос позже",
+  "api.validation_error" to "Пожалуйста, убедись в том, что введенные вами данные верны",
+  "validation.range" to "Введенное значение должно находиться в диапазоне от {from} до {to}"
 ))
