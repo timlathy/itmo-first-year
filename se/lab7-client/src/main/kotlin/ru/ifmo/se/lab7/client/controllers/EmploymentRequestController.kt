@@ -6,8 +6,7 @@ import java.io.StringReader
 import javax.json.Json
 
 class EmploymentRequestController: Controller() {
-  val mainController: MainController by inject()
-  val api = mainController.api
+  val api: Rest by inject()
 
   var objectList = SortedFilteredList<EmploymentRequest>(observableList())
     private set
@@ -35,7 +34,7 @@ class EmploymentRequestController: Controller() {
         Actions.REMOVE_ALL_HIGHER_PRIORITY -> api.delete("/queue?mode=greater", element)
         Actions.REMOVE_ALL_LOWER_PRIORITY -> api.delete("/queue?mode=lesser", element)
         Actions.EDIT -> api.patch("/queue/${element.id}", auxElement!!)
-      }.let(::handleError)
+      }.apply { close() }.let(::handleError)
     }
     catch (e: Exception) { "api.error" }
 
