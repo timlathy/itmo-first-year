@@ -6,12 +6,8 @@ import java.io.StringReader
 import javax.json.Json
 
 class EmploymentRequestController: Controller() {
-  val api: Rest by inject()
-
-  init {
-    Rest.useApacheHttpClient()
-    api.baseURI = "http://localhost:8080"
-  }
+  val mainController: MainController by inject()
+  val api = mainController.api
 
   var objectList = SortedFilteredList<EmploymentRequest>(observableList())
     private set

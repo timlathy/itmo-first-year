@@ -35,6 +35,7 @@ dependencies {
   compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5")
   compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.5")
   compile("org.slf4j:slf4j-simple:1.7.25")
+  compile("org.mindrot:jbcrypt:0.4")
   testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
   testCompile("org.junit.vintage:junit-vintage-engine:5.2.0")
   testCompile("com.despegar:spark-test:1.1.8")

@@ -20,6 +20,7 @@ import java.time.temporal.ChronoUnit.SECONDS
 class ApiControllerTest {
   class TestApp: SparkApplication {
     override fun init() {
+      Auth.disableAuthTestingOnly()
       Spark::class.java
         .getDeclaredMethod("getInstance")
         .apply { isAccessible = true }

@@ -16,9 +16,7 @@ class ClientApp: App(AuthView::class, Styles::class) {
     Font.loadFont(resources["/fonts/fa-regular-400.ttf"], 10.0)
     Font.loadFont(resources["/fonts/fa-solid-900.ttf"], 10.0)
 
-    val server = Server()
-
-    mainController.init(server)
+    mainController.init()
   }
 }
 

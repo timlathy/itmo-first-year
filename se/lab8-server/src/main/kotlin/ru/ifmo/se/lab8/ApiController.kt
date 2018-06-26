@@ -20,11 +20,15 @@ class ApiController(http: Http) {
   val readJsonMap = { body: String -> jsonMapper.readValue<Map<String, String>>(body) }
 
   init {
-    http.get("/queue") {
+    http.before {
+      if (!Auth.authenticateHeader(request.headers("Authorization"))) halt(403)
+    }
+
+    http.get("/queue") { 
       Repo.many(from<EmReq>()).let(json)
     }
 
-    http.post("/queue") {
+    http.post("/queue") { 
       val changeset = request.body()
         .let(readJsonMap)
         .let { newRecord<EmReq>(it, ALLOWED_PARAMS) }
@@ -44,19 +48,19 @@ class ApiController(http: Http) {
       }
     }
 
-    http.patch("/queue/:id") {
+    http.patch("/queue/:id") { 
       EmReq(id = params("id").toInt())
         .let { Changeset.update(it, request.body().let(readJsonMap), ALLOWED_PARAMS) }
         .let { Repo.one(updateRecord(it)) }
         .let(json)
     }
 
-    http.delete("/queue/:id") {
+    http.delete("/queue/:id") { 
       EmReq(id = params("id").toInt())
         .let { Repo.execute(deleteRecord(it)) }
     }
 
-    http.delete("/queue") {
+    http.delete("/queue") { 
       val comparingAgainst = {
         request.body()
           .takeUnless { it.isNullOrBlank() }
