@@ -1,6 +1,7 @@
 package ru.ifmo.se.lab7.client.controllers
 
 import javafx.scene.control.Alert
+import ru.ifmo.se.lab7.client.components.NavigationHeader
 import ru.ifmo.se.lab7.client.views.AuthView
 import ru.ifmo.se.lab7.client.views.MainView
 import tornadofx.*
@@ -32,6 +33,7 @@ class MainController: Controller() {
 
   fun showMainView() {
     authView.replaceWith(mainView, centerOnScreen = true)
+    fire(NavigationHeader.RefreshRequest())
   }
 
   fun login(username: String, password: String) {

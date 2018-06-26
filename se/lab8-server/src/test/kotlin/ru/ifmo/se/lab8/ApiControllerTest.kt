@@ -14,7 +14,7 @@ import spark.Service
 import spark.Spark
 import spark.kotlin.Http
 import spark.servlet.SparkApplication
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 
 class ApiControllerTest {
@@ -62,7 +62,7 @@ class ApiControllerTest {
 
   @Test
   fun `POST queue creates new employment requests`() {
-    val date = LocalDateTime.now().truncatedTo(SECONDS)
+    val date = ZonedDateTime.now().truncatedTo(SECONDS).toOffsetDateTime()
 
     post("/queue", """{"applicant": "h", "date": "$date", "locLatitude": 1.2, "locLongitude": 2.1,""" +
          """"details": "hh", "status": "REJECTED", "colorCode": "BLUE"}""") { status, body ->
@@ -80,7 +80,7 @@ class ApiControllerTest {
 
   @Test
   fun `POST queue?mode=if_max creates a request only if it has the highest priority`() {
-    var date = LocalDateTime.now().truncatedTo(SECONDS)
+    var date = ZonedDateTime.now().truncatedTo(SECONDS)
     val initial = arrayOf(
       EmploymentRequest(id = 1, applicant = "joe", date = date.minusHours(1)),
       EmploymentRequest(id = 2, applicant = "mary", date = date)
@@ -106,7 +106,7 @@ class ApiControllerTest {
 
   @Test
   fun `POST queue?mode=if_min creates a request only if it has the lowest priority`() {
-    val date = LocalDateTime.now().truncatedTo(SECONDS)
+    val date = ZonedDateTime.now().truncatedTo(SECONDS)
     val initial = arrayOf(
       EmploymentRequest(id = 1, applicant = "joe", date = date.minusHours(1)),
       EmploymentRequest(id = 2, applicant = "mary", date = date.minusSeconds(1))
@@ -130,7 +130,7 @@ class ApiControllerTest {
 
   @Test
   fun `DELETE queue?mode=lesser removes all lower-priority elements`() {
-    val date = LocalDateTime.now().truncatedTo(SECONDS)
+    val date = ZonedDateTime.now().truncatedTo(SECONDS)
     val initial = arrayOf(
       EmploymentRequest(1, "amy", date.plusHours(1),
         status = EmploymentRequest.Status.INTERVIEW_SCHEDULED),
@@ -151,7 +151,7 @@ class ApiControllerTest {
 
   @Test
   fun `DELETE queue?mode=greater removes all higher-priority elements`() {
-    val date = LocalDateTime.now().truncatedTo(SECONDS)
+    val date = ZonedDateTime.now().truncatedTo(SECONDS)
     val initial = arrayOf(
       EmploymentRequest(1, "bob", date),
       EmploymentRequest(2, "joe", date.minusHours(1)),

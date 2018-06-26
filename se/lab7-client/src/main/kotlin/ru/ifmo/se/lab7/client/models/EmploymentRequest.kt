@@ -2,15 +2,14 @@ package ru.ifmo.se.lab7.client.models
 
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.beans.property.SimpleIntegerProperty
-import java.time.LocalDate
 
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import ru.ifmo.se.lab7.client.LocaleControl
 import tornadofx.*
-import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.*
 import java.time.format.DateTimeFormatter.ISO_DATE_TIME
+import java.time.format.DateTimeFormatter.ISO_ZONED_DATE_TIME
 import javax.json.*
 
 class EmploymentRequest(
@@ -62,7 +61,7 @@ class EmploymentRequest(
     with(json) {
       add("id", id)
       add("applicant", applicant)
-      add("date", ISO_DATE_TIME.format(LocalDateTime.of(date, LocalTime.MIDNIGHT)))
+      add("date", ISO_ZONED_DATE_TIME.format(ZonedDateTime.of(LocalDateTime.of(date, LocalTime.MIDNIGHT), ZoneId.systemDefault())))
       add("locLatitude", locLatitude)
       add("locLongitude", locLongitude)
       add("details", details)

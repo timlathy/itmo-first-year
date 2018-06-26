@@ -43,8 +43,6 @@ class MainView : View() {
   init {
     titleProperty.i18n("main.title")
 
-    runAsync { dataController.refreshObjectList() }
-
     subscribe<NavigationHeader.FilterRequest> { navigation.navigateTo(filterView) }
 
     subscribe<NavigationHeader.FilterPredicateApplied> { e ->
@@ -57,9 +55,8 @@ class MainView : View() {
       runAsync {
         dataController.refreshObjectList()
       } ui { e ->
-        if (!error(e)) {
-          navigation.onRefreshCompleted()
-        }
+        error(e)
+        navigation.onRefreshCompleted()
       }
     }
 

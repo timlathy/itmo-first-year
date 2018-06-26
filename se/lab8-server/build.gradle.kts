@@ -29,7 +29,7 @@ repositories {
 
 dependencies {
   compile(kotlinModule("stdlib-jdk8", kotlin_version))
-  compile("com.github.thymelous:pearl:1bb97d66ef")
+  compile("com.github.thymelous:pearl:ec54b80187")
   compile("com.sparkjava:spark-core:2.7.2")
   compile("com.github.perwendel:spark-kotlin:master-SNAPSHOT")
   compile("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.5")

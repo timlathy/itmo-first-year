@@ -3,7 +3,7 @@ package ru.ifmo.se.lab8
 import org.mindrot.jbcrypt.BCrypt
 import java.util.*
 
-const val BCRYPT_COST = 13
+const val BCRYPT_COST = 7 /* 13 is the recommended value for real apps, but it's intentionally slow and I don't want slow */
 
 object Auth {
   private var authenticator: ((String, String) -> Boolean)? = BCrypt::checkpw

@@ -1,6 +1,6 @@
 package ru.ifmo.se.lab8
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 import com.fasterxml.jackson.annotation.*
 import org.pearl.Changeset
@@ -21,8 +21,8 @@ data class EmploymentRequest(
 
   val applicant: String = "",
 
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-  val date: LocalDateTime = LocalDateTime.now(),
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssxxxxx")
+  val date: ZonedDateTime = ZonedDateTime.now(),
 
   val locLatitude: Double = 0.0,
 
@@ -62,13 +62,13 @@ data class EmploymentRequest(
   enum class ColorCode { ORANGE, BLUE, GREEN }
 
   override fun compareTo(other: EmReq): Int =
-    Comparator.comparing<EmReq, LocalDateTime> { it.date }.reversed().compare(this, other)
+    Comparator.comparing<EmReq, ZonedDateTime> { it.date }.reversed().compare(this, other)
 
   infix fun greaterThan(changeset: Changeset<EmReq>) =
-    this["date"] lte changeset.changes["date"] as LocalDateTime
+    this["date"] lte changeset.changes["date"] as ZonedDateTime
 
   infix fun lesserThan(changeset: Changeset<EmReq>) =
-    this["date"] gte changeset.changes["date"] as LocalDateTime
+    this["date"] gte changeset.changes["date"] as ZonedDateTime
 
   @JsonIgnoreProperties
   override val tableName = super.tableName

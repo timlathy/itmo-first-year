@@ -22,6 +22,7 @@ class ApiController(http: Http) {
   init {
     http.before {
       if (!Auth.authenticateHeader(request.headers("Authorization"))) halt(403)
+      println("Incoming connection ${request.requestMethod()} ${request.pathInfo()}")
     }
 
     http.get("/queue") { 

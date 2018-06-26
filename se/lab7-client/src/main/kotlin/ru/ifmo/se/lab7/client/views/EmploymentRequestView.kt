@@ -11,10 +11,6 @@ import ru.ifmo.se.lab7.client.models.Validators.Companion.textContainingDoubleBe
 import tornadofx.*
 
 class EmploymentRequestView: View() {
-  companion object {
-    val DOUBLE_REGEX = """\d+([,.]\d+)?""".toRegex()
-  }
-
   val model = EmploymentRequestModel(EmploymentRequest())
 
   var isNewModel: SimpleBooleanProperty = SimpleBooleanProperty(false)
