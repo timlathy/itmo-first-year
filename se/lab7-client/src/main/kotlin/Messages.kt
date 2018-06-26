@@ -4,8 +4,10 @@ class Messages : MapResourceBundle<String, String>(mapOf(
   "auth.login" to "Login",
   "auth.title" to "Authentication",
   "main.title" to "EmploymentRequest Manager",
+
   "main.map_view" to "Map",
   "main.dashboard_view" to "Dashboard",
+
   "filters.title" to "Filters",
   "filters.name" to "Applicants by name (starting with letter)",
   "filters.location" to "Location",
@@ -15,6 +17,7 @@ class Messages : MapResourceBundle<String, String>(mapOf(
   "filters.date" to "Date",
   "filters.status" to "Status",
   "filters.color_codes" to "Color codes",
+
   "erview.new" to "New employment request",
   "erview.editing" to "{}'s employment request",
   "erview.applicant" to "Applicant",
@@ -34,13 +37,22 @@ class Messages : MapResourceBundle<String, String>(mapOf(
   "erview.add_if_max" to "Only if it has the highest priority",
   "erview.add_if_min" to "Only if it has the lowest priority",
   "erview.add_uncond" to "Add unconditionally",
+
   "nav.party" to "Party time!",
   "nav.import" to "Import from a file...",
   "nav.export" to "Export to a file...",
   "nav.filters" to "Filters",
   "nav.refresh" to "Refresh objects",
   "nav.new_item" to "New",
+
   "api.error" to "An error has occurred. Please try again later",
   "api.validation_error" to "Please ensure the data you've entered is correct",
-  "validation.range" to "The specified value should be in the range of {from} to {to}"
+  "validation.range" to "The specified value should be in the range of {from} to {to}",
+
+  "enum.status.interview_scheduled" to "Interview scheduled",
+  "enum.status.processing" to "Processing",
+  "enum.status.rejected" to "Rejected",
+  "enum.color_code.orange" to "Orange",
+  "enum.color_code.blue" to "Blue",
+  "enum.color_code.green" to "Green"
 ))

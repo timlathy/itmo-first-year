@@ -42,5 +42,12 @@ class Messages_ru_RU : MapResourceBundle<String, String>(mapOf(
   "nav.new_item" to "Новый запрос",
   "api.error" to "Произошла ошибка. Пожалуйста, повторите запрос позже",
   "api.validation_error" to "Пожалуйста, убедись в том, что введенные вами данные верны",
-  "validation.range" to "Введенное значение должно находиться в диапазоне от {from} до {to}"
+  "validation.range" to "Введенное значение должно находиться в диапазоне от {from} до {to}",
+
+  "enum.status.interview_scheduled" to "Интервью запланировано",
+  "enum.status.processing" to "В обработке",
+  "enum.status.rejected" to "Отклонено",
+  "enum.color_code.orange" to "Оранжевый",
+  "enum.color_code.blue" to "Синий",
+  "enum.color_code.green" to "Зеленый"
 ))

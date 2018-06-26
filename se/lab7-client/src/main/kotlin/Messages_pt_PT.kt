@@ -42,5 +42,12 @@ class Messages_pt_PT : MapResourceBundle<String, String>(mapOf(
   "nav.new_item" to "Novo",
   "api.error" to "Ocorreu um erro. Por favor, tente novamente mais tarde",
   "api.validation_error" to "Por favor, verifique se os dados que você digitou estão corretos",
-  "validation.range" to "O valor especificado deve estar no intervalo de {from} a {to}"
+  "validation.range" to "O valor especificado deve estar no intervalo de {from} a {to}",
+
+  "enum.status.interview_scheduled" to "Entrevista agendada",
+  "enum.status.processing" to "Em processamento",
+  "enum.status.rejected" to "Rejeitado",
+  "enum.color_code.orange" to "Laranja",
+  "enum.color_code.blue" to "Azul",
+  "enum.color_code.green" to "Verde"
 ))

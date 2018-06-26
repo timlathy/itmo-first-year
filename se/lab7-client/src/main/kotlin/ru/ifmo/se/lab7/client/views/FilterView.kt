@@ -4,6 +4,7 @@ import javafx.collections.ListChangeListener
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.util.StringConverter
+import ru.ifmo.se.lab7.client.LocaleControl
 import ru.ifmo.se.lab7.client.i18n
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequestFilter
@@ -133,7 +134,7 @@ class FilterView: View() {
       field {
         labelProperty.i18n("filters.status")
         val list = observableList(*model.includedStatuses.keys.toTypedArray())
-        checklistview(list).apply {
+        val listView = checklistview(list).apply {
           /* https://stackoverflow.com/a/17456527/1726690 */
           prefHeight = list.size * 26 + 2.0
 
@@ -153,11 +154,21 @@ class FilterView: View() {
             }
           }
         }
+
+        LocaleControl.resourcesProperty().onChange {
+          list.removeAll()
+          list.addAll(*model.includedStatuses.keys.toTypedArray())
+
+          model.includedStatuses.forEach { k, v ->
+            if (v) listView.checkModel.check(k)
+            else listView.checkModel.clearCheck(k)
+          }
+        }
       }
       field {
         labelProperty.i18n("filters.color_codes")
         val list = observableList(*model.includedColorCodes.keys.toTypedArray())
-        checklistview(list).apply {
+        val listView = checklistview(list).apply {
           /* https://stackoverflow.com/a/17456527/1726690 */
           prefHeight = list.size * 26 + 2.0
 
@@ -175,6 +186,16 @@ class FilterView: View() {
               model.includedColorCodes[it] = false
               model.includedColorCodes.markDirty()
             }
+          }
+        }
+
+        LocaleControl.resourcesProperty().onChange {
+          list.removeAll()
+          list.addAll(*model.includedColorCodes.keys.toTypedArray())
+
+          model.includedColorCodes.forEach { k, v ->
+            if (v) listView.checkModel.check(k)
+            else listView.checkModel.clearCheck(k)
           }
         }
       }

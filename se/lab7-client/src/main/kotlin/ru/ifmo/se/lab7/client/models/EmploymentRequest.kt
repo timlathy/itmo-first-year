@@ -6,6 +6,7 @@ import java.time.LocalDate
 
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
+import ru.ifmo.se.lab7.client.LocaleControl
 import tornadofx.*
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -65,14 +66,22 @@ class EmploymentRequest(
       add("locLatitude", locLatitude)
       add("locLongitude", locLongitude)
       add("details", details)
-      add("status", status.toString())
-      add("colorCode", colorCode.toString())
+      add("status", status.name)
+      add("colorCode", colorCode.name)
     }
   }
 
-  enum class Status { INTERVIEW_SCHEDULED, PROCESSING, REJECTED }
+  enum class Status {
+    INTERVIEW_SCHEDULED, PROCESSING, REJECTED;
 
-  enum class ColorCode { ORANGE, BLUE, GREEN }
+    override fun toString() = LocaleControl.string("enum.status." + this.name.toLowerCase())
+  }
+
+  enum class ColorCode {
+    ORANGE, BLUE, GREEN;
+
+    override fun toString() = LocaleControl.string("enum.color_code." + this.name.toLowerCase())
+  }
 
   override fun compareTo(other: EmploymentRequest): Int =
     Comparator.comparing<EmploymentRequest, Status> { it.status }

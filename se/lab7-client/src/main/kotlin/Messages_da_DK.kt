@@ -42,5 +42,12 @@ class Messages_da_DK : MapResourceBundle<String, String>(mapOf(
   "nav.new_item" to "Nieuwe",
   "api.error" to "Er is een fout opgetreden. Probeer het later opnieuw",
   "api.validation_error" to "Zorg ervoor dat de gegevens die u hebt ingevoerd correct zijn",
-  "validation.range" to "De opgegeven waarde moet in het bereik van {from} tot {to} liggen"
+  "validation.range" to "De opgegeven waarde moet in het bereik van {from} tot {to} liggen",
+
+  "enum.status.interview_scheduled" to "Interview gepland",
+  "enum.status.processing" to "Verwerken",
+  "enum.status.rejected" to "Verworpen",
+  "enum.color_code.orange" to "Oranje",
+  "enum.color_code.blue" to "Blauw",
+  "enum.color_code.green" to "Groen"
 ))
