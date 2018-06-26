@@ -11,8 +11,10 @@ fun StringProperty.i18n(key: String) = bind(LocaleControl.binding(key))
 object LocaleControl {
   private val resources: ObjectProperty<ResourceBundle> = SimpleObjectProperty(ResourceBundle.getBundle("Messages"))
 
-  fun change(loc: Locale) =
+  fun change(loc: Locale) {
+    Locale.setDefault(loc)
     resources.set(ResourceBundle.getBundle("Messages", loc))
+  }
 
   fun resourcesProperty() = resources
 
