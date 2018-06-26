@@ -105,8 +105,8 @@ class MapView: View() {
         else  -> "map-pin--orange"
       })
 
-      layoutX = element.location.second * MAP_AXIS_SCALE
-      layoutY = element.location.first * MAP_AXIS_SCALE
+      layoutX = element.locLongitude * MAP_AXIS_SCALE
+      layoutY = element.locLatitude * MAP_AXIS_SCALE
 
       tooltip {
         text = element.applicant

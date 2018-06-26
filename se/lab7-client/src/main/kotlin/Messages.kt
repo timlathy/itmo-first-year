@@ -19,7 +19,7 @@ class Messages : MapResourceBundle<String, String>(mapOf(
   "erview.editing" to "{}'s employment request",
   "erview.applicant" to "Applicant",
   "erview.date" to "Date",
-  "erview.location" to "Location",
+  "erview.location" to "Location (latitude, longitude)",
   "erview.status" to "Status",
   "erview.color_code" to "Color code",
   "erview.details" to "Details",

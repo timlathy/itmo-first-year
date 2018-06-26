@@ -19,7 +19,7 @@ class Messages_da_DK : MapResourceBundle<String, String>(mapOf(
   "erview.editing" to "werkgelegenheid verzoek {}'s",
   "erview.applicant" to "Aanvrager",
   "erview.date" to "Datum",
-  "erview.location" to "Plaats",
+  "erview.location" to "Plaats (breedtegraad, lengtegraad)",
   "erview.status" to "Staat",
   "erview.color_code" to "Kleurcodes",
   "erview.details" to "Details",

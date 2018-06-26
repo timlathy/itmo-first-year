@@ -35,17 +35,17 @@ class FilterView: View() {
     }
 
     if (model.minLatitude.isDirty) pred = pred.and {
-      it.location.first >= model.minLatitude.get()
+      it.locLatitude >= model.minLatitude.get()
     }
     if (model.maxLatitude.isDirty) pred = pred.and {
-      it.location.first <= model.maxLatitude.get()
+      it.locLatitude <= model.maxLatitude.get()
     }
 
     if (model.minLongitude.isDirty) pred = pred.and {
-      it.location.second >= model.minLongitude.get()
+      it.locLongitude >= model.minLongitude.get()
     }
     if (model.maxLongitude.isDirty) pred = pred.and {
-      it.location.second <= model.maxLongitude.get()
+      it.locLongitude <= model.maxLongitude.get()
     }
 
     if (model.minDate.isDirty) pred = pred.and {

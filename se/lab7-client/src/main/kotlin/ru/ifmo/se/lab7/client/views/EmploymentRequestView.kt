@@ -5,7 +5,6 @@ import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import ru.ifmo.se.lab7.client.models.EmploymentRequest
 import ru.ifmo.se.lab7.client.models.EmploymentRequestModel
-import ru.ifmo.se.lab7.client.models.LocationConverter
 import ru.ifmo.se.lab7.client.controllers.EmploymentRequestController.Actions
 import ru.ifmo.se.lab7.client.i18n
 import tornadofx.*
@@ -39,7 +38,8 @@ class EmploymentRequestView: View() {
         }
         field {
           labelProperty.i18n("erview.location")
-          textfield { bind(model.location, converter = LocationConverter()) }
+          textfield { bind(model.locLatitude) }
+          textfield { bind(model.locLongitude) }
         }
         field {
           labelProperty.i18n("erview.status")

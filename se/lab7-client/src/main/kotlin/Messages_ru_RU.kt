@@ -19,7 +19,7 @@ class Messages_ru_RU : MapResourceBundle<String, String>(mapOf(
   "erview.editing" to "Запрос от {}",
   "erview.applicant" to "Кандидат",
   "erview.date" to "Дата",
-  "erview.location" to "Местоположение",
+  "erview.location" to "Местоположение (широта, долгота)",
   "erview.status" to "Статус",
   "erview.color_code" to "Цветовой код",
   "erview.details" to "Детали",
